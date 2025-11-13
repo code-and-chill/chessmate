@@ -357,14 +357,21 @@ See [`docs/README.md`](docs/README.md) for comprehensive documentation guideline
 │       └── versions/                   # Versioned integration snapshots
 │           └── {integration}-{type}-v{ver}-{date}.md
 │
-├── {service-name}/                     # Level 4: Service-specific
+├── {service-name}/                     # Level 4: Service-specific (REQUIRED STRUCTURE)
 │   ├── README.md                       # Build, run, test instructions (required)
-│   └── docs/                           # Service documentation (optional)
-│       ├── README.md                   # Service context and capabilities
-│       ├── RUNBOOK.md                  # Operational procedures
+│   └── docs/                           # Service documentation (required)
+│       ├── README.md                   # Service overview (required)
+│       ├── GETTING_STARTED.md          # Dev setup guide (required)
+│       ├── overview.md                 # API/feature specification
 │       ├── ARCHITECTURE.md             # Technical design
-│       └── integrations/               # Service-specific integrations
-│           └── {integration}.md        # Implementation details
+│       ├── RUNBOOK.md                  # Operational procedures
+│       ├── integrations/               # Service-specific integrations
+│       │   └── {integration}.md        # Implementation details
+│       └── migrations/                 # Iterative development phases
+│           ├── README.md               # Phase versioning guide
+│           ├── phase-1.md              # MVP/Phase 1 decisions
+│           ├── phase-2.md              # Phase 2 enhancements
+│           └── phase-{N}.md            # Future phases
 │
 └── contracts/                          # API contracts
     └── openapi/                        # OpenAPI specifications
@@ -466,23 +473,103 @@ Examples:
 
 ### Service Documentation Requirements
 
-**Service README.md** (in service root)
+Every service MUST follow this documentation structure under `/{service-name}/docs/`:
+
+```
+{service-name}/
+├── README.md                    # Root service README (required)
+└── docs/
+    ├── README.md               # Service overview (required)
+    ├── GETTING_STARTED.md      # Development setup (required)
+    ├── overview.md             # API/feature specification
+    ├── ARCHITECTURE.md         # Technical design
+    ├── RUNBOOK.md              # Operational procedures
+    ├── integrations/           # Service-specific integrations
+    │   └── {integration}.md    # Implementation details
+    └── migrations/             # Iterative development phases
+        ├── phase-1.md          # Phase 1 plan and decisions
+        ├── phase-2.md          # Phase 2 plan and decisions
+        └── README.md           # Versioning guide
+```
+
+**Service README.md** (in service root - `/{service-name}/README.md`)
 - Quick start: build, run, test commands
-- Dependencies and prerequisites  
+- Dependencies and prerequisites
 - Environment configuration
 - Common troubleshooting
+- Links to documentation in `docs/` folder
 
-**Service docs/README.md** (service context)
+**Service docs/README.md** (service context - `/{service-name}/docs/README.md`)
 - Business domain and capabilities
 - Ubiquitous language glossary
 - API overview and key endpoints
 - Integration patterns
+- Service dependencies
 
-**Service docs/RUNBOOK.md** (operations)
+**Service docs/GETTING_STARTED.md** (development guide - `/{service-name}/docs/GETTING_STARTED.md`)
+- Step-by-step development environment setup
+- Database initialization
+- Running tests
+- Common development tasks
+- Troubleshooting development issues
+
+**Service docs/overview.md** (specification - `/{service-name}/docs/overview.md`)
+- API endpoints with examples
+- Data models and schemas
+- Feature specification
+- Scope and limitations
+- Future enhancements
+
+**Service docs/ARCHITECTURE.md** (technical design - `/{service-name}/docs/ARCHITECTURE.md`)
+- System architecture diagram
+- Component relationships
+- Data flow
+- Design patterns used
+- Technical decisions and trade-offs
+
+**Service docs/RUNBOOK.md** (operations - `/{service-name}/docs/RUNBOOK.md`)
 - Deployment procedures
-- Monitoring and alerting
+- Monitoring and alerting setup
 - Incident response procedures
 - Performance tuning
+- Log analysis and debugging
+
+**Service docs/integrations/{integration}.md** (cross-service integration)
+- How this service integrates with other services
+- APIs consumed and provided
+- Event contracts
+- Error handling
+- Testing integration
+
+**Service docs/migrations/README.md** (phase versioning guide)
+- Overview of service development phases
+- How to document new phases
+- Naming convention: `phase-{number}.md`
+- Version history and decisions
+
+**Service docs/migrations/phase-{N}.md** (iterative development)
+- Phase objectives and goals
+- Scope: what's included/excluded
+- Architecture decisions made
+- Database schema changes
+- API endpoints added/modified
+- Breaking changes
+- Testing strategy
+- Deployment considerations
+- Dependencies on other services
+- Blockers or risks
+
+### Service Documentation Template Checklist
+
+When creating a new service, ensure:
+- [ ] `/{service-name}/README.md` exists with quickstart
+- [ ] `/{service-name}/docs/README.md` exists with overview
+- [ ] `/{service-name}/docs/GETTING_STARTED.md` exists with setup steps
+- [ ] `/{service-name}/docs/overview.md` exists with API spec
+- [ ] `/{service-name}/docs/ARCHITECTURE.md` exists with design
+- [ ] `/{service-name}/docs/RUNBOOK.md` exists with operations
+- [ ] `/{service-name}/docs/migrations/README.md` exists
+- [ ] `/{service-name}/docs/migrations/phase-1.md` documents MVP
 
 ### Documentation Principles
 
@@ -503,6 +590,13 @@ Examples:
 - Use consistent terminology
 - Maintain cross-references
 - Regular documentation reviews
+
+**Versioning Documentation**
+- Use `docs/migrations/` like git commits for services
+- Track decisions and rationale for each phase
+- Link phases to git tags/releases
+- Never delete old phase documentation
+- Use semantic versioning: v{major}.{minor}.{patch}
 
 ---
 
