@@ -1,0 +1,46 @@
+{
+  "name": "chess-app",
+  "version": "0.1.0",
+  "description": "Shared chess /play experience for web and mobile using React Native + react-native-web",
+  "main": "index.ts",
+  "module": "dist/index.es.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "start": "expo start",
+    "web": "expo start --web",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "build:web": "expo export --platform web",
+    "build:android": "eas build --platform android",
+    "build:ios": "eas build --platform ios",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist .expo"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0",
+    "react-native": "^0.71.0",
+    "react-native-web": "^0.18.0"
+  },
+  "devDependencies": {
+    "@types/minimatch": "^6.0.0",
+    "@types/react": "^18.0.0",
+    "@types/react-native": "^0.71.0",
+    "react": "^18.3.1",
+    "react-native": "^0.71.19",
+    "react-native-web": "^0.18.12",
+    "typescript": "^5.0.0"
+  },
+  "keywords": [
+    "chess",
+    "react-native",
+    "web",
+    "mobile"
+  ],
+  "author": "Chessmate",
+  "license": "MIT",
+  "dependencies": {
+    "@expo/metro-runtime": "^6.1.2",
+    "expo": "^48.0.21",
+    "expo-cli": "^6.3.10"
+  }
+}

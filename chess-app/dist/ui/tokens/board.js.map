@@ -1,0 +1,1 @@
+{"version":3,"file":"board.js","sourceRoot":"","sources":["../../../src/ui/tokens/board.ts"],"names":[],"mappings":"AAAA,gCAAgC;AAChC,MAAM,CAAC,MAAM,WAAW,GAAG;IACzB,IAAI,EAAE,GAAG,EAAE,6BAA6B;IACxC,UAAU,EAAE,EAAE,EAAE,WAAW;IAC3B,YAAY,EAAE,EAAE;CACR,CAAC"}

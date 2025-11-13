@@ -1,0 +1,43 @@
+{
+  "game": {
+    "status_waiting": "Warte auf Gegner...",
+    "status_in_progress": "Spiel läuft",
+    "status_white_won": "Weiß gewonnen",
+    "status_black_won": "Schwarz gewonnen",
+    "status_draw": "Remis",
+    "white": "Weiß",
+    "black": "Schwarz",
+    "your_turn": "Du bist dran",
+    "opponent_turn": "Gegner ist dran"
+  },
+  "actions": {
+    "play": "Spielen",
+    "resign": "Aufgeben",
+    "draw": "Remis",
+    "undo": "Rückgängig",
+    "settings": "Einstellungen",
+    "help": "Hilfe"
+  },
+  "results": {
+    "you_won": "Du hast gewonnen!",
+    "you_lost": "Du hast verloren",
+    "draw_agreed": "Remis vereinbart",
+    "opponent_resigned": "Gegner hat aufgegeben"
+  },
+  "moves": {
+    "move_number": "Zug {{number}}",
+    "last_move": "Letzter Zug",
+    "pawn": "Bauer",
+    "knight": "Springer",
+    "bishop": "Läufer",
+    "rook": "Turm",
+    "queen": "Dame",
+    "king": "König"
+  },
+  "errors": {
+    "login_required": "Bitte melden Sie sich an",
+    "invalid_move": "Ungültiger Zug",
+    "game_not_found": "Spiel nicht gefunden",
+    "connection_lost": "Verbindung verloren"
+  }
+}

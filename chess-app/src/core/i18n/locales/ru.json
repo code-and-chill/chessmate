@@ -1,0 +1,43 @@
+{
+  "game": {
+    "status_waiting": "Ожидание противника...",
+    "status_in_progress": "Игра идет",
+    "status_white_won": "Белые победили",
+    "status_black_won": "Черные победили",
+    "status_draw": "Ничья",
+    "white": "Белые",
+    "black": "Черные",
+    "your_turn": "Ваш ход",
+    "opponent_turn": "Ход противника"
+  },
+  "actions": {
+    "play": "Играть",
+    "resign": "Сдаться",
+    "draw": "Ничья",
+    "undo": "Отменить",
+    "settings": "Настройки",
+    "help": "Справка"
+  },
+  "results": {
+    "you_won": "Вы победили!",
+    "you_lost": "Вы проиграли",
+    "draw_agreed": "Ничья согласована",
+    "opponent_resigned": "Противник сдался"
+  },
+  "moves": {
+    "move_number": "Ход {{number}}",
+    "last_move": "Последний ход",
+    "pawn": "Пешка",
+    "knight": "Конь",
+    "bishop": "Слон",
+    "rook": "Ладья",
+    "queen": "Королева",
+    "king": "Король"
+  },
+  "errors": {
+    "login_required": "Пожалуйста, войдите",
+    "invalid_move": "Недопустимый ход",
+    "game_not_found": "Игра не найдена",
+    "connection_lost": "Соединение потеряно"
+  }
+}

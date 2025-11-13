@@ -1,0 +1,40 @@
+{
+  "game": {
+    "status_waiting": "Waiting for opponent...",
+    "status_in_progress": "Game in progress",
+    "status_ended": "Game ended",
+    "you": "You",
+    "opponent": "Opponent",
+    "white": "White",
+    "black": "Black",
+    "account": "Account"
+  },
+  "actions": {
+    "resign": "Resign",
+    "draw": "Draw",
+    "accept": "Accept",
+    "decline": "Decline"
+  },
+  "results": {
+    "white_wins": "White wins",
+    "black_wins": "Black wins",
+    "draw": "Draw",
+    "game_over": "Game Over",
+    "you_lost_resignation": "You lost by resignation",
+    "you_won_resignation": "You won by resignation",
+    "stalemate": "Stalemate",
+    "checkmate": "Checkmate",
+    "insufficient_material": "Insufficient material"
+  },
+  "moves": {
+    "moves": "Moves",
+    "no_moves": "No moves yet",
+    "move_number": "{{number}}."
+  },
+  "errors": {
+    "login_required": "Please log in to play",
+    "game_not_found": "Game not found",
+    "move_failed": "Move failed",
+    "connection_error": "Connection error"
+  }
+}

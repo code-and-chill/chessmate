@@ -1,0 +1,43 @@
+{
+  "game": {
+    "status_waiting": "Esperando al oponente...",
+    "status_in_progress": "Partida en curso",
+    "status_white_won": "Blancas ganaron",
+    "status_black_won": "Negras ganaron",
+    "status_draw": "Tablas",
+    "white": "Blancas",
+    "black": "Negras",
+    "your_turn": "Tu turno",
+    "opponent_turn": "Turno del oponente"
+  },
+  "actions": {
+    "play": "Jugar",
+    "resign": "Rendirse",
+    "draw": "Tablas",
+    "undo": "Deshacer",
+    "settings": "Configuración",
+    "help": "Ayuda"
+  },
+  "results": {
+    "you_won": "¡Ganaste!",
+    "you_lost": "Perdiste",
+    "draw_agreed": "Se acordó tablas",
+    "opponent_resigned": "El oponente se rindió"
+  },
+  "moves": {
+    "move_number": "Movimiento {{number}}",
+    "last_move": "Último movimiento",
+    "pawn": "Peón",
+    "knight": "Caballo",
+    "bishop": "Alfil",
+    "rook": "Torre",
+    "queen": "Reina",
+    "king": "Rey"
+  },
+  "errors": {
+    "login_required": "Por favor inicia sesión",
+    "invalid_move": "Movimiento inválido",
+    "game_not_found": "Partida no encontrada",
+    "connection_lost": "Conexión perdida"
+  }
+}

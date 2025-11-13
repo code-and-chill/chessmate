@@ -1,0 +1,43 @@
+{
+  "game": {
+    "status_waiting": "相手を待機中...",
+    "status_in_progress": "ゲーム中",
+    "status_white_won": "白が勝利",
+    "status_black_won": "黒が勝利",
+    "status_draw": "引き分け",
+    "white": "白",
+    "black": "黒",
+    "your_turn": "あなたのターン",
+    "opponent_turn": "相手のターン"
+  },
+  "actions": {
+    "play": "プレイ",
+    "resign": "投了",
+    "draw": "和局",
+    "undo": "戻す",
+    "settings": "設定",
+    "help": "ヘルプ"
+  },
+  "results": {
+    "you_won": "あなたが勝ちました！",
+    "you_lost": "あなたが負けました",
+    "draw_agreed": "引き分けが合意されました",
+    "opponent_resigned": "相手が投了しました"
+  },
+  "moves": {
+    "move_number": "{{number}}手目",
+    "last_move": "最終手",
+    "pawn": "ポーン",
+    "knight": "ナイト",
+    "bishop": "ビショップ",
+    "rook": "ルーク",
+    "queen": "クイーン",
+    "king": "キング"
+  },
+  "errors": {
+    "login_required": "ログインしてください",
+    "invalid_move": "無効な手です",
+    "game_not_found": "ゲームが見つかりません",
+    "connection_lost": "接続が失われました"
+  }
+}
