@@ -1,0 +1,32 @@
+name: chess-app
+kind: app
+language: typescript
+runtime: node18
+
+description: React Native mobile chess application with real-time gameplay and social features
+
+commands:
+  dev: "npm start"
+  test: "npm run test"
+  build: "npm run build"
+  lint: "npm run lint && npm run format:check"
+  logs: "docker logs chess-app --tail ${lines}"
+
+dependencies:
+  dev:
+    - account-api
+    - live-game-api
+    - matchmaking-api
+  test:
+    - account-api
+    - live-game-api
+    - matchmaking-api
+  build: []
+  deploy: []
+
+infra: {}
+
+tags:
+  - client
+  - mobile
+  - react-native

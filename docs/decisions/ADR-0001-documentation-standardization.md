@@ -1,5 +1,5 @@
 ---
-title: AGENTS.md Enforcement Summary
+title: ADR-0001 - Documentation Standardization
 service: global
 status: active
 last_reviewed: 2025-11-15

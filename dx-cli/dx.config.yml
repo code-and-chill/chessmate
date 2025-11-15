@@ -1,0 +1,86 @@
+---
+version: "1.0"
+title: ChessMate Developer Experience Platform
+description: Unified CLI for developer workflows across the monorepo
+
+# Global configuration
+global:
+  # Service discovery
+  service_discovery:
+    patterns:
+      - "**/service.yaml"
+      - "!node_modules/**"
+      - "!dist/**"
+    root: "."
+
+  # Logging
+  logging:
+    level: "info" # debug, info, warn, error
+    format: "pretty" # pretty, json
+    prefix_logs: true
+
+  # Execution behavior
+  execution:
+    parallel_limit: 4
+    stream_logs: true
+    exit_on_error: true
+    timeout_ms: 0 # 0 = no timeout
+
+# Environment-specific configurations
+environments:
+  dev:
+    name: Development
+    description: Local development environment
+    kube_context: "docker-desktop"
+    namespace: "default"
+    helm_root: "charts"
+    backing_services:
+      - docker
+      - docker-compose
+
+  staging:
+    name: Staging
+    description: Pre-production staging environment
+    kube_context: "staging-cluster"
+    namespace: "chessmate-staging"
+    helm_root: "charts"
+
+  prod:
+    name: Production
+    description: Production environment
+    kube_context: "prod-cluster"
+    namespace: "chessmate-prod"
+    helm_root: "charts"
+
+# Mise tool management
+mise:
+  enabled: true
+  version_file: ".mise.toml"
+  auto_install: true
+
+# Service groups (for convenience)
+service_groups:
+  apis:
+    - account-api
+    - live-game-api
+    - matchmaking-api
+
+  apps:
+    - chess-app
+
+  all:
+    - account-api
+    - live-game-api
+    - matchmaking-api
+    - chess-app
+
+# Hook definitions (global)
+hooks:
+  pre_dev: null
+  post_dev: null
+  pre_test: null
+  post_test: null
+  pre_build: null
+  post_build: null
+  pre_deploy: null
+  post_deploy: null
