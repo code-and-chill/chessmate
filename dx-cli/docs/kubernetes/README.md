@@ -14,13 +14,18 @@ Complete documentation for deploying services to Kubernetes using `dx-cli`.
 
 New to `dx-cli` Kubernetes features? Start here:
 
-1. **[Kubernetes Deployment Guide](./GUIDE.md)** - Complete user guide with examples
-   - Quick start (5 minutes)
-   - Command reference
-   - Troubleshooting
-   - Advanced usage
+1. **[Quickstart Guide](./QUICKSTART.md)** - Get local K8s running in under 5 minutes ⚡
+   - One-time setup (kind installation)
+   - Initialize cluster
+   - Deploy and access services
+   - Common commands and troubleshooting
 
-2. **First-time setup**:
+2. **[Complete Deployment Guide](./GUIDE.md)** - Full user guide with examples
+   - Command reference
+   - Advanced usage
+   - Production workflows
+
+3. **First-time setup**:
    ```bash
    dx k8s init-local
    dx env use local
@@ -32,11 +37,16 @@ New to `dx-cli` Kubernetes features? Start here:
 
 ### User Guides
 
+- **[QUICKSTART.md](./QUICKSTART.md)** - Get started in under 5 minutes
+  - Prerequisites and installation
+  - Local cluster setup
+  - Deploy options (quick test vs. real build)
+  - Access and troubleshooting
+
 - **[GUIDE.md](./GUIDE.md)** - Complete deployment guide
   - Command reference (env, k8s, deploy, logs, shell, open)
   - Configuration basics
-  - Troubleshooting
-  - Examples and workflows
+  - Advanced usage and workflows
 
 ### Reference Documentation
 
