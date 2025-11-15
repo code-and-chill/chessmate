@@ -387,31 +387,31 @@ git push origin feature/service-name-capability
 
 ### Kotlin Services
 **Architecture**: Domain-Driven Design with Spring Boot
-**Guide**: [`docs/architecture-kotlin.md`](docs/architecture-kotlin.md)
+**Guide**: [`docs/README.md`](docs/README.md)
 **Key Patterns**: Aggregate roots, domain events, repository pattern
 **Testing**: JUnit 5, Testcontainers, architecture tests
 
 ### Go Services  
 **Architecture**: Clean architecture with Chi/Fiber
-**Guide**: [`docs/architecture-go.md`](docs/architecture-go.md)
+**Guide**: [`docs/README.md`](docs/README.md)
 **Key Patterns**: Dependency injection, middleware, structured logging
 **Testing**: Table-driven tests, Testcontainers integration
 
 ### Python Services
 **Architecture**: FastAPI with Pydantic models
-**Guide**: [`docs/architecture-python.md`](docs/architecture-python.md)
+**Guide**: [`docs/README.md`](docs/README.md)
 **Key Patterns**: Async/await, dependency injection, type hints
 **Testing**: pytest, async test patterns, ML model testing
 
 ### Rust Services
 **Architecture**: Actix Web with strong typing
-**Guide**: [`docs/architecture-rust.md`](docs/architecture-rust.md)
+**Guide**: [`docs/README.md`](docs/README.md)
 **Key Patterns**: Error handling, async streams, zero-copy serialization
 **Testing**: Unit tests, integration tests, benchmarks
 
 ### TypeScript Services
 **Architecture**: Node.js with GraphQL/REST
-**Guide**: [`docs/architecture-typescript.md`](docs/architecture-typescript.md)
+**Guide**: [`docs/README.md`](docs/README.md)
 **Key Patterns**: BFF pattern, schema-first GraphQL, middleware
 **Testing**: Vitest, supertest, contract testing
 
