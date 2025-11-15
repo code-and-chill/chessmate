@@ -1,0 +1,201 @@
+# Dependencies
+node_modules/
+*.pyc
+__pycache__/
+*.egg-info/
+dist/
+build/
+*.class
+.gradle/
+target/
+Cargo.lock
+
+# Environment files
+.env
+.env.local
+.env.*.local
+venv/
+env/
+.venv
+
+# IDE & Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+*.sublime-project
+*.sublime-workspace
+.vim/
+.emacs.d/
+*.iml
+
+# Build outputs
+dist/
+build/
+out/
+bin/
+obj/
+*.o
+*.so
+*.a
+*.dylib
+*.dll
+*.exe
+
+# Package managers
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+Pipfile.lock
+Cargo.lock
+*.lock
+go.sum
+
+# Runtime & Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.gradle/wrapper/
+*.iml
+local.properties
+
+# Testing
+coverage/
+.nyc_output/
+*.lcov
+htmlcov/
+.pytest_cache/
+.coverage
+junit.xml
+
+# OS
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# Docker
+.dockerignore
+docker-compose.override.yml
+
+# Kotlin
+.kotlin/
+*.kt.bak
+.gradletasknamecache
+
+# Java
+.classpath
+.project
+.settings/
+*.jar
+*.war
+
+# Python
+*.pyc
+*.pyo
+__pycache__/
+*.egg-info/
+.Python
+dist/
+build/
+*.egg
+.tox/
+.coverage
+htmlcov/
+.pytest_cache/
+venv/
+ENV/
+env.bak/
+venv.bak/
+*.pipfile.lock
+
+# Go
+*.out
+/bin/
+/pkg/
+go.mod
+go.sum
+.env.test
+
+# Rust
+target/
+Cargo.lock
+**/*.rs.bk
+*.pdb
+.cargo/
+
+# Swift
+.build/
+.swiftpm/
+*.xcodeproj/
+*.xcworkspace/
+xcuserdata/
+DerivedData/
+.DS_Store
+*.swiftpm/
+
+# TypeScript/JavaScript
+node_modules/
+dist/
+build/
+*.tsbuildinfo
+.next/
+out/
+.cache/
+.expo/
+.expo-shared/
+dist-ssr/
+*.local
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.swp
+*~
+.#*
+
+# IDE specific
+.vscode/settings.json
+.vscode/launch.json
+.idea/workspace.xml
+.idea/tasks.xml
+*.sublime-workspace
+
+# OS specific
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# CI/CD
+.github/workflows/secrets
+.gitlab-ci.local.yml
+.travis.yml.local
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+.pgdata/
+
+# API keys and secrets
+.env.local
+.env.*.local
+secrets.json
+config.local.json
+
+# Monorepo specific
+dist/
+build/
+coverage/
+.cache/
+tmp/
+temp/
