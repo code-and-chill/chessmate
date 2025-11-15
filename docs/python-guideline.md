@@ -1,3 +1,11 @@
+---
+title: Python Service Architecture Guidelines
+service: global
+status: active
+last_reviewed: 2025-11-15
+type: standard
+---
+
 # Python Service Architecture Guidelines (Monocto)
 
 This document defines the architectural principles and implementation patterns for Python services in the **monocto** monorepo. Python services primarily handle ML/AI workloads, content processing, and data-intensive operations.

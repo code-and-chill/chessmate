@@ -1,3 +1,11 @@
+---
+title: Live Game Service Overview
+service: live-game-api
+status: active
+last_reviewed: 2025-11-15
+type: overview
+---
+
 # Live Game Service Documentation
 
 ## Overview

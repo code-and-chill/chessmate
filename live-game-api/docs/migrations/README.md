@@ -1,3 +1,11 @@
+---
+title: Live Game API Phase Documentation
+service: live-game-api
+status: active
+last_reviewed: 2025-11-15
+type: decision
+---
+
 # Live Game Service - Development Phases
 
 This directory tracks the iterative development and evolution of the Live Game Service using a phase-based approach, similar to git commits but at a service level.

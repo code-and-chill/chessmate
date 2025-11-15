@@ -1,3 +1,11 @@
+---
+title: Account Service - Phase 1 MVP
+service: account-api
+status: active
+last_reviewed: 2025-11-15
+type: decision
+---
+
 # Account Service - Phase 1: Authentication MVP
 
 **Version**: 1.0  

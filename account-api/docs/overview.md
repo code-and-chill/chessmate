@@ -1,3 +1,11 @@
+---
+title: Account API Specification
+service: account-api
+status: active
+last_reviewed: 2025-11-15
+type: overview
+---
+
 1. Background
 
 The account-api is the source of truth for player identity and profile in the chess platform.

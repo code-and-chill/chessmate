@@ -1,4 +1,10 @@
-"""Matchmaking API README."""
+---
+title: Matchmaking API
+service: matchmaking-api
+status: active
+last_reviewed: 2025-11-15
+type: overview
+---
 
 # Matchmaking API
 

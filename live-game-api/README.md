@@ -1,3 +1,11 @@
+---
+title: Live Game API
+service: live-game-api
+status: active
+last_reviewed: 2025-11-15
+type: overview
+---
+
 # Live Game API
 
 Real-time chess service for live, clock-based games. Handles game creation, move validation, clock management, and game termination.

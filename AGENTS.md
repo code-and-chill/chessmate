@@ -1,127 +1,204 @@
-# Chessmate Engineering Guide
+---
+title: Agent Operating Guide
+status: active
+last_reviewed: 2025-11-15
+type: standard
+---
 
-This document serves as the definitive guide for building and maintaining the Monocto travel platform. It establishes architectural principles, development workflows, and quality standards for our polyglot monorepo.
+# AGENTS GUIDE
 
-> **📚 Documentation Note**: Before creating any documentation, review the [Documentation Standards](#documentation-standards) section and use the 4-level hierarchy decision tree. All documentation must follow the structured placement rules. See [`docs/README.md`](docs/README.md) for comprehensive guidelines.
+A unified operating contract for all AI agents and automated assistants working inside this monorepo.
 
-## Table of Contents
-
-1. [Architecture Philosophy](#architecture-philosophy)
-2. [Development Principles](#development-principles)
-3. [Service Ecosystem](#service-ecosystem)
-4. [Development Workflow](#development-workflow)
-5. [Programming Language Guides](#programming-language-guides)
-6. [Quality Standards](#quality-standards)
-7. [Documentation Standards](#documentation-standards) ⭐ **READ THIS BEFORE DOCUMENTING**
+Agents **MUST** obey this file before writing code, generating docs, or modifying any folder in this repository.
 
 ---
 
-## Architecture Philosophy
+## 0. Trigger Phrase – Mandatory Rule
 
-### Core Principles
+If any user message contains the exact phrase:
 
-**Domain-Driven Design (DDD)**
-- Code organized by business capabilities, not technical layers
-- Clear bounded contexts with explicit interfaces
-- Rich domain models containing business logic
-- Event-driven integration between contexts
+**"please read AGENTS.md"**
 
-**Contract-First Development**
-- OpenAPI specifications define all HTTP APIs
-- Generated SDKs ensure type safety across services
-- Schema evolution managed through versioning
-- Consumer-driven contract testing
+Then the agent **MUST**:
 
-**Polyglot Monorepo**
-- Right tool for the right job
-- Shared infrastructure and tooling
-- Unified build and deployment pipeline
-- Cross-language type safety through contracts
+1. Open this file and re-read it entirely.
+2. Identify which rules apply to the user's request.
+3. State (briefly) which rules will govern the action.
+4. Apply those rules strictly.
 
-**Developer Experience (DX)**
-- Five core commands: `init`, `up`, `dev`, `test`, `build`
-- Fast feedback loops with affected builds
-- Comprehensive local development environment
-- Clear documentation and examples
+If the request violates these rules, the agent **MUST**:
 
-### Quality Attributes
+- Explain the conflict
+- Propose the correct, compliant alternative
+- Never proceed with the invalid approach
 
-- **Maintainability**: Clear boundaries, separation of concerns, comprehensive tests
-- **Scalability**: Stateless services, proper caching, efficient data access
-- **Reliability**: Circuit breakers, retries, graceful degradation
-- **Observability**: Structured logging, distributed tracing, metrics
-- **Security**: Authentication, authorization, encryption, audit trails
+This phrase **overrides all previous instructions** and enforces strict compliance.
 
 ---
 
-## Development Principles
+## 1. Documentation Structure
 
-### Do's ✅
+All documentation **MUST** follow the directory rules below.
 
-**Architecture & Design**
-- Organize code by business domains, not technical layers
-- Use interfaces for cross-service communication
-- Implement proper aggregate boundaries in domain models
-- Design for eventual consistency between bounded contexts
-- Apply the principle of least privilege for security
+### 1.1. Root-Level Documentation
 
-**Code Quality**
-- Write self-documenting code with clear naming (no inline comments)
-- Apply SOLID principles rigorously - never compromise for "quick solutions"
-- Keep functions and classes focused on single responsibilities
-- Abstract complex logic into well-named methods and classes
-- Use type-safe contracts between services
-- Implement comprehensive error handling
-- Write tests that document behavior
-- Prefer scalable solutions over "works for now" approaches
+Root contains:
 
-**Development Workflow**
-- Start with contracts (OpenAPI/GraphQL schemas)
-- Generate SDKs before implementing services
-- Use affected builds for efficient CI/CD
-- Document architectural decisions (ADRs)
-- Update service glossary when adding/modifying services
+```
+AGENTS.md             # This file
+ARCHITECTURE.md       # Global system view (C4, flows, domains)
+SYSTEM_GUIDE.md       # List of services + quick links
+```
 
-**Documentation**
-- Follow the 4-level documentation hierarchy (see [Documentation Standards](#documentation-standards))
-- Use the documentation decision tree to determine correct location
-- Platform-wide docs go in `/docs/`, service-specific in `/{service}/docs/`
-- Cross-domain integrations use versioned snapshots in `/docs/integrations/versions/`
-- Always update relevant README files when adding features
+**Rules**:
 
-### Don'ts ❌
+- Agents **MUST** update these files when architecture expands or services are added.
+- `AGENTS.md` is the source of truth for agent behavior.
+- `ARCHITECTURE.md` is the source of truth for system design.
+- `SYSTEM_GUIDE.md` is the primary navigation hub.
 
-**Architecture Anti-Patterns**
-- No direct service-to-service dependencies
-- No shared databases between services
-- No business logic in controllers or repositories
-- No circular dependencies between bounded contexts
-- No hardcoded configuration or secrets
+### 1.2. Cross-Service Documentation (/docs)
 
-**Code Anti-Patterns**
-- No multiple classes per file (strict one-class-per-file rule)
-- No inline comments (code must be self-explanatory)
-- No god objects or services (apply Single Responsibility Principle)
-- No primitive obsession (use value objects)
-- No anemic domain models
-- No "quick fix" solutions that compromise scalability
-- No violation of SOLID principles for convenience
-- No untested code paths
+Only cross-service, global, or shared content goes here.
 
-**Development Anti-Patterns**
-- No breaking changes without versioning
-- No manual deployment processes
-- No undocumented APIs or services
-- No skipping code reviews
-- No ignoring failing tests
+```
+docs/
+  standards/
+    coding-style.md
+    testing.md
+    logging.md
+    security.md
+    observability.md
+    documentation.md          # Global rule for writing docs
+    creating-new-service.md   # Lifecycle for new services
+  architecture/
+    system-context.md
+    domain-map.md
+    service-catalog.md
+    integration-flows.md
+  operations/
+    sre-playbook.md
+    incident-response.md
+    oncall-guide.md
+  business/
+    product-vision.md
+    domain-overview.md
+    glossary.md
+  decisions/
+    ADR-0001-...md
+    ADR-0002-...md
+    ...
+```
 
-**Documentation Anti-Patterns**
-- No documentation in wrong hierarchy level (use decision tree)
-- No loose integration docs at repository root
-- No service docs outside `/{service}/docs/` structure
-- No unversioned cross-domain integration documentation
-- No duplicate documentation in multiple locations
-- No documentation without clear ownership (platform vs service)
+**Rules**:
+
+- Multi-service standards → `docs/standards/`
+- Global architecture → `docs/architecture/`
+- Global runbooks → `docs/operations/`
+- Global domain docs → `docs/business/`
+- Cross-service ADRs → `docs/decisions/`
+- Agents **MUST NEVER** place service-specific docs here.
+
+---
+
+## 2. Per-Service Documentation Structure
+
+Every service lives in:
+
+```
+services/<service-name>/
+```
+
+Each **MUST** follow:
+
+```
+services/<service>/
+  README.md
+  docs/
+    overview.md
+    architecture.md
+    api.md
+    domain.md
+    operations.md
+    how-to/
+      local-dev.md
+      troubleshooting.md
+      common-tasks.md
+    decisions/
+      README.md
+      ADR-0001-initial.md
+  src/
+  tests/
+  Dockerfile
+  deployment/
+    k8s/
+    helm/
+```
+
+### 2.1. README.md Requirements
+
+It **MUST**:
+
+- Contain 1–3 sentences describing the service.
+- Link to all docs:
+
+```markdown
+# <Service Name>
+
+<Brief description>
+
+## Quick Links
+- [Overview](docs/overview.md)
+- [Architecture](docs/architecture.md)
+- [API](docs/api.md)
+- [Domain](docs/domain.md)
+- [Operations](docs/operations.md)
+- [Local Development](docs/how-to/local-dev.md)
+- [ADR Index](docs/decisions/README.md)
+```
+
+---
+
+## 3. Required Doc Types
+
+Each service **MUST** include:
+
+| File | Purpose |
+|------|---------|
+| `overview.md` | What does it do? In-scope/out-of-scope? |
+| `architecture.md` | Components, flows, storage, diagrams? |
+| `api.md` | Routes, schemas, error models, versioning? |
+| `domain.md` | Invariants, glossary, rules, edge cases? |
+| `operations.md` | Deployment, configs, observability, SLO? |
+| `how-to/local-dev.md` | How to run locally? |
+| `how-to/troubleshooting.md` | Common issues and fixes? |
+| `how-to/common-tasks.md` | Frequent operations? |
+| `decisions/README.md` | Index of ADRs? |
+
+**No exceptions.**
+
+---
+
+## 4. Mandatory Front-Matter For All Docs
+
+Every `.md` file under `/docs` or `services/*/docs` **MUST** start with:
+
+```yaml
+---
+title: <Readable title>
+service: <service-name or "global">
+status: active | draft | deprecated
+last_reviewed: YYYY-MM-DD
+type: overview | architecture | api | domain | operations | how-to | decision | standard | business
+---
+```
+
+**Rules**:
+
+- `service` = `"global"` for cross-service docs.
+- Update `last_reviewed` when editing.
+- Use the `type` that best fits the purpose.
+- Agents **MUST NOT** create docs without front-matter.
 
 ---
 

@@ -1,3 +1,11 @@
+---
+title: Live Game API Specification
+service: live-game-api
+status: active
+last_reviewed: 2025-11-15
+type: overview
+---
+
 1. Background
 
 live-game-api is the real-time chess service for two-player, live (clock-based) games.

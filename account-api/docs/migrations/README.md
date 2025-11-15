@@ -1,3 +1,11 @@
+---
+title: Account Service Phase Documentation
+service: account-api
+status: active
+last_reviewed: 2025-11-15
+type: decision
+---
+
 # Account Service - Development Phases
 
 This directory tracks the iterative development and evolution of the Account Service using a phase-based approach, similar to git commits but at a service level.

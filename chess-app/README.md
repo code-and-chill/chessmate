@@ -1,3 +1,11 @@
+---
+title: Chess App
+service: chess-app
+status: active
+last_reviewed: 2025-11-15
+type: overview
+---
+
 # Chess App – React Native + Expo
 
 A cross-platform chess play experience built with React Native and Expo. Run on iOS, Android, and web.

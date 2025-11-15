@@ -1,3 +1,11 @@
+---
+title: Account Service Operational Runbook
+service: account-api
+status: active
+last_reviewed: 2025-11-15
+type: operations
+---
+
 # Account Service - Operational Runbook
 
 ## Deployment

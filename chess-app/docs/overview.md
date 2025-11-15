@@ -1,3 +1,11 @@
+---
+title: Chess App Overview
+service: chess-app
+status: active
+last_reviewed: 2025-11-15
+type: overview
+---
+
 1. Background
 
 The /play feature is the primary game experience for the chess platform, shared across:

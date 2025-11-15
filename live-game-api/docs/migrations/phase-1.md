@@ -1,3 +1,11 @@
+---
+title: Live Game API - Phase 1 MVP
+service: live-game-api
+status: active
+last_reviewed: 2025-11-15
+type: decision
+---
+
 # Live Game Service - Phase 1: Real-Time Chess MVP
 
 **Version**: 1.0  

@@ -1,3 +1,11 @@
+---
+title: Account Service Overview
+service: account-api
+status: active
+last_reviewed: 2025-11-15
+type: overview
+---
+
 # Account Service Documentation
 
 ## Overview

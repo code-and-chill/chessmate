@@ -1,3 +1,11 @@
+---
+title: Account API Architecture
+service: account-api
+status: active
+last_reviewed: 2025-11-15
+type: architecture
+---
+
 # Account API Architecture and Development Guide
 
 ## Overview

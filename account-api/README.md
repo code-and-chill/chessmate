@@ -1,3 +1,11 @@
+---
+title: Account API
+service: account-api
+status: active
+last_reviewed: 2025-11-15
+type: overview
+---
+
 # Account API
 
 Player account and profile management service for the chess platform.
