@@ -12,6 +12,7 @@ import {
   contextExists,
 } from "../k8s/utils";
 import fs from "fs";
+import { execSync } from "child_process";
 import path from "path";
 
 /**
@@ -134,10 +135,9 @@ async function handleDeploy(
 
         logger.info(`Deploying ${svc.name} to K8s...`);
 
-        // Generate image tag (use git SHA)
+        // Determine image tag
         let gitSha = "latest";
         try {
-          const { execSync } = require("child_process");
           gitSha = execSync("git rev-parse --short HEAD", {
             encoding: "utf-8",
             cwd: resolveServicePath(svc.path),
@@ -146,7 +146,25 @@ async function handleDeploy(
           logger.warn("Could not get git SHA, using 'latest' tag");
         }
 
-        const image = `monocto/${svc.name}:${gitSha}`;
+        let image = options.image || `monocto/${svc.name}:${gitSha}`;
+
+        // Optional local build
+        if (options.build) {
+          try {
+            const svcPath = resolveServicePath(svc.path);
+            logger.info(`Building image: ${image}`);
+            execSync(`docker build -t ${image} ${svcPath}`, { stdio: "inherit" });
+
+            if (env.isLocal) {
+              const kindName = env.kindCluster?.name || "monocto-dev";
+              logger.info(`Loading image into kind: ${kindName}`);
+              execSync(`kind load docker-image ${image} --name ${kindName}`, { stdio: "inherit" });
+            }
+          } catch (err) {
+            logger.error(`Image build/load failed: ${(err as Error).message}`);
+            process.exit(1);
+          }
+        }
         const resourceProfile = {
           cpu: "100m",
           memory: "128Mi",
@@ -230,4 +248,6 @@ export const deployCommand = new Command()
   .argument("<env>", "Target environment (local, dev, staging, prod)")
   .argument("[service]", "Service name (omit for all)")
   .option("--single", "Deploy only this service")
+  .option("--build", "Build and load image for local envs")
+  .option("--image <image>", "Override image tag to deploy")
   .action(handleDeploy);

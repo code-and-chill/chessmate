@@ -76,7 +76,10 @@ async function handleOpen(service: string, options: any): Promise<void> {
       }
 
       const localPort = options.port || 8080;
-      const remotePort = parseInt(svcInfo.ports[0].split(":")[1] || "80", 10);
+      // Use the Service port (not targetPort) for port-forwarding services
+      const firstPortSpec = svcInfo.ports[0] || "80:80";
+      const servicePort = parseInt(firstPortSpec.split(":")[0] || "80", 10);
+      const remotePort = servicePort;
 
       logger.success(`Service URL: http://localhost:${localPort}`);
 
