@@ -44,13 +44,14 @@ networking:
   podSubnet: "10.244.0.0/16"
   serviceSubnet: "10.96.0.0/12"
 
-# Containerd configuration
-containerd:
-  configPatches:
-    - |-
-      [plugins."io.containerd.grpc.v1.cri"]
-        enable_unprivileged_ports = true
-        enable_unprivileged_icmp = true
+# Containerd configuration (optional)
+# Note: Removed to ensure compatibility with current kind API
+# containerd:
+#   configPatches:
+#     - |-
+#       [plugins."io.containerd.grpc.v1.cri"]
+#         enable_unprivileged_ports = true
+#         enable_unprivileged_icmp = true
 
 # Feature gates (optional, for beta features)
 # featureGates:

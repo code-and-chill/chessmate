@@ -28,7 +28,6 @@ if (isJest) {
 } else {
   // Normal runtime: use pino and chalk
   const pino = require('pino');
-  const chalk = require('chalk');
 
   const isDev = process.env.NODE_ENV === "development";
   const logLevel = process.env.DX_LOG_LEVEL || "info";
@@ -57,9 +56,9 @@ if (isJest) {
     transport
   );
 
-  // Add a success level helper using info with prefix
+  // Add a success level helper using info (color handled by pino-pretty)
   const successFn = (msg: string, ...args: any[]) => {
-    logger.info(chalk.green(msg), ...args);
+    logger.info(msg, ...args);
   };
 
   (logger as any).success = successFn;
@@ -68,7 +67,7 @@ if (isJest) {
    * Log with service prefix
    */
   serviceLoggerFn = (serviceName: string) => {
-    const prefix = chalk.dim(`[${serviceName}]`);
+    const prefix = `[${serviceName}]`;
     return {
       info: (msg: string) => logger.info(`${prefix} ${msg}`),
       debug: (msg: string) => logger.debug(`${prefix} ${msg}`),

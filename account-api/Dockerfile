@@ -10,14 +10,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements
-COPY requirements/prod.txt .
+COPY requirements ./requirements
 
 # Create virtual environment
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
 # Install Python dependencies
-RUN pip install --no-cache-dir -r prod.txt
+RUN pip install --no-cache-dir -r requirements/prod.txt
 
 # Runtime stage
 FROM python:3.11-slim
