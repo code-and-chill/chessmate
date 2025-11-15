@@ -1,0 +1,165 @@
+version: "3.8"
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: chessmate-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: chessmate_user
+      POSTGRES_PASSWORD: chessmate_pass
+      POSTGRES_DB: chessmate_db
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U chessmate_user -d chessmate_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - chessmate
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: chessmate-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - chessmate
+
+  # Account API Service
+  account-api:
+    build:
+      context: ./account-api
+      dockerfile: Dockerfile
+    container_name: chessmate-account-api
+    ports:
+      - "8001:8001"
+    environment:
+      LOG_LEVEL: INFO
+      DATABASE_URL: postgresql://chessmate_user:chessmate_pass@postgres:5432/chessmate_db
+      REDIS_URL: redis://redis:6379
+      ENVIRONMENT: development
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./account-api/app:/app/app
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8001/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+    networks:
+      - chessmate
+
+  # Live Game API Service
+  live-game-api:
+    build:
+      context: ./live-game-api
+      dockerfile: Dockerfile
+    container_name: chessmate-live-game-api
+    ports:
+      - "8002:8002"
+    environment:
+      LOG_LEVEL: INFO
+      DATABASE_URL: postgresql://chessmate_user:chessmate_pass@postgres:5432/chessmate_db
+      REDIS_URL: redis://redis:6379
+      ENVIRONMENT: development
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      account-api:
+        condition: service_healthy
+    volumes:
+      - ./live-game-api/app:/app/app
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8002/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+    networks:
+      - chessmate
+
+  # Matchmaking API Service
+  matchmaking-api:
+    build:
+      context: ./matchmaking-api
+      dockerfile: Dockerfile
+    container_name: chessmate-matchmaking-api
+    ports:
+      - "8003:8003"
+    environment:
+      LOG_LEVEL: INFO
+      DATABASE_URL: postgresql://chessmate_user:chessmate_pass@postgres:5432/chessmate_db
+      REDIS_URL: redis://redis:6379
+      ENVIRONMENT: development
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      account-api:
+        condition: service_healthy
+    volumes:
+      - ./matchmaking-api/app:/app/app
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8003/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+    networks:
+      - chessmate
+
+  # Chess App (Mobile)
+  chess-app:
+    build:
+      context: ./chess-app
+      dockerfile: Dockerfile
+    container_name: chessmate-chess-app
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: development
+      REACT_APP_API_URL: http://localhost:8001
+      REACT_APP_GAME_API_URL: http://localhost:8002
+    depends_on:
+      - account-api
+      - live-game-api
+      - matchmaking-api
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+    networks:
+      - chessmate
+
+volumes:
+  postgres-data:
+    driver: local
+  redis-data:
+    driver: local
+
+networks:
+  chessmate:
+    driver: bridge

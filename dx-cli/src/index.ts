@@ -2,7 +2,7 @@ import { program as commanderProgram } from "commander";
 import { logger } from "./core/logger";
 import { devCommand } from "./commands/dev";
 import { buildCommand } from "./commands/build";
-import { testCommand } from "./commands/test";
+import { testCommand } from "./commands/test-command";
 import { lintCommand } from "./commands/lint";
 import { setupCommand } from "./commands/setup";
 import { doctorCommand } from "./commands/doctor";
@@ -13,6 +13,10 @@ import { logsCommand } from "./commands/logs";
 import { deployCommand } from "./commands/deploy";
 import { changelogCommand } from "./commands/changelog";
 import { sandboxCommand } from "./commands/sandbox";
+import { envCommand } from "./commands/env";
+import { k8sCommand } from "./commands/k8s";
+import { shellCommand } from "./commands/shell";
+import { openCommand } from "./commands/open";
 
 const program = commanderProgram;
 
@@ -32,6 +36,12 @@ program.addCommand(logsCommand);
 program.addCommand(deployCommand);
 program.addCommand(changelogCommand);
 program.addCommand(sandboxCommand);
+
+// Kubernetes and environment management commands
+program.addCommand(envCommand);
+program.addCommand(k8sCommand);
+program.addCommand(shellCommand);
+program.addCommand(openCommand);
 
 // Help command
 program

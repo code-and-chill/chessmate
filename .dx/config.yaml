@@ -1,0 +1,147 @@
+---
+# ChessMate Kubernetes Deployment Configuration
+# Environment-aware K8s cluster and namespace strategy definitions
+
+version: "1.0"
+kind: "k8s-environments"
+description: "Kubernetes environments and deployment configuration for ChessMate"
+
+# Environment definitions
+environments:
+  local:
+    # Local development cluster (kind)
+    kind: kubernetes
+    kubeContext: kind-monocto-dev
+    namespaceStrategy: per-user
+    defaultNamespace: dev
+    domain: monocto.local
+    resourcesProfile: local
+    description: "Local development cluster using kind"
+    
+    # Optional: kind cluster configuration
+    kindCluster:
+      name: monocto-dev
+      # Reference to optional kind config file at .dx/kind-config.yaml
+      config: kind-config.yaml
+
+  dev:
+    # Remote development cluster
+    kind: kubernetes
+    kubeContext: gke_monocto-dev_asia-southeast1
+    namespaceStrategy: per-team
+    defaultNamespace: monocto-dev
+    domain: dev.monocto.com
+    resourcesProfile: dev
+    description: "GKE development cluster"
+
+  prod:
+    # Production cluster
+    kind: kubernetes
+    kubeContext: gke_monocto-prod_asia-southeast1
+    namespaceStrategy: fixed
+    defaultNamespace: monocto-prod
+    domain: monocto.com
+    resourcesProfile: prod
+    description: "GKE production cluster"
+
+# Resource profiles: defines CPU/memory, replicas, HPA for different environments
+resourceProfiles:
+  local:
+    cpu: "100m"
+    memory: "128Mi"
+    replicas: 1
+    hpa:
+      enabled: false
+    
+  dev:
+    cpu: "250m"
+    memory: "256Mi"
+    replicas: 2
+    hpa:
+      enabled: true
+      minReplicas: 1
+      maxReplicas: 5
+      targetCPUUtilization: 70
+
+  prod:
+    cpu: "500m"
+    memory: "512Mi"
+    replicas: 3
+    hpa:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 10
+      targetCPUUtilization: 70
+
+# Namespace strategy definitions
+namespaceStrategies:
+  fixed:
+    description: "Use a fixed namespace for all deployments"
+    # defaultNamespace from environment is used
+
+  per-user:
+    description: "Create namespace per developer (dev-<username>)"
+    # Namespace is derived from OS user or git config
+    # Format: dev-<username> (lowercased, k8s-compliant)
+
+  per-team:
+    description: "Create namespace per team"
+    # For now, fallback to defaultNamespace
+    # Future: lookup team from git or environment
+
+# Docker image registry and naming conventions
+imageRegistry:
+  name: monocto  # Docker Hub organization or registry name
+  # Image format: monocto/<serviceName>:<tag>
+  # Tag: git commit SHA or version tag
+
+# Ingress configuration for different environments
+ingress:
+  local:
+    # Local ingress typically disabled; use port-forward
+    enabled: false
+    # Or use kind ingress controller if configured
+    # className: "nginx"
+
+  dev:
+    enabled: true
+    className: "nginx"
+    annotations:
+      cert-manager.io/cluster-issuer: "letsencrypt-staging"
+
+  prod:
+    enabled: true
+    className: "nginx"
+    annotations:
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+
+# Storage configuration
+storage:
+  local:
+    # Local development: use hostPath or local provisioner
+    provisioner: "rancher.io/local-path"
+    class: "local-path"
+
+  dev:
+    provisioner: "kubernetes.io/gce-pd"
+    class: "standard"
+
+  prod:
+    provisioner: "kubernetes.io/gce-pd"
+    class: "premium-rwo"
+
+# State management (where to store current env selection)
+state:
+  # Options: file, env
+  # file: stores in .dx/.state file
+  # env: reads from DX_ENV environment variable
+  backend: file
+  filePath: ".dx/.state"
+
+# Feature flags
+features:
+  # Enable/disable specific features
+  portForwarding: true
+  ingressURLGeneration: true
+  autoNamespaceCreation: true
+  helmDeployment: false  # Not used initially; for future

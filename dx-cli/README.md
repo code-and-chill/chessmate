@@ -471,6 +471,19 @@ Deploy commands will:
 2. Deploy to the specified namespace
 3. Use Helm charts from the configured root
 
+## Kubernetes Integration
+
+dx-cli now includes environment-aware Kubernetes workflows. Key commands:
+
+- `dx env list|use|current` — manage environments defined in `.dx/config.yaml`.
+- `dx k8s init-local` — bootstrap a local `kind` cluster for development.
+- `dx deploy <env> [service]` — deploy service(s) to a Kubernetes environment.
+- `dx logs <service>` — stream logs from pods when an active K8s environment is set.
+- `dx shell <service>` — open an interactive shell in a pod.
+- `dx open <service>` — open a service URL (ingress) or start a port-forward for local development.
+
+See `dx-cli/docs/kubernetes/` for full documentation, examples, and troubleshooting.
+
 ## Troubleshooting
 
 ### Service Not Found
