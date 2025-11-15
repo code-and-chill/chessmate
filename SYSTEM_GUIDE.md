@@ -37,7 +37,7 @@ Once dx-cli is installed, see [dx-cli/README.md](./dx-cli/README.md) for all ava
 2. [Read AGENTS.md](./AGENTS.md) - Platform principles and philosophy
 3. Run `node dx-cli/dist/index.js dev` - Start development environment
 4. Check your service's README: `/<service>/README.md`
-5. Follow dev guide: `/<service>/docs/`
+5. Follow dev guide: `/<service>/docs/` (use `how-to/local-dev.md` for setup)
 
 ### For Operators
 1. **Install dx-cli** (see above)
@@ -149,8 +149,9 @@ Mobile and web user interface.
 ### Getting Started
 - **I'm a new developer**: Read [AGENTS.md](./AGENTS.md), then your service README
 - **I'm setting up my dev environment**: See `/services/<service>/docs/GETTING_STARTED.md`
-- **I need to run tests**: Check your service's README for test commands
-- **I need to deploy**: Read `/services/<service>/docs/RUNBOOK.md` → Deployment section
+**I need to run tests**: Check your service's README for test commands
+**I need to deploy**: Read `/services/<service>/docs/RUNBOOK.md` → Deployment section
+**I need to set up my dev environment**: See `/services/<service>/docs/how-to/local-dev.md`
 
 ### Development
 - **How should I structure code?**: [Coding Style Standards](./docs/standards/coding-style.md)
