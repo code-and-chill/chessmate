@@ -24,11 +24,11 @@ High-level overview of the Chessmate platform architecture.
           └───────────┬────────────┘
                       │
     ┌─────────────────┼─────────────────┐
-    │                 │                 │
-┌───▼────┐   ┌────────▼───────┐   ┌────▼────┐
-│Account │   │  Live Game     │   │Matching │
-│ API    │   │  API           │   │API      │
-└────────┘   └────────────────┘   └─────────┘
+    │                 │                 │                 │
+┌───▼────┐   ┌────────▼───────┐   ┌────▼────┐   ┌────────▼──────┐
+│Account │   │  Live Game     │   │Matching │   │  Rating API   │
+│ API    │   │  API           │   │API      │   │  (Glicko-2)   │
+└────────┘   └────────────────┘   └─────────┘   └───────────────┘
     │                 │                 │
     ├─────────────────┼─────────────────┤
     │                                   │
@@ -105,6 +105,7 @@ High-level overview of the Chessmate platform architecture.
 ### Tier 2: Gaming Services
 - **live-game-api**: Active game state and moves
 - **matchmaking-api**: Player pairing and matching
+- **rating-api**: Player rating computation and storage (Glicko-2)
 - **Characteristics**: High performance required, state-heavy
 
 ### Tier 3: Client Applications

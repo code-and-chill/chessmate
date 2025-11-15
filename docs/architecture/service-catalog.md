@@ -16,6 +16,7 @@ Complete index of all services in the platform with descriptions and quick refer
 | account-api | API | Python | Operational | [Owner] |
 | live-game-api | API | Python | Operational | [Owner] |
 | matchmaking-api | API | Python | Operational | [Owner] |
+| rating-api | API | Python | Draft | [Owner] |
 | chess-app | Client | TypeScript | Operational | [Owner] |
 
 ---
@@ -115,6 +116,38 @@ Complete index of all services in the platform with descriptions and quick refer
 - Repository: `/workspaces/chessmate/matchmaking-api/`
 - Docs: `./docs/README.md`
 - Dev Guide: `./docs/GETTING_STARTED.md`
+
+---
+
+## rating-api
+
+**Type**: API Service  
+**Language**: Python (FastAPI)  
+**Domain**: Ratings & Skill
+
+**Responsibilities**:
+- Maintain per-user, per-pool ratings (Glicko-2)
+- Process game results idempotently
+- Provide ratings to matchmaking and leaderboards
+- Emit rating.updated events (outbox → bus)
+
+**Key Endpoints**:
+- `GET /v1/ratings/{user_id}` - All pool snapshots
+- `GET /v1/ratings/{user_id}/pools/{pool_id}` - Single pool
+- `POST /v1/ratings/bulk` - Bulk fetch by user_ids
+- `POST /v1/game-results` - Ingest single game result
+
+**Upstream Dependencies**:
+- live-game-api / game-history-api (game results)
+
+**Downstream Dependencies**:
+- matchmaking-api (rating fetch)
+- leaderboard-api (aggregation)
+
+**Quick Start**:
+- Repository: `/workspaces/chessmate/rating-api/`
+- Docs: `./docs/README.md`
+- Dev Guide: `./docs/how-to/local-dev.md`
 
 ---
 

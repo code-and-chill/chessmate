@@ -1,0 +1,26 @@
+meta {
+  name: POST ingest game
+  type: http
+  seq: 2
+}
+
+request {
+  method: POST
+  url: http://localhost:8013/v1/game-results
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:application/json {
+  {
+    "game_id": "g_123",
+    "pool_id": "blitz_standard",
+    "white_user_id": "u_1",
+    "black_user_id": "u_2",
+    "result": "white_win",
+    "rated": true,
+    "ended_at": "2025-11-15T20:10:00Z"
+  }
+}

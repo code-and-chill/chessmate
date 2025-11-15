@@ -1,0 +1,14 @@
+meta {
+  name: GET user ratings
+  type: http
+  seq: 1
+}
+
+request {
+  method: GET
+  url: http://localhost:8013/v1/ratings/u_123
+}
+
+headers {
+  Content-Type: application/json
+}

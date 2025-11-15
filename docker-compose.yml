@@ -1,6 +1,21 @@
 version: "3.8"
 
 services:
+  # NATS (for event publishing)
+  nats:
+    image: nats:2.10-alpine
+    container_name: chessmate-nats
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+    command: ["-js"]
+    healthcheck:
+      test: ["CMD", "nats", "--server", "nats://localhost:4222", "account", "info"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - chessmate
   # PostgreSQL Database
   postgres:
     image: postgres:15-alpine
@@ -122,6 +137,36 @@ services:
       - ./matchmaking-api/app:/app/app
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8003/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+    networks:
+      - chessmate
+
+  # Rating API Service
+  rating-api:
+    build:
+      context: ./rating-api
+      dockerfile: Dockerfile
+    container_name: chessmate-rating-api
+    ports:
+      - "8013:8013"
+    environment:
+      LOG_LEVEL: INFO
+      DATABASE_URL: postgresql+asyncpg://chessmate_user:chessmate_pass@postgres:5432/chessmate_db
+      ENVIRONMENT: development
+      REQUIRE_AUTH: "false"
+      OUTBOX_NATS_URL: nats://nats:4222
+    depends_on:
+      postgres:
+        condition: service_healthy
+      nats:
+        condition: service_started
+    volumes:
+      - ./rating-api/app:/app/app
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8013/health')"]
       interval: 30s
       timeout: 10s
       retries: 3

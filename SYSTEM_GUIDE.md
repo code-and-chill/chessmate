@@ -100,6 +100,13 @@ Player matching and queue management.
 - **Status**: Operational
 - **Quick Links**: [README](./matchmaking-api/README.md) | [Docs](./matchmaking-api/docs/) | [API Spec](./matchmaking-api/docs/overview.md)
 
+#### [rating-api](./rating-api/)
+Player ratings across pools using Glicko-2.
+- **Language**: Python (FastAPI)
+- **Database**: PostgreSQL
+- **Status**: Draft
+- **Quick Links**: [README](./rating-api/README.md) | [Docs](./rating-api/docs/) | [API Spec](./rating-api/docs/api.md)
+
 ### Client Applications
 
 #### [chess-app](./chess-app/)
@@ -148,10 +155,10 @@ Mobile and web user interface.
 
 ### Getting Started
 - **I'm a new developer**: Read [AGENTS.md](./AGENTS.md), then your service README
-- **I'm setting up my dev environment**: See `/services/<service>/docs/GETTING_STARTED.md`
+- **I'm setting up my dev environment**: See `/<service>/docs/GETTING_STARTED.md`
 **I need to run tests**: Check your service's README for test commands
-**I need to deploy**: Read `/services/<service>/docs/RUNBOOK.md` → Deployment section
-**I need to set up my dev environment**: See `/services/<service>/docs/how-to/local-dev.md`
+**I need to deploy**: Read `/<service>/docs/RUNBOOK.md` → Deployment section
+**I need to set up my dev environment**: See `/<service>/docs/how-to/local-dev.md`
 
 ### Development
 - **How should I structure code?**: [Coding Style Standards](./docs/standards/coding-style.md)

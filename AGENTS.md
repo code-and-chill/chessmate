@@ -103,16 +103,16 @@ docs/
 
 ## 2. Per-Service Documentation Structure
 
-Every service lives in:
+Every service lives at the repository root:
 
 ```
-services/<service-name>/
+<service-name>/
 ```
 
 Each **MUST** follow:
 
 ```
-services/<service>/
+<service>/
   README.md
   docs/
     overview.md
@@ -127,12 +127,14 @@ services/<service>/
     decisions/
       README.md
       ADR-0001-initial.md
-  src/
+    migrations/
+      README.md
+      phase-1.md
+  app/
   tests/
+  migrations/
   Dockerfile
-  deployment/
-    k8s/
-    helm/
+  service.yaml
 ```
 
 ### 2.1. README.md Requirements
@@ -181,7 +183,7 @@ Each service **MUST** include:
 
 ## 4. Mandatory Front-Matter For All Docs
 
-Every `.md` file under `/docs` or `services/*/docs` **MUST** start with:
+Every `.md` file under `/docs` or `/*/docs` **MUST** start with:
 
 ```yaml
 ---
