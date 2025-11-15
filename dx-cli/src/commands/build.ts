@@ -35,10 +35,26 @@ export const buildCommand = new Command()
             continue;
           }
 
-          logger.info(`Building ${svc.name}...`);
-          const result = await execStream(svc.commands.build, [], {
+          // Install service dependencies before building (if applicable)
+          const installCmd = `if [ -f pyproject.toml ]; then poetry install --no-interaction; elif [ -f requirements.txt ]; then python3 -m pip install -r requirements.txt; elif [ -f package.json ]; then pnpm install; fi`;
+
+          logger.info(`Installing dependencies for ${svc.name} (if needed)...`);
+          const installResult = await execStream("bash", ["-c", installCmd], {
             cwd: resolveServicePath(svc.path),
             serviceName: svc.name,
+            useMise: false,
+          });
+
+          if (!installResult.success) {
+            logger.error(`Failed to install dependencies for ${svc.name}`);
+            process.exit(1);
+          }
+
+          logger.info(`Building ${svc.name}...`);
+          const result = await execStream("bash", ["-c", svc.commands.build], {
+            cwd: resolveServicePath(svc.path),
+            serviceName: svc.name,
+            useMise: false,
           });
 
           if (!result.success) {
@@ -56,15 +72,21 @@ export const buildCommand = new Command()
 
         const commands = services
           .filter((s) => s.commands.build)
-          .map((s) => ({
-            cmd: "bash",
-            args: ["-c", s.commands.build!],
-            opts: {
-              cwd: resolveServicePath(s.path),
-              serviceName: s.name,
-              ignoreErrors: false,
-            },
-          }));
+          .map((s) => {
+            // Combine dependency install and build into a single shell command
+            const installSnippet = `if [ -f pyproject.toml ]; then poetry install --no-interaction; elif [ -f requirements.txt ]; then python3 -m pip install -r requirements.txt; elif [ -f package.json ]; then pnpm install; fi`;
+
+            return {
+              cmd: "bash",
+              args: ["-c", `set -e; ${installSnippet} && ${s.commands.build!}`],
+              opts: {
+                cwd: resolveServicePath(s.path),
+                serviceName: s.name,
+                useMise: false,
+                ignoreErrors: false,
+              },
+            };
+          });
 
         if (commands.length === 0) {
           logger.warn("No services with build commands found");

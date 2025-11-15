@@ -33,10 +33,11 @@ export const migrateCommand = new Command()
         }
 
         logger.info(`Migrating ${svc.name} for ${options.env}...`);
-        const result = await execStream(svc.commands.migrate, [], {
+        const result = await execStream("bash", ["-c", svc.commands.migrate], {
           cwd: resolveServicePath(svc.path),
           serviceName: svc.name,
           env,
+          useMise: false,
         });
 
         if (!result.success) {
@@ -52,10 +53,11 @@ export const migrateCommand = new Command()
 
         for (const svc of services) {
           logger.info(`Migrating ${svc.name}...`);
-          const result = await execStream(svc.commands.migrate!, [], {
+          const result = await execStream("bash", ["-c", svc.commands.migrate!], {
             cwd: resolveServicePath(svc.path),
             serviceName: svc.name,
             env,
+            useMise: false,
           });
 
           if (!result.success) {

@@ -35,10 +35,11 @@ export const testCommand = new Command()
             continue;
           }
 
-          logger.info(`Testing ${svc.name}...`);
-          const result = await execStream(svc.commands.test, [], {
+          logger.info(`Running ${svc.name}...`);
+          const result = await execStream("bash", ["-c", svc.commands.test], {
             cwd: resolveServicePath(svc.path),
             serviceName: svc.name,
+            useMise: false,
           });
 
           if (!result.success) {
@@ -62,6 +63,7 @@ export const testCommand = new Command()
             opts: {
               cwd: resolveServicePath(s.path),
               serviceName: s.name,
+              useMise: false,
               ignoreErrors: false,
             },
           }));

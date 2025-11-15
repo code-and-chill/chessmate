@@ -33,10 +33,11 @@ export const seedCommand = new Command()
         }
 
         logger.info(`Seeding ${svc.name} for ${options.env}...`);
-        const result = await execStream(svc.commands.seed, [], {
+        const result = await execStream("bash", ["-c", svc.commands.seed], {
           cwd: resolveServicePath(svc.path),
           serviceName: svc.name,
           env,
+          useMise: false,
         });
 
         if (!result.success) {
@@ -52,10 +53,11 @@ export const seedCommand = new Command()
 
         for (const svc of services) {
           logger.info(`Seeding ${svc.name}...`);
-          const result = await execStream(svc.commands.seed!, [], {
+          const result = await execStream("bash", ["-c", svc.commands.seed!], {
             cwd: resolveServicePath(svc.path),
             serviceName: svc.name,
             env,
+            useMise: false,
           });
 
           if (!result.success) {

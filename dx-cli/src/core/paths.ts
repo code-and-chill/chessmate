@@ -5,7 +5,32 @@ import fs from "fs";
  * Central path resolution utility
  */
 
-export const MONOREPO_ROOT = process.cwd();
+// Determine monorepo root by looking for AGENTS.md or dx-cli directory
+function findMonorepoRoot(): string {
+  let current = process.cwd();
+  
+  // If we're inside dx-cli/bin or dx-cli/dist, go up to find monorepo root
+  if (current.includes("dx-cli")) {
+    const parts = current.split(path.sep);
+    const dxCliIndex = parts.lastIndexOf("dx-cli");
+    if (dxCliIndex !== -1) {
+      current = parts.slice(0, dxCliIndex).join(path.sep);
+    }
+  }
+
+  // Look for AGENTS.md or dx-cli directory to confirm monorepo root
+  while (current !== path.dirname(current)) {
+    if (fs.existsSync(path.join(current, "AGENTS.md")) || 
+        fs.existsSync(path.join(current, "dx-cli"))) {
+      return current;
+    }
+    current = path.dirname(current);
+  }
+
+  return process.cwd();
+}
+
+export const MONOREPO_ROOT = findMonorepoRoot();
 
 export function resolveMonorepoPath(...segments: string[]): string {
   return path.resolve(MONOREPO_ROOT, ...segments);

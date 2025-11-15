@@ -6,6 +6,7 @@ import { testCommand } from "./commands/test";
 import { lintCommand } from "./commands/lint";
 import { setupCommand } from "./commands/setup";
 import { doctorCommand } from "./commands/doctor";
+import { installCommand } from "./commands/install";
 import { migrateCommand } from "./commands/migrate";
 import { seedCommand } from "./commands/seed";
 import { logsCommand } from "./commands/logs";
@@ -20,6 +21,7 @@ program.name("dx").description("ChessMate Developer Experience CLI").version("1.
 // Register all commands
 program.addCommand(setupCommand);
 program.addCommand(doctorCommand);
+program.addCommand(installCommand);
 program.addCommand(devCommand);
 program.addCommand(buildCommand);
 program.addCommand(testCommand);

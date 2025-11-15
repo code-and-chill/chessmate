@@ -28,6 +28,24 @@ pnpm build
 pnpm link
 ```
 
+### Enable Easy Command Invocation
+
+To run `dx` commands without the full path, add the bin directory to your shell's PATH:
+
+```bash
+# Add to ~/.bashrc, ~/.zshrc, or ~/.profile
+export PATH="/path/to/chessmate/dx-cli/bin:$PATH"
+
+# Then reload your shell
+source ~/.bashrc
+```
+
+Alternatively, use it directly with the absolute path:
+
+```bash
+/workspaces/chessmate/dx-cli/bin/dx doctor
+```
+
 ### Aliasing
 
 The CLI can be invoked via multiple aliases:

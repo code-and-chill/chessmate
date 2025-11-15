@@ -3,7 +3,8 @@
 from functools import lru_cache
 from typing import List, Optional
 
-from pydantic import BaseSettings, validator
+from pydantic import field_validator
+from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
@@ -37,7 +38,8 @@ class Settings(BaseSettings):
     SENTRY_DSN: Optional[str] = None
     LOG_LEVEL: str = "INFO"
 
-    @validator("ALLOWED_HOSTS", pre=True)
+    @field_validator("ALLOWED_HOSTS", mode="before")
+    @classmethod
     def assemble_cors_origins(cls, v):
         if isinstance(v, str) and not v.startswith("["):
             return [i.strip() for i in v.split(",")]

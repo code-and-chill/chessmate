@@ -5,7 +5,7 @@ from enum import Enum
 from typing import List, Optional
 from uuid import UUID
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 
 from .base import BaseEntity, BaseDomainEvent
 
@@ -43,7 +43,8 @@ class TimeControl(BaseModel):
     initial_seconds: int = Field(..., gt=0)
     increment_seconds: int = Field(default=0, ge=0)
 
-    @validator("initial_seconds")
+    @field_validator("initial_seconds")
+    @classmethod
     def validate_initial_seconds(cls, v):
         if v < 1:
             raise ValueError("Initial time must be at least 1 second")
@@ -59,7 +60,7 @@ class Player(BaseModel):
     remaining_ms: int = Field(..., ge=0)
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class Move(BaseModel):
@@ -67,17 +68,17 @@ class Move(BaseModel):
 
     ply: int = Field(..., ge=1)
     move_number: int = Field(..., ge=1)
-    color: str = Field(..., regex=r"^[wb]$")  # 'w' or 'b'
-    from_square: str = Field(..., regex=r"^[a-h][1-8]$")
-    to_square: str = Field(..., regex=r"^[a-h][1-8]$")
-    promotion: Optional[str] = Field(None, regex=r"^[qrbn]$")
+    color: str = Field(..., pattern=r"^[wb]$")  # 'w' or 'b'
+    from_square: str = Field(..., pattern=r"^[a-h][1-8]$")
+    to_square: str = Field(..., pattern=r"^[a-h][1-8]$")
+    promotion: Optional[str] = Field(None, pattern=r"^[qrbn]$")
     san: str  # Standard Algebraic Notation
     fen_after: str
     played_at: datetime = Field(default_factory=datetime.utcnow)
     elapsed_ms: int = Field(..., ge=0)
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class Game(BaseEntity):
@@ -95,7 +96,7 @@ class Game(BaseEntity):
     white_clock_ms: int
     black_clock_ms: int
 
-    side_to_move: str = Field(default="w", regex=r"^[wb]$")
+    side_to_move: str = Field(default="w", pattern=r"^[wb]$")
     fen: str = Field(default="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
 
     moves: List[Move] = Field(default_factory=list)

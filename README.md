@@ -4,9 +4,9 @@
 
 ## Quick Start
 
-### 1. Clone & Install dx-cli (Required First Step)
+### 1. Clone & Setup Environment (Required First Step)
 
-The `dx-cli` tool is the command-line interface for all developer workflows. It **must** be installed before working with any services.
+The `dx-cli` tool is the command-line interface for all developer workflows. It **must** be installed and setup before working with any services.
 
 ```bash
 # Clone the repository
@@ -19,41 +19,49 @@ npm install
 npm run build
 cd ..
 
-# Verify installation
-node dx-cli/dist/index.js doctor
+# Run comprehensive setup (checks Node.js, Python, Docker, etc.)
+export PATH="$(pwd)/dx-cli/bin:$PATH"
+dx setup
 ```
 
-### 2. Start Development Environment
+The `dx setup` command will:
+- ✅ Check your operating system
+- ✅ Verify all required tools (Node.js, Python 3, Git, etc.)
+- ✅ Check optional tools (Docker, mise, Java)
+- ✅ Provide installation instructions if anything is missing
+- ✅ Verify dx-cli dependencies
 
-Once dx-cli is installed and working, you can start developing:
+### 2. Verify Your Setup
+
+Once setup completes successfully, verify everything is working:
+
+```bash
+# Check system health and service discovery
+dx doctor
+
+# With verbose output to see all system details
+dx doctor --verbose
+
+# Check a specific service
+dx doctor account-api
+```
+
+### 3. Start Development Environment
+
+Once dx-cli is verified, you can start developing:
 
 ```bash
 # View all available commands
-node dx-cli/dist/index.js --help
-
-# Check system health
-node dx-cli/dist/index.js doctor
+dx --help
 
 # Start all services
-node dx-cli/dist/index.js dev
+dx dev
 
 # Run tests
-node dx-cli/dist/index.js test
+dx test
 
 # Build all services
-node dx-cli/dist/index.js build
-```
-
-### 3. (Optional) Add dx to PATH
-
-For easier access, add the dx-cli bin directory to your PATH:
-
-```bash
-export PATH="$(pwd)/dx-cli/bin:$PATH"
-
-# Now you can use dx directly
-dx doctor
-dx dev
+dx build
 ```
 
 ## Services

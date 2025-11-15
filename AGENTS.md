@@ -244,6 +244,75 @@ graph TD
 
 ---
 
+## Repository-Level Dependencies
+
+### When to Add a Tool
+
+**Repository-level tools** are installed once via `dx setup` and used by multiple services. Add to the system-check if:
+- Used by **2+ services** in the monorepo
+- Required for **all developers** to function
+- **Language or build-system level** (not application-specific)
+
+Examples of repository-level tools:
+- **Poetry** - Used by all Python services
+- **Node.js/pnpm** - Used by all TypeScript services
+- **Git** - Used by all developers
+- **Python 3** - Used by multiple Python services
+
+### When NOT to Add
+
+**Service-level dependencies** are installed per-service and should NOT be in system-check. Examples:
+- FastAPI (application framework, specific to account-api)
+- pytest (testing framework, specific to a service)
+- SQLAlchemy (ORM, specific to service)
+
+Install service-level dependencies with: `dx install [service]`
+
+### Adding a New Repository-Level Tool
+
+1. **Update system-check.ts**:
+   ```typescript
+   const SYSTEM_REQUIREMENTS = [
+     // ... existing tools
+     {
+       name: "YourTool",
+       command: "yourtool",
+       versionArg: "--version",
+       minVersion: "1.0.0",
+       required: true,  // or false for optional
+       install: "brew install yourtool",  // or pip, curl, etc.
+     },
+   ];
+   ```
+
+2. **Update install-deps.sh**:
+   - Add installation logic for macOS and Linux
+   - Test on both platforms
+   - Verify `which yourtool` finds the executable
+
+3. **Update setup.ts**:
+   - No changes needed if tool is in SYSTEM_REQUIREMENTS
+   - It will be automatically checked and reported
+
+4. **Test the changes**:
+   ```bash
+   dx setup                    # Verify tool is checked
+   dx doctor --verbose        # Verify tool is listed
+   ```
+
+5. **Document in README.md**:
+   - Add to "Quick Start" section
+   - Explain why it's required
+
+### Testing New Dependencies
+
+Always test on:
+- Fresh environment (simulate new developer)
+- Both macOS and Linux (if applicable)
+- With `dx setup --skip-deps` (skips automatic installation, useful for testing)
+
+---
+
 ## Development Workflow
 
 ### Initial Setup

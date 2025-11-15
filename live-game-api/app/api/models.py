@@ -20,7 +20,7 @@ class CreateGameRequest(BaseModel):
     """Create game request model."""
 
     opponent_account_id: Optional[UUID] = None
-    color_preference: str = Field(default="random", regex=r"^(white|black|random)$")
+    color_preference: str = Field(default="random", pattern=r"^(white|black|random)$")
     time_control: TimeControlRequest
     rated: bool = True
 
@@ -28,15 +28,15 @@ class CreateGameRequest(BaseModel):
 class JoinGameRequest(BaseModel):
     """Join game request model."""
 
-    color_preference: str = Field(default="random", regex=r"^(white|black|random)$")
+    color_preference: str = Field(default="random", pattern=r"^(white|black|random)$")
 
 
 class PlayMoveRequest(BaseModel):
     """Play move request model."""
 
-    from_square: str = Field(..., regex=r"^[a-h][1-8]$")
-    to_square: str = Field(..., regex=r"^[a-h][1-8]$")
-    promotion: Optional[str] = Field(None, regex=r"^[qrbn]$")
+    from_square: str = Field(..., pattern=r"^[a-h][1-8]$")
+    to_square: str = Field(..., pattern=r"^[a-h][1-8]$")
+    promotion: Optional[str] = Field(None, pattern=r"^[qrbn]$")
 
 
 class MoveResponse(BaseModel):
@@ -53,7 +53,7 @@ class MoveResponse(BaseModel):
     elapsed_ms: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class PlayerResponse(BaseModel):

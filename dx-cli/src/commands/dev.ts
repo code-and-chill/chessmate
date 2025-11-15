@@ -37,9 +37,10 @@ export const devCommand = new Command()
           }
 
           logger.info(`Starting ${svc.name}...`);
-          const result = await execStream(svc.commands.dev, [], {
+          const result = await execStream("bash", ["-c", svc.commands.dev], {
             cwd: resolveServicePath(svc.path),
             serviceName: svc.name,
+            useMise: false,
           });
 
           if (!result.success) {
@@ -62,6 +63,7 @@ export const devCommand = new Command()
             opts: {
               cwd: resolveServicePath(s.path),
               serviceName: s.name,
+              useMise: false,
               ignoreErrors: false,
             },
           }));

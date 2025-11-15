@@ -27,9 +27,10 @@ export const lintCommand = new Command()
         }
 
         logger.info(`Linting ${svc.name}...`);
-        const result = await execStream(svc.commands.lint, [], {
+        const result = await execStream("bash", ["-c", svc.commands.lint], {
           cwd: resolveServicePath(svc.path),
           serviceName: svc.name,
+          useMise: false,
         });
 
         if (!result.success) {
@@ -50,9 +51,10 @@ export const lintCommand = new Command()
           }
 
           logger.info(`Linting ${svc.name}...`);
-          const result = await execStream(svc.commands.lint, [], {
+          const result = await execStream("bash", ["-c", svc.commands.lint], {
             cwd: resolveServicePath(svc.path),
             serviceName: svc.name,
+            useMise: false,
             ignoreErrors: true,
           });
 

@@ -2,7 +2,7 @@ from typing import Optional
 from uuid import UUID
 
 from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthCredentials
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import verify_token
@@ -21,7 +21,7 @@ security = HTTPBearer()
 
 
 async def get_current_user_id(
-    credentials: HTTPAuthCredentials = Depends(security),
+    credentials: HTTPAuthorizationCredentials = Depends(security),
 ) -> UUID:
     """Extract user ID from JWT token."""
     try:
