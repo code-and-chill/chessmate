@@ -11,21 +11,67 @@ Quick navigation and index for the Chessmate microservices platform.
 
 ## 🚀 Quick Start
 
+### ⚠️ First Time Setup (Required)
+
+Before anything else, install the dx-cli tool:
+
+```bash
+# Clone the repository
+git clone <repository-url>
+cd chessmate
+
+# Install dx-cli (REQUIRED FIRST STEP)
+cd dx-cli
+npm install
+npm run build
+cd ..
+
+# Verify installation
+node dx-cli/dist/index.js doctor
+```
+
+Once dx-cli is installed, see [dx-cli/README.md](./dx-cli/README.md) for all available commands.
+
 ### For Developers
-1. [Read AGENTS.md](./AGENTS.md) - Platform principles and philosophy
-2. Check your service's README: `/services/<service>/README.md`
-3. Follow dev guide: `/services/<service>/docs/GETTING_STARTED.md`
-4. Review standards: `/docs/standards/`
+1. **Install dx-cli** (see above)
+2. [Read AGENTS.md](./AGENTS.md) - Platform principles and philosophy
+3. Run `node dx-cli/dist/index.js dev` - Start development environment
+4. Check your service's README: `/<service>/README.md`
+5. Follow dev guide: `/<service>/docs/`
 
 ### For Operators
-1. [Read SRE Playbook](./docs/operations/sre-playbook.md)
-2. [Read Incident Response Guide](./docs/operations/incident-response.md)
-3. Check service runbooks: `/services/<service>/docs/RUNBOOK.md`
+1. **Install dx-cli** (see above)
+2. [Read SRE Playbook](./docs/operations/sre-playbook.md)
+3. [Read Incident Response Guide](./docs/operations/incident-response.md)
+4. Check service runbooks: `/<service>/docs/RUNBOOK.md`
 
 ### For Product/Business
 1. [Product Vision](./docs/business/product-vision.md)
 2. [Glossary](./docs/business/glossary.md)
 3. [Domain Overview](./docs/business/domain-overview.md)
+
+---
+
+## 🛠️ Developer Experience Platform (dx-cli)
+
+The unified command-line interface for all developer workflows.
+
+**Location**: [./dx-cli/](./dx-cli/)
+
+**Key Commands**:
+- `node dx-cli/dist/index.js dev` - Start development environment
+- `node dx-cli/dist/index.js test` - Run tests
+- `node dx-cli/dist/index.js build` - Build services
+- `node dx-cli/dist/index.js deploy <env>` - Deploy to environment
+- `node dx-cli/dist/index.js doctor` - Check system health
+
+**Documentation**:
+- [dx-cli/README.md](./dx-cli/README.md) - Complete command reference
+- [dx-cli/docs/overview.md](./dx-cli/docs/overview.md) - Implementation overview
+- [dx-cli/docs/DX_PLATFORM.md](./dx-cli/docs/DX_PLATFORM.md) - Platform architecture
+- [dx-cli/docs/service-spec.md](./dx-cli/docs/service-spec.md) - service.yaml specification
+
+See [Quick Start](#-quick-start) above for installation instructions.
 
 ---
 
