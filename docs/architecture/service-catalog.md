@@ -144,7 +144,7 @@ Complete index of all services in the platform with descriptions and quick refer
 **Quick Start**:
 - Repository: `/workspaces/chessmate/chess-app/`
 - Docs: `./docs/README.md`
-- Dev Guide: `./docs/PLAYSCREEN_ARCHITECTURE_DIAGRAMS.md`
+- Dev Guide: `./ARCHITECTURE.md` (see `./chess-app/docs/ARCHITECTURE.md`)
 
 ---
 

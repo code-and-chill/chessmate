@@ -21,9 +21,9 @@ Chess App is a cross-platform application built with React Native and React prov
 ## Quick Links
 
 - **API Spec**: [overview.md](./overview.md)
-- **Architecture**: [PLAYSCREEN_ARCHITECTURE_DIAGRAMS.md](./PLAYSCREEN_ARCHITECTURE_DIAGRAMS.md)
+- **Architecture**: [ARCHITECTURE.md](./ARCHITECTURE.md)
 - **Development**: [how-to/local-dev.md](./how-to/local-dev.md)
-- **Theming**: [THEMING_I18N.md](./THEMING_I18N.md)
+- **Theming**: see `ARCHITECTURE.md` (consolidated; feature-specific theming docs were removed)
 
 ## Key Features
 

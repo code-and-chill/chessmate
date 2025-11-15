@@ -207,7 +207,7 @@ Mobile and web user interface.
 
 **chess-app**
 - Overview: [docs/README.md](./chess-app/docs/README.md)
-- Architecture: [docs/PLAYSCREEN_ARCHITECTURE_DIAGRAMS.md](./chess-app/docs/PLAYSCREEN_ARCHITECTURE_DIAGRAMS.md)
+- Architecture: [docs/ARCHITECTURE.md](./chess-app/docs/ARCHITECTURE.md)
 
 ---
 

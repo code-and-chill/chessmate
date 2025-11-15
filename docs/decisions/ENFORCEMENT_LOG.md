@@ -72,12 +72,9 @@ These should be archived or consolidated into the canonical structure.
 ✓ matchmaking-api/README.md
 ✓ chess-app/README.md
 
-### Phase 2: Archive Non-Canonical Files
+### Phase 2: Archive Non-Canonical Files (strategy deprecated)
 
-Create `/docs/archive/` with subdirectories:
-- `/docs/archive/temporary-reports/` - project completion/status reports
-- `/docs/archive/phase-documentation/` - phase-specific docs
-- `/docs/archive/feature-specs/` - feature-specific documentation
+An earlier plan created a `/docs/archive/` area for historical and temporary files. That archive has been removed and historical files were consolidated or deleted. The enforced policy is to consolidate non-canonical files into canonical locations or remove them.
 
 ### Phase 3: Consolidate Feature Documentation
 
@@ -138,10 +135,6 @@ chessmate/
 ├── SYSTEM_GUIDE.md              # ✓ Navigation hub
 │
 ├── docs/
-│   ├── archive/                 # New: Historical & temporary docs
-│   │   ├── temporary-reports/
-│   │   ├── phase-documentation/
-│   │   └── feature-specs/
 │   ├── standards/               # ✓ Platform standards
 │   ├── architecture/            # ✓ System design
 │   ├── operations/              # ✓ Operational guides
@@ -180,7 +173,7 @@ Per AGENTS.md section 5:
 - [ ] No files named: GETTING_STARTED, RUNBOOK, PROJECT_SUMMARY, etc at root
 - [ ] All service docs live only in services/<service>/docs/
 - [ ] All cross-service docs live only in /docs/
-- [ ] /docs/archive/ contains all historical files
+- [ ] Historical files consolidated or deleted (no `/docs/archive/` directory)
 - [ ] SYSTEM_GUIDE.md and service-catalog.md only reference canonical locations
 - [ ] All relative links work correctly
 

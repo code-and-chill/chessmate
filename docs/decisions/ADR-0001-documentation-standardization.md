@@ -25,15 +25,12 @@ Added YAML front-matter to all service README files:
 Added front-matter to cross-service standard:
 - `/docs/python-guideline.md`
 
-### Phase 2: Archive Infrastructure ✅
+### Phase 2: Archive Infrastructure ✅ (strategy deprecated)
 
-Created `/docs/archive/` structure:
-- `/docs/archive/temporary-reports/` - For completion reports, status summaries
-- `/docs/archive/phase-documentation/` - For phase-specific docs
-- `/docs/archive/feature-specs/` - For feature-specific documentation
+An earlier strategy created a `/docs/archive/` area for historical and temporary files. That archive has since been removed from the repository to enforce a stricter policy: non-canonical files must be consolidated into canonical locations or deleted. 
 
-Created documentation:
-- `/docs/archive/README.md` - Archive guide and migration path
+Action taken:
+- Removed `/docs/archive/` from the repository. Historical files were either consolidated or deleted per repository policy.
 
 ### Phase 3: Compliance Documentation ✅
 
@@ -58,11 +55,11 @@ These files violate AGENTS.md but have been preserved (not deleted) and should b
 ### At Service Root Level
 | Service | File | Action |
 |---------|------|--------|
-| account-api | GETTING_STARTED.md | Archive to docs/archive/ (duplicate of docs/how-to/local-dev.md) |
-| live-game-api | GETTING_STARTED.md | Archive to docs/archive/ (duplicate of docs/how-to/local-dev.md) |
-| live-game-api | SCAFFOLD_SUMMARY.md | Archive to docs/archive/ |
-| matchmaking-api | COMPLETION_REPORT.md | Archive to docs/archive/ |
-| Root | COMPLETION_SUMMARY.md | Archive to docs/archive/ |
+| account-api | GETTING_STARTED.md | Consolidate into `account-api/docs/how-to/local-dev.md` (duplicate) |
+| live-game-api | GETTING_STARTED.md | Consolidate into `live-game-api/docs/how-to/local-dev.md` (duplicate) |
+| live-game-api | SCAFFOLD_SUMMARY.md | Consolidate or delete (non-canonical) |
+| matchmaking-api | COMPLETION_REPORT.md | Consolidate or delete (non-canonical) |
+| Root | COMPLETION_SUMMARY.md | Consolidate or delete (non-canonical) |
 
 ### In Service Docs Folders (Non-Canonical Names)
 | Service | Files | Issue | Canonical Location |
@@ -71,14 +68,14 @@ These files violate AGENTS.md but have been preserved (not deleted) and should b
 | matchmaking-api/docs/ | service-spec.md, service-spec-formatted.md | Duplicates, non-standard naming | Consolidate into api.md and domain.md |
 | chess-app/docs/ | PLAYSCREEN_*.md (13 files) | Feature-specific temporary docs | Consolidate into architecture.md, how-to/, and ADRs |
 | chess-app/docs/ | THEMING_I18N*.md (3 files) | Feature-specific docs | Create docs/how-to/theming-and-i18n.md and ADRs |
-| chess-app/docs/project/ | IMPLEMENTATION_SUMMARY.md, TASKS.md | Project-specific docs | Archive to docs/archive/ |
+| chess-app/docs/project/ | IMPLEMENTATION_SUMMARY.md, TASKS.md | Project-specific docs | Consolidate into `chess-app/docs/` canonical files or delete |
 
 ## Recommended Next Steps
 
 ### Immediate (Optional but Recommended)
 1. Review non-canonical files above
 2. Consolidate feature documentation into ADRs
-3. Move temporary reports to `/docs/archive/`
+3. Consolidate or delete temporary reports (archive strategy was removed)
 
 **No action needed** - All files preserved, no deletions made.
 
@@ -93,15 +90,6 @@ When creating new documentation:
 - Use relative links (e.g., `../../docs/standards/logging.md`)
 - Create ADRs for architectural decisions (in `/docs/decisions/` or `services/<service>/docs/decisions/`)
 
-❌ **DON'T:**
-- Create variant filenames like `design-v2.md`, `final-architecture.md`, `new-operations.md`
-- Place service docs outside `services/<service>/docs/`
-- Place cross-service docs inside `services/<service>/docs/`
-- Skip front-matter on any markdown file
-- Create duplicate files in different locations
-
-## File Structure Now Compliant
-
 ```
 chessmate/
 ├── AGENTS.md                           ✅ Compliance guide (mandatory read)
@@ -110,18 +98,13 @@ chessmate/
 │
 ├── docs/
 │   ├── README.md                       ✅ Index of cross-service docs
-│   ├── archive/                        ✅ Archived historical docs
-│   │   ├── README.md
-│   │   ├── temporary-reports/          (ready for non-canonical files)
-│   │   ├── phase-documentation/        (ready for non-canonical files)
-│   │   └── feature-specs/              (ready for non-canonical files)
 │   ├── standards/                      ✅ All with front-matter
 │   ├── architecture/                   ✅ All with front-matter
 │   ├── operations/                     ✅ All with front-matter
 │   ├── business/                       ✅ All with front-matter
-│   ├── decisions/                      ✅ All with front-matter
-│   │   ├── README.md                   ✅ ADR index
-│   │   └── ENFORCEMENT_LOG.md          ✅ Standardization tracking
+│   └── decisions/                      ✅ All with front-matter
+│       ├── README.md                   ✅ ADR index
+│       └── ENFORCEMENT_LOG.md          ✅ Standardization tracking
 │   └── python-guideline.md             ✅ With front-matter
 │
 └── services/
@@ -129,6 +112,15 @@ chessmate/
     │   ├── README.md                   ✅ With front-matter
     │   └── docs/                       ✅ Canonical structure only
     ├── live-game-api/
+    │   ├── README.md                   ✅ With front-matter
+    │   └── docs/                       ✅ Canonical structure only
+    ├── matchmaking-api/
+    │   ├── README.md                   ✅ With front-matter
+    │   └── docs/                       ⚠️  Has non-canonical files (consolidate or delete)
+    └── chess-app/
+        ├── README.md                   ✅ With front-matter
+        └── docs/                       ⚠️  Has feature-specific files (consolidate or delete)
+```
     │   ├── README.md                   ✅ With front-matter
     │   └── docs/                       ✅ Canonical structure only
     ├── matchmaking-api/
