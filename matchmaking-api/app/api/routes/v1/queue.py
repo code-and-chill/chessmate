@@ -4,7 +4,11 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, Header, Path, Query, status
 
-from app.api.dependencies import get_token_data
+from app.api.dependencies import (
+    get_challenge_service,
+    get_matchmaking_service,
+    get_token_data,
+)
 from app.api.models import (
     ActiveMatchmakingResponse,
     ChallengeRequest,
@@ -14,6 +18,8 @@ from app.api.models import (
     QueueStatusResponse,
 )
 from app.core.security import JWTTokenData
+from app.domain.services.challenge_service import ChallengeService
+from app.domain.services.matchmaking_service import MatchmakingService
 
 logger = logging.getLogger(__name__)
 
@@ -24,6 +30,7 @@ router = APIRouter(prefix="/v1/matchmaking", tags=["matchmaking"])
 async def join_queue(
     request: QueueRequest,
     token_data: Annotated[JWTTokenData, Depends(get_token_data)],
+    matchmaking: Annotated[MatchmakingService, Depends(get_matchmaking_service)],
 ) -> QueueResponse:
     """Join matchmaking queue.
 
@@ -32,19 +39,28 @@ async def join_queue(
     Args:
         request: Queue configuration
         token_data: Authenticated user data
+        matchmaking: Matchmaking service
 
     Returns:
         Queue entry response
     """
-    # TODO: Inject matchmaking service and handle request
     logger.info(
         f"Enqueue request: {request.time_control} {request.mode}",
         extra={"user_id": token_data.user_id, "tenant_id": token_data.tenant_id},
     )
 
+    entry = await matchmaking.enqueue_player(
+        user_id=token_data.user_id,
+        tenant_id=token_data.tenant_id,
+        time_control=request.time_control,
+        mode=request.mode,
+        variant=request.variant or "standard",
+        region=request.region or "DEFAULT",
+    )
+
     return QueueResponse(
-        queue_entry_id="q_01hqxf4b8qk1",
-        status="SEARCHING",
+        queue_entry_id=entry.queue_entry_id,
+        status=entry.status.value,
         estimated_wait_seconds=10,
     )
 
@@ -57,6 +73,7 @@ async def join_queue(
 async def cancel_queue(
     queue_entry_id: Annotated[str, Path()],
     token_data: Annotated[JWTTokenData, Depends(get_token_data)],
+    matchmaking: Annotated[MatchmakingService, Depends(get_matchmaking_service)],
 ) -> QueueStatusResponse:
     """Cancel queue entry.
 
@@ -65,19 +82,21 @@ async def cancel_queue(
     Args:
         queue_entry_id: ID of queue entry
         token_data: Authenticated user data
+        matchmaking: Matchmaking service
 
     Returns:
         Updated queue entry response
     """
-    # TODO: Inject matchmaking service and handle request
     logger.info(
         f"Cancel queue entry: {queue_entry_id}",
         extra={"user_id": token_data.user_id},
     )
 
+    entry = await matchmaking.cancel_queue_entry(queue_entry_id, token_data.user_id)
+
     return QueueStatusResponse(
-        queue_entry_id=queue_entry_id,
-        status="CANCELLED",
+        queue_entry_id=entry.queue_entry_id,
+        status=entry.status.value,
     )
 
 
@@ -89,6 +108,7 @@ async def cancel_queue(
 async def get_queue_status(
     queue_entry_id: Annotated[str, Path()],
     token_data: Annotated[JWTTokenData, Depends(get_token_data)],
+    matchmaking: Annotated[MatchmakingService, Depends(get_matchmaking_service)],
 ) -> QueueStatusResponse:
     """Get queue entry status.
 
@@ -97,20 +117,24 @@ async def get_queue_status(
     Args:
         queue_entry_id: ID of queue entry
         token_data: Authenticated user data
+        matchmaking: Matchmaking service
 
     Returns:
         Queue entry status response
     """
-    # TODO: Inject matchmaking service and handle request
     logger.info(
         f"Get queue status: {queue_entry_id}",
         extra={"user_id": token_data.user_id},
     )
 
+    entry = await matchmaking.get_queue_status(queue_entry_id)
+
     return QueueStatusResponse(
-        queue_entry_id=queue_entry_id,
-        status="SEARCHING",
-        estimated_wait_seconds=7,
+        queue_entry_id=entry.queue_entry_id,
+        status=entry.status.value,
+        estimated_wait_seconds=int(entry.time_in_queue_seconds(
+            __import__('datetime').datetime.now(__import__('datetime').timezone.utc)
+        )) if entry.is_searching() else None,
     )
 
 
@@ -121,6 +145,7 @@ async def get_queue_status(
 )
 async def get_active_matchmaking(
     token_data: Annotated[JWTTokenData, Depends(get_token_data)],
+    matchmaking: Annotated[MatchmakingService, Depends(get_matchmaking_service)],
 ) -> ActiveMatchmakingResponse:
     """Get active matchmaking for user.
 
@@ -128,19 +153,21 @@ async def get_active_matchmaking(
 
     Args:
         token_data: Authenticated user data
+        matchmaking: Matchmaking service
 
     Returns:
         Active matchmaking response
     """
-    # TODO: Inject matchmaking service and handle request
     logger.info(
         "Get active matchmaking",
         extra={"user_id": token_data.user_id},
     )
 
+    result = await matchmaking.get_active_matchmaking(token_data.user_id, token_data.tenant_id)
+
     return ActiveMatchmakingResponse(
-        queue_entry=None,
-        match=None,
+        queue_entry=result.get("queue_entry"),
+        match=result.get("match"),
     )
 
 
@@ -152,6 +179,7 @@ async def get_active_matchmaking(
 async def create_challenge(
     request: ChallengeRequest,
     token_data: Annotated[JWTTokenData, Depends(get_token_data)],
+    challenge_service: Annotated[ChallengeService, Depends(get_challenge_service)],
 ) -> ChallengeResponse:
     """Create direct challenge.
 
@@ -160,19 +188,29 @@ async def create_challenge(
     Args:
         request: Challenge configuration
         token_data: Authenticated user data
+        challenge_service: Challenge service
 
     Returns:
         Challenge response
     """
-    # TODO: Inject service and handle request
     logger.info(
         f"Create challenge to {request.opponent_user_id}",
         extra={"user_id": token_data.user_id},
     )
 
+    challenge = await challenge_service.create_challenge(
+        challenger_user_id=token_data.user_id,
+        tenant_id=token_data.tenant_id,
+        opponent_user_id=request.opponent_user_id,
+        time_control=request.time_control,
+        mode=request.mode,
+        variant=request.variant or "standard",
+        preferred_color=request.preferred_color or "random",
+    )
+
     return ChallengeResponse(
-        challenge_id="c_01hr08p9m7h4",
-        status="PENDING",
+        challenge_id=challenge.challenge_id,
+        status=challenge.status.value,
     )
 
 
@@ -184,6 +222,7 @@ async def create_challenge(
 async def accept_challenge(
     challenge_id: Annotated[str, Path()],
     token_data: Annotated[JWTTokenData, Depends(get_token_data)],
+    challenge_service: Annotated[ChallengeService, Depends(get_challenge_service)],
 ) -> ChallengeResponse:
     """Accept challenge.
 
@@ -192,20 +231,28 @@ async def accept_challenge(
     Args:
         challenge_id: ID of challenge
         token_data: Authenticated user data
+        challenge_service: Challenge service
 
     Returns:
         Challenge response with game_id
     """
-    # TODO: Inject service and handle request
     logger.info(
         f"Accept challenge {challenge_id}",
         extra={"user_id": token_data.user_id},
     )
 
-    return ChallengeResponse(
+    # TODO: Get actual ratings from rating service or cache
+    challenge = await challenge_service.accept_challenge(
         challenge_id=challenge_id,
-        status="ACCEPTED",
-        game_id="g_01hr08bkj1x9",
+        user_id=token_data.user_id,
+        challenger_rating=1500,
+        opponent_rating=1500,
+    )
+
+    return ChallengeResponse(
+        challenge_id=challenge.challenge_id,
+        status=challenge.status.value,
+        game_id=challenge.game_id,
     )
 
 
@@ -217,6 +264,7 @@ async def accept_challenge(
 async def decline_challenge(
     challenge_id: Annotated[str, Path()],
     token_data: Annotated[JWTTokenData, Depends(get_token_data)],
+    challenge_service: Annotated[ChallengeService, Depends(get_challenge_service)],
 ) -> ChallengeResponse:
     """Decline challenge.
 
@@ -225,40 +273,63 @@ async def decline_challenge(
     Args:
         challenge_id: ID of challenge
         token_data: Authenticated user data
+        challenge_service: Challenge service
 
     Returns:
         Challenge response
     """
-    # TODO: Inject service and handle request
     logger.info(
         f"Decline challenge {challenge_id}",
         extra={"user_id": token_data.user_id},
     )
 
-    return ChallengeResponse(
+    challenge = await challenge_service.decline_challenge(
         challenge_id=challenge_id,
-        status="DECLINED",
+        user_id=token_data.user_id,
+    )
+
+    return ChallengeResponse(
+        challenge_id=challenge.challenge_id,
+        status=challenge.status.value,
     )
 
 
 @router.get("/challenges/incoming")
 async def get_incoming_challenges(
     token_data: Annotated[JWTTokenData, Depends(get_token_data)],
-) -> list:
+    challenge_service: Annotated[ChallengeService, Depends(get_challenge_service)],
+) -> list[dict]:
     """Get incoming challenges.
 
     Per service-spec 4.2.4 GET /v1/matchmaking/challenges/incoming
 
     Args:
         token_data: Authenticated user data
+        challenge_service: Challenge service
 
     Returns:
         List of incoming challenges
     """
-    # TODO: Inject service and handle request
     logger.info(
         "Get incoming challenges",
         extra={"user_id": token_data.user_id},
     )
 
-    return []
+    challenges = await challenge_service.get_incoming_challenges(
+        user_id=token_data.user_id,
+        tenant_id=token_data.tenant_id,
+    )
+
+    return [
+        {
+            "challenge_id": c.challenge_id,
+            "challenger_user_id": c.challenger_user_id,
+            "time_control": c.time_control,
+            "mode": c.mode,
+            "variant": c.variant,
+            "preferred_color": c.preferred_color,
+            "created_at": c.created_at.isoformat(),
+            "expires_at": c.expires_at.isoformat(),
+        }
+        for c in challenges
+    ]

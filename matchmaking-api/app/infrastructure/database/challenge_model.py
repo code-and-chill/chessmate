@@ -2,9 +2,8 @@
 from datetime import datetime, timezone
 
 from sqlalchemy import Column, DateTime, Index, String
-from sqlalchemy.orm import declarative_base
 
-Base = declarative_base()
+from .base import Base
 
 
 class ChallengeModel(Base):

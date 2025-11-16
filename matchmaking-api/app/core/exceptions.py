@@ -85,6 +85,34 @@ class UnauthorizedException(MatchmakingException):
         super().__init__(message, "UNAUTHORIZED")
 
 
+class SelfChallengeException(MatchmakingException):
+    """User tried to challenge themselves."""
+
+    def __init__(self, message: str = "Cannot challenge yourself") -> None:
+        super().__init__(message, "SELF_CHALLENGE")
+
+
+class NotChallengeRecipientException(MatchmakingException):
+    """User is not the challenge recipient."""
+
+    def __init__(self, message: str = "Not the challenge recipient") -> None:
+        super().__init__(message, "NOT_CHALLENGE_RECIPIENT")
+
+
+class ChallengeExpiredException(MatchmakingException):
+    """Challenge has expired."""
+
+    def __init__(self, message: str = "Challenge has expired") -> None:
+        super().__init__(message, "CHALLENGE_EXPIRED")
+
+
+class ChallengeNotPendingException(MatchmakingException):
+    """Challenge is not in pending state."""
+
+    def __init__(self, message: str = "Challenge is not pending") -> None:
+        super().__init__(message, "CHALLENGE_NOT_PENDING")
+
+
 def setup_exception_handlers(app: FastAPI) -> None:
     """Setup exception handlers for FastAPI app."""
 
@@ -175,6 +203,42 @@ def setup_exception_handlers(app: FastAPI) -> None:
     ) -> JSONResponse:
         return JSONResponse(
             status_code=status.HTTP_401_UNAUTHORIZED,
+            content={"code": exc.code, "message": exc.message},
+        )
+
+    @app.exception_handler(SelfChallengeException)
+    async def self_challenge_handler(
+        request: Any, exc: SelfChallengeException
+    ) -> JSONResponse:
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content={"code": exc.code, "message": exc.message},
+        )
+
+    @app.exception_handler(NotChallengeRecipientException)
+    async def not_challenge_recipient_handler(
+        request: Any, exc: NotChallengeRecipientException
+    ) -> JSONResponse:
+        return JSONResponse(
+            status_code=status.HTTP_403_FORBIDDEN,
+            content={"code": exc.code, "message": exc.message},
+        )
+
+    @app.exception_handler(ChallengeExpiredException)
+    async def challenge_expired_handler(
+        request: Any, exc: ChallengeExpiredException
+    ) -> JSONResponse:
+        return JSONResponse(
+            status_code=status.HTTP_410_GONE,
+            content={"code": exc.code, "message": exc.message},
+        )
+
+    @app.exception_handler(ChallengeNotPendingException)
+    async def challenge_not_pending_handler(
+        request: Any, exc: ChallengeNotPendingException
+    ) -> JSONResponse:
+        return JSONResponse(
+            status_code=status.HTTP_409_CONFLICT,
             content={"code": exc.code, "message": exc.message},
         )
 

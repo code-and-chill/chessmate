@@ -3,9 +3,8 @@ from datetime import datetime, timezone
 
 from sqlalchemy import Column, DateTime, Index, String
 from sqlalchemy.dialects.postgresql import JSON
-from sqlalchemy.orm import declarative_base
 
-Base = declarative_base()
+from .base import Base
 
 
 class MatchRecordModel(Base):

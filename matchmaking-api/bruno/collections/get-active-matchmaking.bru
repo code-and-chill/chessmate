@@ -1,0 +1,27 @@
+meta {
+  name: Get Active Matchmaking
+  type: http
+  seq: 4
+}
+
+get {
+  url: ${baseUrl}/v1/matchmaking/active
+  body: none
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  Authorization: Bearer ${authToken}
+}
+
+tests {
+  test("status is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("response has queue_entry or match", function() {
+    expect(res.body).to.have.property("queue_entry");
+    expect(res.body).to.have.property("match");
+  });
+}

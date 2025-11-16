@@ -1,0 +1,41 @@
+meta {
+  name: Create Challenge
+  type: http
+  seq: 6
+}
+
+post {
+  url: ${baseUrl}/v1/matchmaking/challenges
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  Authorization: Bearer ${authToken}
+}
+
+body:json {
+  {
+    "opponent_user_id": "user_test_opponent",
+    "time_control": "10+0",
+    "mode": "rated",
+    "variant": "standard",
+    "preferred_color": "random"
+  }
+}
+
+tests {
+  test("status is 201", function() {
+    expect(res.status).to.equal(201);
+  });
+
+  test("response has challenge_id", function() {
+    expect(res.body.challenge_id).to.not.be.null;
+    bru.setVar("challengeId", res.body.challenge_id);
+  });
+
+  test("status is PENDING", function() {
+    expect(res.body.status).to.equal("PENDING");
+  });
+}

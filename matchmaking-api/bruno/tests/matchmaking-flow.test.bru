@@ -1,0 +1,64 @@
+meta {
+  name: Complete Matchmaking Flow
+  type: test
+}
+
+pre-request {
+  bru.setVar("testUserId", "user_" + Date.now());
+}
+
+request "Join Queue" {
+  method: POST
+  url: ${baseUrl}/v1/matchmaking/queue
+  headers {
+    Content-Type: application/json
+    Authorization: Bearer ${authToken}
+  }
+  body {
+    "time_control": "5+0",
+    "mode": "rated",
+    "variant": "standard",
+    "region": "DEFAULT"
+  }
+  
+  tests {
+    test("queue entry created", function() {
+      expect(res.status).to.equal(201);
+      bru.setVar("queueEntryId", res.body.queue_entry_id);
+      expect(res.body.status).to.equal("SEARCHING");
+    });
+  }
+}
+
+request "Check Queue Status" {
+  method: GET
+  url: ${baseUrl}/v1/matchmaking/queue/${queueEntryId}
+  headers {
+    Content-Type: application/json
+    Authorization: Bearer ${authToken}
+  }
+  
+  tests {
+    test("queue status retrieved", function() {
+      expect(res.status).to.equal(200);
+      expect(res.body.queue_entry_id).to.equal(bru.getVar("queueEntryId"));
+      expect(res.body.status).to.be.oneOf(["SEARCHING", "MATCHED"]);
+    });
+  }
+}
+
+request "Cancel Queue Entry" {
+  method: DELETE
+  url: ${baseUrl}/v1/matchmaking/queue/${queueEntryId}
+  headers {
+    Content-Type: application/json
+    Authorization: Bearer ${authToken}
+  }
+  
+  tests {
+    test("queue entry cancelled", function() {
+      expect(res.status).to.equal(200);
+      expect(res.body.status).to.equal("CANCELLED");
+    });
+  }
+}

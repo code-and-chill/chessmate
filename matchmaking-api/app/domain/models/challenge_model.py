@@ -46,7 +46,10 @@ class Challenge:
 
     def is_expired(self, now: datetime) -> bool:
         """Check if challenge has expired."""
-        return now > self.expires_at
+        # Normalize both datetimes to UTC-aware for comparison
+        now_utc = now if now.tzinfo else now.replace(tzinfo=timezone.utc)
+        expires_utc = self.expires_at if self.expires_at.tzinfo else self.expires_at.replace(tzinfo=timezone.utc)
+        return now_utc > expires_utc
 
     def can_accept(self, now: datetime) -> bool:
         """Check if challenge can be accepted."""

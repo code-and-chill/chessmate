@@ -1,0 +1,36 @@
+meta {
+  name: Get Incoming Challenges
+  type: http
+  seq: 7
+}
+
+get {
+  url: ${baseUrl}/v1/matchmaking/challenges/incoming
+  body: none
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  Authorization: Bearer ${authToken}
+}
+
+tests {
+  test("status is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("response is an array", function() {
+    expect(res.body).to.be.an('array');
+  });
+
+  test("challenges have required fields", function() {
+    if (res.body.length > 0) {
+      const challenge = res.body[0];
+      expect(challenge.challenge_id).to.not.be.null;
+      expect(challenge.challenger_user_id).to.not.be.null;
+      expect(challenge.time_control).to.not.be.null;
+      expect(challenge.mode).to.not.be.null;
+    }
+  });
+}

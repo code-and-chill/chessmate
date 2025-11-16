@@ -23,6 +23,11 @@ sqlalchemy_url = os.environ.get(
     "DATABASE_URL",
     "postgresql://user:password@localhost:5432/matchmaking_db",
 )
+
+# Convert postgresql:// to postgresql+asyncpg:// for async support
+if sqlalchemy_url.startswith("postgresql://"):
+    sqlalchemy_url = sqlalchemy_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+
 config.set_main_option("sqlalchemy.url", sqlalchemy_url)
 
 # Import models for migration

@@ -1,0 +1,34 @@
+meta {
+  name: Accept Challenge
+  type: http
+  seq: 8
+}
+
+post {
+  url: ${baseUrl}/v1/matchmaking/challenges/${challengeId}/accept
+  body: none
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  Authorization: Bearer ${authToken}
+}
+
+tests {
+  test("status is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("response has challenge_id", function() {
+    expect(res.body.challenge_id).to.equal(bru.getVar("challengeId"));
+  });
+
+  test("status is ACCEPTED", function() {
+    expect(res.body.status).to.equal("ACCEPTED");
+  });
+
+  test("response has game_id", function() {
+    expect(res.body.game_id).to.not.be.null;
+  });
+}

@@ -1,0 +1,44 @@
+meta {
+  name: Post Join Queue
+  type: http
+  seq: 2
+}
+
+post {
+  url: ${baseUrl}/v1/matchmaking/queue
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  Authorization: Bearer ${authToken}
+}
+
+body:json {
+  {
+    "time_control": "5+0",
+    "mode": "rated",
+    "variant": "standard",
+    "region": "DEFAULT"
+  }
+}
+
+tests {
+  test("status is 201", function() {
+    expect(res.status).to.equal(201);
+  });
+
+  test("response has queue_entry_id", function() {
+    expect(res.body.queue_entry_id).to.not.be.null;
+    bru.setVar("queueEntryId", res.body.queue_entry_id);
+  });
+
+  test("status is SEARCHING", function() {
+    expect(res.body.status).to.equal("SEARCHING");
+  });
+
+  test("has estimated wait time", function() {
+    expect(res.body.estimated_wait_seconds).to.be.a('number');
+  });
+}

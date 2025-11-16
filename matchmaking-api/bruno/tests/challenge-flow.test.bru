@@ -1,0 +1,64 @@
+meta {
+  name: Challenge Flow
+  type: test
+}
+
+pre-request {
+  bru.setVar("opponentUserId", "user_opponent_" + Date.now());
+}
+
+request "Create Challenge" {
+  method: POST
+  url: ${baseUrl}/v1/matchmaking/challenges
+  headers {
+    Content-Type: application/json
+    Authorization: Bearer ${authToken}
+  }
+  body {
+    "opponent_user_id": "${opponentUserId}",
+    "time_control": "10+0",
+    "mode": "rated",
+    "variant": "standard",
+    "preferred_color": "random"
+  }
+  
+  tests {
+    test("challenge created", function() {
+      expect(res.status).to.equal(201);
+      bru.setVar("challengeId", res.body.challenge_id);
+      expect(res.body.status).to.equal("PENDING");
+    });
+  }
+}
+
+request "Get Incoming Challenges" {
+  method: GET
+  url: ${baseUrl}/v1/matchmaking/challenges/incoming
+  headers {
+    Content-Type: application/json
+    Authorization: Bearer ${authToken}
+  }
+  
+  tests {
+    test("incoming challenges retrieved", function() {
+      expect(res.status).to.equal(200);
+      expect(res.body).to.be.an('array');
+    });
+  }
+}
+
+request "Decline Challenge" {
+  method: POST
+  url: ${baseUrl}/v1/matchmaking/challenges/${challengeId}/decline
+  headers {
+    Content-Type: application/json
+    Authorization: Bearer ${authToken}
+  }
+  
+  tests {
+    test("challenge declined", function() {
+      expect(res.status).to.equal(200);
+      expect(res.body.status).to.equal("DECLINED");
+    });
+  }
+}

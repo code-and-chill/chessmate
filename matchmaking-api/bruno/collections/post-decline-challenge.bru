@@ -1,0 +1,30 @@
+meta {
+  name: Decline Challenge
+  type: http
+  seq: 9
+}
+
+post {
+  url: ${baseUrl}/v1/matchmaking/challenges/${challengeId}/decline
+  body: none
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  Authorization: Bearer ${authToken}
+}
+
+tests {
+  test("status is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("response has challenge_id", function() {
+    expect(res.body.challenge_id).to.equal(bru.getVar("challengeId"));
+  });
+
+  test("status is DECLINED", function() {
+    expect(res.body.status).to.equal("DECLINED");
+  });
+}

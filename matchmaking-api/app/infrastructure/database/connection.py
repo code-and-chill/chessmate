@@ -60,5 +60,11 @@ class DatabaseManager:
         async with self.async_session() as session:
             yield session
 
+    def session(self):
+        """Get session context manager (for use with async with)."""
+        if not self.async_session:
+            raise RuntimeError("Database not initialized. Call connect() first.")
+        return self.async_session()
+
 
 database_manager = DatabaseManager()
