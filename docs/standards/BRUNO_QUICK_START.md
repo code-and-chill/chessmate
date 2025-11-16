@@ -26,9 +26,6 @@ dx bruno account-api --test
 # Using Bruno CLI directly
 cd account-api
 bruno run bruno/collections --env local
-
-# Using service.yaml command
-cd account-api && make bruno-test
 ```
 
 ### Open Bruno Collection

@@ -211,10 +211,6 @@ dx bruno account-api --test
 # Via Bruno CLI directly
 cd account-api
 bruno run bruno/collections --env local
-
-# Via service.yaml command
-cd account-api
-poetry run bruno run bruno/collections --env local
 ```
 
 ### Open Bruno Collection
@@ -222,9 +218,9 @@ poetry run bruno run bruno/collections --env local
 # Via DX CLI
 dx bruno account-api
 
-# Via service.yaml command
+# Via Bruno CLI
 cd account-api
-poetry run bruno open bruno/collections
+bruno open bruno/collections
 ```
 
 ### Validate All Collections
