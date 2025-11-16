@@ -3,13 +3,14 @@ from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from app.domain.models.title_code import TitleCode
 
 
 class Account(BaseModel):
     """Account domain model."""
+    model_config = ConfigDict(from_attributes=True)
 
     id: UUID
     auth_user_id: UUID
@@ -27,6 +28,3 @@ class Account(BaseModel):
     last_seen_at: Optional[datetime] = None
     created_at: datetime
     updated_at: datetime
-
-    class Config:
-        from_attributes = True

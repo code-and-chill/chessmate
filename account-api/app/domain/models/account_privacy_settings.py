@@ -2,13 +2,14 @@
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from app.domain.models.privacy_level import PrivacyLevel
 
 
 class AccountPrivacySettings(BaseModel):
     """Account privacy settings domain model."""
+    model_config = ConfigDict(from_attributes=True)
 
     account_id: UUID
     show_ratings: bool = True
@@ -20,6 +21,3 @@ class AccountPrivacySettings(BaseModel):
     is_profile_public: bool = True
     created_at: datetime
     updated_at: datetime
-
-    class Config:
-        from_attributes = True

@@ -63,13 +63,12 @@ services:
       - "8001:8001"
     environment:
       LOG_LEVEL: INFO
-      DATABASE_URL: postgresql://chessmate_user:chessmate_pass@postgres:5432/chessmate_db
-      REDIS_URL: redis://redis:6379
+      PORT: 8001
+      DATABASE_URL: postgresql+asyncpg://chessmate_user:chessmate_pass@postgres:5432/chessmate_db
       ENVIRONMENT: development
+      JWT_SECRET_KEY: dev-secret-key-for-docker
     depends_on:
       postgres:
-        condition: service_healthy
-      redis:
         condition: service_healthy
     volumes:
       - ./account-api/app:/app/app

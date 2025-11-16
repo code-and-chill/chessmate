@@ -43,7 +43,9 @@ from app.domain.models.account_social_counters import AccountSocialCounters
 from app.domain.models.animation_level import AnimationLevel
 from app.domain.models.default_time_control import DefaultTimeControl
 from app.domain.models.privacy_level import PrivacyLevel
-from app.domain.models.title_code import TitleCodelogger = get_logger(__name__)
+from app.domain.models.title_code import TitleCode
+
+logger = get_logger(__name__)
 from app.domain.repositories.account_repository_interface import AccountRepositoryInterface
 from app.domain.repositories.media_repository_interface import MediaRepositoryInterface
 from app.domain.repositories.preferences_repository_interface import PreferencesRepositoryInterface

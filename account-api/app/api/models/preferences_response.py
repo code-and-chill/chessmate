@@ -1,5 +1,5 @@
 """Preferences response DTO."""
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from app.domain.models.animation_level import AnimationLevel
 from app.domain.models.default_time_control import DefaultTimeControl
@@ -7,6 +7,8 @@ from app.domain.models.default_time_control import DefaultTimeControl
 
 class PreferencesResponse(BaseModel):
     """Preferences response model."""
+
+    model_config = ConfigDict(from_attributes=True)
 
     board_theme: str
     piece_set: str
@@ -17,6 +19,3 @@ class PreferencesResponse(BaseModel):
     confirm_moves: bool
     default_time_control: DefaultTimeControl
     auto_queen_promotion: bool
-
-    class Config:
-        from_attributes = True

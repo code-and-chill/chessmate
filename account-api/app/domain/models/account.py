@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from app.domain.models.animation_level import AnimationLevel
 from app.domain.models.default_time_control import DefaultTimeControl
@@ -30,8 +30,7 @@ class Account(BaseModel):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class AccountProfileDetails(BaseModel):
@@ -50,8 +49,7 @@ class AccountProfileDetails(BaseModel):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class AccountMedia(BaseModel):
@@ -64,8 +62,7 @@ class AccountMedia(BaseModel):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class AccountPreferences(BaseModel):
@@ -84,8 +81,7 @@ class AccountPreferences(BaseModel):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class AccountPrivacySettings(BaseModel):
@@ -102,8 +98,7 @@ class AccountPrivacySettings(BaseModel):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class AccountSocialCounters(BaseModel):
@@ -120,5 +115,4 @@ class AccountSocialCounters(BaseModel):
     last_puzzle_at: Optional[datetime] = None
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

@@ -2,11 +2,13 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class SocialCountersResponse(BaseModel):
     """Social counters response model."""
+
+    model_config = ConfigDict(from_attributes=True)
 
     followers_count: int
     following_count: int
@@ -16,6 +18,3 @@ class SocialCountersResponse(BaseModel):
     total_puzzles_solved: int
     last_game_at: Optional[datetime] = None
     last_puzzle_at: Optional[datetime] = None
-
-    class Config:
-        from_attributes = True

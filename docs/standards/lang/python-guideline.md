@@ -2,7 +2,7 @@
 title: Python Service Architecture Guidelines
 service: global
 status: active
-last_reviewed: 2025-11-15
+last_reviewed: 2025-11-16
 type: standard
 ---
 
@@ -246,11 +246,18 @@ if __name__ == "__main__":
 from functools import lru_cache
 from typing import List, Optional
 
-from pydantic import BaseSettings, validator
+from pydantic import field_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
     """Application settings."""
+    
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        case_sensitive=True,
+        extra="ignore",
+    )
     
     # Application
     PROJECT_NAME: str = "Content Moderation API"
@@ -284,17 +291,14 @@ class Settings(BaseSettings):
     SENTRY_DSN: Optional[str] = None
     LOG_LEVEL: str = "INFO"
     
-    @validator("ALLOWED_HOSTS", pre=True)
+    @field_validator("ALLOWED_HOSTS", mode="before")
+    @classmethod
     def assemble_cors_origins(cls, v):
         if isinstance(v, str) and not v.startswith("["):
             return [i.strip() for i in v.split(",")]
         elif isinstance(v, (list, str)):
             return v
         raise ValueError(v)
-    
-    class Config:
-        env_file = ".env"
-        case_sensitive = True
 
 
 @lru_cache()
@@ -376,7 +380,269 @@ async def get_content_service(
 
 ## 4. Domain Modeling with Pydantic
 
-### 4.1 Domain Models
+### 4.1 Pydantic V2 Guidelines
+
+**CRITICAL: Use Pydantic V2 Patterns**
+
+All Pydantic models **MUST** use V2 patterns to avoid deprecation warnings and ensure future compatibility.
+
+**Model Configuration (ConfigDict)**
+```python
+# ❌ BAD: Deprecated Pydantic V1 pattern (class-based Config)
+from pydantic import BaseModel
+
+class User(BaseModel):
+    name: str
+    
+    class Config:
+        from_attributes = True  # Deprecated pattern
+        validate_assignment = True
+        use_enum_values = True
+
+# ✅ GOOD: Pydantic V2 pattern (model_config with ConfigDict)
+from pydantic import BaseModel, ConfigDict
+
+class User(BaseModel):
+    model_config = ConfigDict(
+        from_attributes=True,
+        validate_assignment=True,
+        use_enum_values=True,
+    )
+    
+    name: str
+```
+
+**Common ConfigDict Options**
+```python
+from pydantic import BaseModel, ConfigDict
+
+class DomainModel(BaseModel):
+    """Domain model with Pydantic V2 configuration."""
+    
+    model_config = ConfigDict(
+        # ORM mode - allows model to be created from ORM objects
+        from_attributes=True,
+        
+        # Validation
+        validate_assignment=True,     # Validate on attribute assignment
+        validate_default=True,         # Validate default values
+        strict=False,                  # Allow coercion (int -> str, etc.)
+        
+        # Enums
+        use_enum_values=True,         # Use enum values in dict/json
+        
+        # Serialization
+        populate_by_name=True,        # Allow population by field name or alias
+        
+        # Frozen (immutable)
+        frozen=False,                  # Set True for immutable models
+        
+        # JSON schema
+        json_schema_extra={
+            "example": {
+                "name": "John Doe",
+                "email": "john@example.com"
+            }
+        }
+    )
+    
+    name: str
+    email: str
+```
+
+**Field Validators (V2 Patterns)**
+```python
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+
+class Account(BaseModel):
+    """Account with field validation."""
+    
+    model_config = ConfigDict(from_attributes=True)
+    
+    username: str = Field(min_length=3, max_length=32)
+    email: str
+    tags: list[str] = Field(default_factory=list)
+    
+    # Field validator (V2 pattern - decorator above method)
+    @field_validator('username')
+    @classmethod
+    def validate_username(cls, v: str) -> str:
+        """Validate username format."""
+        if not v.isalnum():
+            raise ValueError('Username must be alphanumeric')
+        return v.lower()
+    
+    # Multiple fields validator
+    @field_validator('tags')
+    @classmethod
+    def validate_tags(cls, v: list[str]) -> list[str]:
+        """Validate and normalize tags."""
+        if len(v) > 10:
+            raise ValueError('Maximum 10 tags allowed')
+        return [tag.lower().strip() for tag in v if tag.strip()]
+    
+    # Model validator (validates entire model)
+    @model_validator(mode='after')
+    def validate_model(self) -> 'Account':
+        """Validate entire model after field validation."""
+        if 'admin' in self.username and '@admin.com' not in self.email:
+            raise ValueError('Admin usernames require admin email domain')
+        return self
+```
+
+**Computed Fields (V2 Pattern)**
+```python
+from pydantic import BaseModel, ConfigDict, computed_field
+
+class User(BaseModel):
+    """User with computed properties."""
+    
+    model_config = ConfigDict(from_attributes=True)
+    
+    first_name: str
+    last_name: str
+    
+    # Computed field (V2 pattern)
+    @computed_field
+    @property
+    def full_name(self) -> str:
+        """Computed full name property."""
+        return f"{self.first_name} {self.last_name}"
+    
+    # Cached computed field
+    @computed_field
+    @property
+    def display_name(self) -> str:
+        """Cached computed display name."""
+        return self.full_name.upper()
+```
+
+**Serialization Aliases (V2 Pattern)**
+```python
+from pydantic import BaseModel, ConfigDict, Field
+
+class APIResponse(BaseModel):
+    """API response with field aliases."""
+    
+    model_config = ConfigDict(
+        from_attributes=True,
+        populate_by_name=True,  # Accept both 'user_id' and 'userId'
+    )
+    
+    # Serialization alias (output name)
+    user_id: str = Field(serialization_alias='userId')
+    created_at: datetime = Field(serialization_alias='createdAt')
+    
+    # Validation alias (input name)
+    display_name: str = Field(validation_alias='displayName')
+```
+
+**Type Annotations (V2 Patterns)**
+```python
+from typing import Annotated
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints
+
+class Account(BaseModel):
+    """Account with annotated types."""
+    
+    model_config = ConfigDict(from_attributes=True)
+    
+    # Annotated constraints (more readable than Field)
+    username: Annotated[str, StringConstraints(
+        min_length=3,
+        max_length=32,
+        pattern=r'^[a-zA-Z0-9_]+$'
+    )]
+    
+    # Or use Field for complex constraints
+    email: str = Field(pattern=r'^[\w\.-]+@[\w\.-]+\.\w+$')
+    
+    # Numeric constraints
+    age: Annotated[int, Field(ge=0, le=150)]
+```
+
+**Migration Checklist for Pydantic V2**
+
+When updating existing models:
+- [ ] Replace `class Config:` with `model_config = ConfigDict(...)`
+- [ ] Add `ConfigDict` to imports: `from pydantic import ConfigDict`
+- [ ] Change `orm_mode` to `from_attributes`
+- [ ] Replace `regex=` with `pattern=` in Field constraints
+- [ ] Replace `max_items` with `max_length` for lists in Field
+- [ ] Update validators to use `@field_validator` decorator with `@classmethod`
+- [ ] Update model validators to use `@model_validator(mode='after')`
+- [ ] Replace `@validator` with `@field_validator`
+- [ ] Replace `@root_validator` with `@model_validator`
+- [ ] Update computed properties to use `@computed_field`
+- [ ] Update settings models: `BaseSettings` from `pydantic_settings`
+- [ ] Add type hints to all validator methods
+- [ ] Test all validation logic still works
+
+**Common Migration Patterns**
+```python
+# V1 -> V2 Config
+class Config:                          →  model_config = ConfigDict(
+    orm_mode = True                    →      from_attributes=True,
+    validate_assignment = True         →      validate_assignment=True,
+    use_enum_values = True            →      use_enum_values=True,
+    allow_population_by_field_name    →      populate_by_name=True,
+)
+
+# V1 -> V2 Field Constraints
+Field(..., regex=r"^[a-z]+$")         →  Field(..., pattern=r"^[a-z]+$")
+Field(..., max_items=10)              →  Field(..., max_length=10)
+
+# V1 -> V2 Validators
+@validator('field')                    →  @field_validator('field')
+def validate_field(cls, v):           →  @classmethod
+    return v                          →  def validate_field(cls, v: type) -> type:
+                                      →      return v
+
+@root_validator                       →  @model_validator(mode='after')
+def validate_model(cls, values):      →  def validate_model(self) -> 'ModelName':
+    return values                     →      return self
+
+# V1 -> V2 Settings
+from pydantic import BaseSettings     →  from pydantic_settings import BaseSettings, SettingsConfigDict
+class Config:                         →  model_config = SettingsConfigDict(
+    env_file = ".env"                 →      env_file=".env",
+    case_sensitive = True             →      case_sensitive=True,
+)                                     →  )
+```
+
+**Common Deprecation Warnings and Fixes**
+```python
+# Warning: "Support for class-based `config` is deprecated"
+# ❌ Old (V1)
+class User(BaseModel):
+    class Config:
+        from_attributes = True
+
+# ✅ New (V2)
+class User(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+# Warning: "`regex` is deprecated, use `pattern` instead"
+# ❌ Old (V1)
+email: str = Field(regex=r"^[\w\.-]+@[\w\.-]+\.\w+$")
+
+# ✅ New (V2)
+email: str = Field(pattern=r"^[\w\.-]+@[\w\.-]+\.\w+$")
+
+# Warning: "Pydantic V1 style `@validator` validators are deprecated"
+# ❌ Old (V1)
+@validator('username')
+def check_username(cls, v):
+    return v.lower()
+
+# ✅ New (V2)
+@field_validator('username')
+@classmethod
+def check_username(cls, v: str) -> str:
+    return v.lower()
+```
+
+### 4.2 Domain Models
 
 **Base Domain Model**
 ```python
@@ -385,33 +651,33 @@ from datetime import datetime
 from typing import Optional
 from uuid import UUID, uuid4
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class BaseEntity(BaseModel):
     """Base entity with common fields."""
     
+    model_config = ConfigDict(
+        from_attributes=True,
+        use_enum_values=True,
+        validate_assignment=True,
+    )
+    
     id: UUID = Field(default_factory=uuid4)
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: Optional[datetime] = None
-    
-    class Config:
-        orm_mode = True
-        use_enum_values = True
-        validate_assignment = True
 
 
 class BaseDomainEvent(BaseModel):
     """Base domain event."""
+    
+    model_config = ConfigDict(frozen=True)
     
     event_id: UUID = Field(default_factory=uuid4)
     event_type: str
     aggregate_id: UUID
     occurred_at: datetime = Field(default_factory=datetime.utcnow)
     version: int = 1
-    
-    class Config:
-        frozen = True
 ```
 
 **Content Domain Models**
@@ -421,7 +687,7 @@ from enum import Enum
 from typing import List, Optional
 from uuid import UUID
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from .base import BaseEntity, BaseDomainEvent
 
@@ -468,12 +734,13 @@ class ContentItem(BaseEntity):
     moderated_at: Optional[datetime] = None
     
     # Metadata
-    language: Optional[str] = Field(None, regex=r"^[a-z]{2}$")
+    language: Optional[str] = Field(None, pattern=r"^[a-z]{2}$")
     tags: List[str] = Field(default_factory=list)
     metadata: dict = Field(default_factory=dict)
     
-    @validator("tags")
-    def validate_tags(cls, v):
+    @field_validator("tags")
+    @classmethod
+    def validate_tags(cls, v: List[str]) -> List[str]:
         """Validate tags list."""
         if len(v) > 10:
             raise ValueError("Maximum 10 tags allowed")
@@ -526,7 +793,7 @@ class ContentModeratedEvent(BaseDomainEvent):
     moderator_id: UUID
 ```
 
-### 4.2 API Models
+### 4.3 API Models
 
 **Request/Response Models**
 ```python
@@ -534,7 +801,7 @@ class ContentModeratedEvent(BaseDomainEvent):
 from typing import List, Optional
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from app.domain.models.content import ContentType, ModerationStatus, ModerationReason
 
@@ -546,8 +813,8 @@ class CreateContentRequest(BaseModel):
     title: str = Field(..., min_length=1, max_length=200)
     body: str = Field(..., min_length=1, max_length=10000)
     content_type: ContentType
-    language: Optional[str] = Field(None, regex=r"^[a-z]{2}$")
-    tags: List[str] = Field(default_factory=list, max_items=10)
+    language: Optional[str] = Field(None, pattern=r"^[a-z]{2}$")
+    tags: List[str] = Field(default_factory=list, max_length=10)
 
 
 class ModerateContentRequest(BaseModel):
@@ -562,6 +829,8 @@ class ModerateContentRequest(BaseModel):
 class ContentResponse(BaseModel):
     """Content response model."""
     
+    model_config = ConfigDict(from_attributes=True)
+    
     id: UUID
     title: str
     body: str
@@ -574,9 +843,6 @@ class ContentResponse(BaseModel):
     tags: List[str]
     created_at: datetime
     updated_at: Optional[datetime]
-    
-    class Config:
-        orm_mode = True
 
 
 class ModerationResponse(BaseModel):
@@ -592,6 +858,8 @@ class ModerationResponse(BaseModel):
 
 class PaginatedResponse(BaseModel):
     """Paginated response wrapper."""
+    
+    model_config = ConfigDict(from_attributes=True)
     
     items: List[ContentResponse]
     total: int

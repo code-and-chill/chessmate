@@ -137,34 +137,40 @@ class AccountRepository(AccountRepositoryInterface):
 
     async def ban(self, account_id: UUID) -> Account:
         """Ban account."""
+        from datetime import datetime, timezone
+        
         stmt = select(AccountORM).where(AccountORM.id == account_id)
         result = await self.session.execute(stmt)
         orm_obj = result.scalars().one()
 
         orm_obj.is_banned = True
-        orm_obj.updated_at = Account.model_fields["updated_at"].default_factory()
+        orm_obj.updated_at = datetime.now(timezone.utc)
         await self.session.flush()
         return self._orm_to_domain(orm_obj)
 
     async def unban(self, account_id: UUID) -> Account:
         """Unban account."""
+        from datetime import datetime, timezone
+        
         stmt = select(AccountORM).where(AccountORM.id == account_id)
         result = await self.session.execute(stmt)
         orm_obj = result.scalars().one()
 
         orm_obj.is_banned = False
-        orm_obj.updated_at = Account.model_fields["updated_at"].default_factory()
+        orm_obj.updated_at = datetime.now(timezone.utc)
         await self.session.flush()
         return self._orm_to_domain(orm_obj)
 
     async def deactivate(self, account_id: UUID) -> Account:
         """Deactivate account."""
+        from datetime import datetime, timezone
+        
         stmt = select(AccountORM).where(AccountORM.id == account_id)
         result = await self.session.execute(stmt)
         orm_obj = result.scalars().one()
 
         orm_obj.is_active = False
-        orm_obj.updated_at = Account.model_fields["updated_at"].default_factory()
+        orm_obj.updated_at = datetime.now(timezone.utc)
         await self.session.flush()
         return self._orm_to_domain(orm_obj)
 

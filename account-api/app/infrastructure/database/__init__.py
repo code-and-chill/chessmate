@@ -22,6 +22,15 @@ settings = get_settings()
 # Base class for ORM models
 Base = declarative_base()
 
+# Import all ORM models to ensure they are registered with SQLAlchemy
+# This is required for Base.metadata.create_all() to work correctly
+from app.infrastructure.database.models.account_orm import AccountORM  # noqa: E402, F401
+from app.infrastructure.database.models.account_media_orm import AccountMediaORM  # noqa: E402, F401
+from app.infrastructure.database.models.account_preferences_orm import AccountPreferencesORM  # noqa: E402, F401
+from app.infrastructure.database.models.account_privacy_settings_orm import AccountPrivacySettingsORM  # noqa: E402, F401
+from app.infrastructure.database.models.account_profile_details_orm import AccountProfileDetailsORM  # noqa: E402, F401
+from app.infrastructure.database.models.account_social_counters_orm import AccountSocialCountersORM  # noqa: E402, F401
+
 # Create async engine with connection pooling
 engine = create_async_engine(
     settings.DATABASE_URL,

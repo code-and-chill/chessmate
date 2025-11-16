@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from app.domain.models.animation_level import AnimationLevel
 from app.domain.models.default_time_control import DefaultTimeControl
@@ -95,12 +95,13 @@ class AccountResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ProfileDetailsResponse(BaseModel):
     """Profile details response model."""
+
+    model_config = ConfigDict(from_attributes=True)
 
     bio: Optional[str] = None
     location_text: Optional[str] = None
@@ -112,23 +113,21 @@ class ProfileDetailsResponse(BaseModel):
     favorite_players: Optional[str] = None
     favorite_openings: Optional[str] = None
 
-    class Config:
-        from_attributes = True
-
 
 class MediaResponse(BaseModel):
     """Media response model."""
+
+    model_config = ConfigDict(from_attributes=True)
 
     avatar_file_id: Optional[UUID] = None
     banner_file_id: Optional[UUID] = None
     avatar_version: int
 
-    class Config:
-        from_attributes = True
-
 
 class PreferencesResponse(BaseModel):
     """Preferences response model."""
+
+    model_config = ConfigDict(from_attributes=True)
 
     board_theme: str
     piece_set: str
@@ -140,12 +139,11 @@ class PreferencesResponse(BaseModel):
     default_time_control: DefaultTimeControl
     auto_queen_promotion: bool
 
-    class Config:
-        from_attributes = True
-
 
 class PrivacySettingsResponse(BaseModel):
     """Privacy settings response model."""
+
+    model_config = ConfigDict(from_attributes=True)
 
     show_ratings: bool
     show_online_status: bool
@@ -155,12 +153,11 @@ class PrivacySettingsResponse(BaseModel):
     allow_challenges_from: PrivacyLevel
     is_profile_public: bool
 
-    class Config:
-        from_attributes = True
-
 
 class SocialCountersResponse(BaseModel):
     """Social counters response model."""
+
+    model_config = ConfigDict(from_attributes=True)
 
     followers_count: int
     following_count: int
@@ -170,9 +167,6 @@ class SocialCountersResponse(BaseModel):
     total_puzzles_solved: int
     last_game_at: Optional[datetime] = None
     last_puzzle_at: Optional[datetime] = None
-
-    class Config:
-        from_attributes = True
 
 
 class FullAccountResponse(BaseModel):

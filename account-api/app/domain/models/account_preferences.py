@@ -2,7 +2,7 @@
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from app.domain.models.animation_level import AnimationLevel
 from app.domain.models.default_time_control import DefaultTimeControl
@@ -10,6 +10,7 @@ from app.domain.models.default_time_control import DefaultTimeControl
 
 class AccountPreferences(BaseModel):
     """Account preferences domain model."""
+    model_config = ConfigDict(from_attributes=True)
 
     account_id: UUID
     board_theme: str = "classic"
@@ -23,6 +24,3 @@ class AccountPreferences(BaseModel):
     auto_queen_promotion: bool = True
     created_at: datetime
     updated_at: datetime
-
-    class Config:
-        from_attributes = True
