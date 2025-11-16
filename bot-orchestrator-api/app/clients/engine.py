@@ -4,7 +4,8 @@ import asyncio
 import httpx
 
 from app.core.config import get_settings
-from app.domain.models import Candidate, EngineQuery
+from app.domain.candidate import Candidate
+from app.domain.move_response import EngineQuery
 
 
 async def evaluate_position(fen: str, side_to_move: str, query: EngineQuery) -> List[Candidate]:

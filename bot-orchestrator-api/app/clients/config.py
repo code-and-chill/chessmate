@@ -1,10 +1,10 @@
 from __future__ import annotations
-import datetime as dt
+from datetime import datetime, timezone
 import httpx
 from typing import Optional
 
 from app.core.config import get_settings
-from app.domain.models import (
+from app.domain.bot_spec import (
     BotSpec,
     BotSpecEnvelope,
     EndgameSpec,
@@ -46,7 +46,7 @@ async def fetch_spec(bot_id: str) -> BotSpecEnvelope:
     if not settings.BOT_CONFIG_URL:
         return BotSpecEnvelope(
             bot_id=bot_id,
-            version=dt.datetime.utcnow().replace(microsecond=0).isoformat() + "Z",
+            version=datetime.now(timezone.utc).replace(microsecond=0).isoformat() + "Z",
             spec=DEFAULT_SPEC,
         )
 

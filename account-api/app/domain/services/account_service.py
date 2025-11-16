@@ -2,31 +2,54 @@ from datetime import datetime, timezone
 from typing import Optional
 from uuid import UUID, uuid4
 
+from app.core.constants import (
+    DEFAULT_ANIMATION_LEVEL,
+    DEFAULT_AUTO_QUEEN_PROMOTION,
+    DEFAULT_AVATAR_VERSION,
+    DEFAULT_BOARD_THEME,
+    DEFAULT_CONFIRM_MOVES,
+    DEFAULT_COUNTER_VALUE,
+    DEFAULT_HIGHLIGHT_LEGAL_MOVES,
+    DEFAULT_PIECE_SET,
+    DEFAULT_SHOW_COORDINATES,
+    DEFAULT_SOUND_ENABLED,
+    DEFAULT_TIME_CONTROL,
+    DEFAULT_ALLOW_FRIEND_REQUESTS,
+    DEFAULT_ALLOW_MESSAGES_FROM,
+    DEFAULT_ALLOW_CHALLENGES_FROM,
+    DEFAULT_IS_PROFILE_PUBLIC,
+    DEFAULT_SHOW_GAME_ARCHIVE,
+    DEFAULT_SHOW_ONLINE_STATUS,
+    DEFAULT_SHOW_RATINGS,
+    ERROR_ACCOUNT_EXISTS,
+    ERROR_ACCOUNT_NOT_FOUND,
+    ERROR_INVALID_USERNAME,
+    MAX_USERNAME_LENGTH,
+    MIN_USERNAME_LENGTH,
+    USERNAME_ALLOWED_CHARS,
+)
 from app.core.exceptions import (
     AccountAlreadyExistsError,
     AccountNotFoundError,
     InvalidUsernameError,
 )
-from app.domain.models.account import (
-    Account,
-    AccountMedia,
-    AccountPreferences,
-    AccountPrivacySettings,
-    AccountProfileDetails,
-    AccountSocialCounters,
-    AnimationLevel,
-    DefaultTimeControl,
-    PrivacyLevel,
-    TitleCode,
-)
-from app.domain.repositories.account_repository import (
-    AccountRepositoryInterface,
-    MediaRepositoryInterface,
-    PreferencesRepositoryInterface,
-    PrivacySettingsRepositoryInterface,
-    ProfileDetailsRepositoryInterface,
-    SocialCountersRepositoryInterface,
-)
+from app.core.logging import get_logger
+from app.domain.models.account_media import AccountMedia
+from app.domain.models.account_model import Account
+from app.domain.models.account_preferences import AccountPreferences
+from app.domain.models.account_privacy_settings import AccountPrivacySettings
+from app.domain.models.account_profile_details import AccountProfileDetails
+from app.domain.models.account_social_counters import AccountSocialCounters
+from app.domain.models.animation_level import AnimationLevel
+from app.domain.models.default_time_control import DefaultTimeControl
+from app.domain.models.privacy_level import PrivacyLevel
+from app.domain.models.title_code import TitleCodelogger = get_logger(__name__)
+from app.domain.repositories.account_repository_interface import AccountRepositoryInterface
+from app.domain.repositories.media_repository_interface import MediaRepositoryInterface
+from app.domain.repositories.preferences_repository_interface import PreferencesRepositoryInterface
+from app.domain.repositories.privacy_settings_repository_interface import PrivacySettingsRepositoryInterface
+from app.domain.repositories.profile_details_repository_interface import ProfileDetailsRepositoryInterface
+from app.domain.repositories.social_counters_repository_interface import SocialCountersRepositoryInterface
 
 
 class AccountService:
@@ -58,17 +81,25 @@ class AccountService:
         time_zone: Optional[str] = None,
     ) -> Account:
         """Create new account with all related entities."""
+        logger.info("account.create.started", username=username, auth_user_id=str(auth_user_id))
+        
         # Validate username
         self._validate_username(username)
 
         # Check if account already exists
         existing_account = await self.account_repository.get_by_username(username)
         if existing_account:
-            raise AccountAlreadyExistsError(f"Username '{username}' already exists")
+            logger.warning("account.create.username_exists", username=username)
+            raise AccountAlreadyExistsError(
+                ERROR_ACCOUNT_EXISTS.format(identifier=f"username '{username}'")
+            )
 
         existing_by_auth = await self.account_repository.get_by_auth_user_id(auth_user_id)
         if existing_by_auth:
-            raise AccountAlreadyExistsError(f"Account for auth_user_id already exists")
+            logger.warning("account.create.auth_user_exists", auth_user_id=str(auth_user_id))
+            raise AccountAlreadyExistsError(
+                ERROR_ACCOUNT_EXISTS.format(identifier=f"auth_user_id {auth_user_id}")
+            )
 
         # Create account
         now = datetime.now(timezone.utc)
@@ -100,27 +131,34 @@ class AccountService:
         await self._create_default_privacy_settings(account_id, now)
         await self._create_default_social_counters(account_id, now)
 
+        logger.info("account.create.success", account_id=str(account_id), username=username)
         return created_account
 
     async def get_account_by_id(self, account_id: UUID) -> Account:
         """Get account by ID."""
+        logger.debug("account.get_by_id", account_id=str(account_id))
         account = await self.account_repository.get_by_id(account_id)
         if not account:
-            raise AccountNotFoundError(f"Account {account_id} not found")
+            logger.warning("account.not_found.by_id", account_id=str(account_id))
+            raise AccountNotFoundError(ERROR_ACCOUNT_NOT_FOUND.format(identifier=f"id {account_id}"))
         return account
 
     async def get_account_by_username(self, username: str) -> Account:
         """Get account by username."""
+        logger.debug("account.get_by_username", username=username)
         account = await self.account_repository.get_by_username(username)
         if not account:
-            raise AccountNotFoundError(f"Account with username '{username}' not found")
+            logger.warning("account.not_found.by_username", username=username)
+            raise AccountNotFoundError(ERROR_ACCOUNT_NOT_FOUND.format(identifier=f"username '{username}'"))
         return account
 
     async def get_account_by_auth_user_id(self, auth_user_id: UUID) -> Account:
         """Get account by auth user ID."""
+        logger.debug("account.get_by_auth_user_id", auth_user_id=str(auth_user_id))
         account = await self.account_repository.get_by_auth_user_id(auth_user_id)
         if not account:
-            raise AccountNotFoundError(f"Account for auth_user_id {auth_user_id} not found")
+            logger.warning("account.not_found.by_auth_user_id", auth_user_id=str(auth_user_id))
+            raise AccountNotFoundError(ERROR_ACCOUNT_NOT_FOUND.format(identifier=f"auth_user_id {auth_user_id}"))
         return account
 
     async def update_account(
@@ -325,11 +363,19 @@ class AccountService:
 
     def _validate_username(self, username: str) -> None:
         """Validate username format."""
-        if not username or len(username) < 3 or len(username) > 32:
-            raise InvalidUsernameError("Username must be between 3 and 32 characters")
+        if not username or len(username) < MIN_USERNAME_LENGTH or len(username) > MAX_USERNAME_LENGTH:
+            raise InvalidUsernameError(
+                ERROR_INVALID_USERNAME.format(
+                    reason=f"must be between {MIN_USERNAME_LENGTH} and {MAX_USERNAME_LENGTH} characters"
+                )
+            )
 
-        if not all(c.isalnum() or c in "_-" for c in username):
-            raise InvalidUsernameError("Username can only contain letters, numbers, _, and -")
+        if not all(c in USERNAME_ALLOWED_CHARS for c in username):
+            raise InvalidUsernameError(
+                ERROR_INVALID_USERNAME.format(
+                    reason="can only contain letters, numbers, underscores, and hyphens"
+                )
+            )
 
     async def _create_default_profile_details(self, account_id: UUID, now: datetime) -> None:
         """Create default profile details."""
@@ -355,7 +401,7 @@ class AccountService:
             account_id=account_id,
             avatar_file_id=None,
             banner_file_id=None,
-            avatar_version=1,
+            avatar_version=DEFAULT_AVATAR_VERSION,
             created_at=now,
             updated_at=now,
         )
@@ -365,15 +411,15 @@ class AccountService:
         """Create default preferences."""
         preferences = AccountPreferences(
             account_id=account_id,
-            board_theme="classic",
-            piece_set="classic",
-            sound_enabled=True,
-            animation_level=AnimationLevel.FULL,
-            highlight_legal_moves=True,
-            show_coordinates=True,
-            confirm_moves=False,
-            default_time_control=DefaultTimeControl.BLITZ,
-            auto_queen_promotion=True,
+            board_theme=DEFAULT_BOARD_THEME,
+            piece_set=DEFAULT_PIECE_SET,
+            sound_enabled=DEFAULT_SOUND_ENABLED,
+            animation_level=DEFAULT_ANIMATION_LEVEL,
+            highlight_legal_moves=DEFAULT_HIGHLIGHT_LEGAL_MOVES,
+            show_coordinates=DEFAULT_SHOW_COORDINATES,
+            confirm_moves=DEFAULT_CONFIRM_MOVES,
+            default_time_control=DEFAULT_TIME_CONTROL,
+            auto_queen_promotion=DEFAULT_AUTO_QUEEN_PROMOTION,
             created_at=now,
             updated_at=now,
         )
@@ -383,13 +429,13 @@ class AccountService:
         """Create default privacy settings."""
         privacy_settings = AccountPrivacySettings(
             account_id=account_id,
-            show_ratings=True,
-            show_online_status=True,
-            show_game_archive=True,
-            allow_friend_requests=PrivacyLevel.EVERYONE,
-            allow_messages_from=PrivacyLevel.EVERYONE,
-            allow_challenges_from=PrivacyLevel.EVERYONE,
-            is_profile_public=True,
+            show_ratings=DEFAULT_SHOW_RATINGS,
+            show_online_status=DEFAULT_SHOW_ONLINE_STATUS,
+            show_game_archive=DEFAULT_SHOW_GAME_ARCHIVE,
+            allow_friend_requests=DEFAULT_ALLOW_FRIEND_REQUESTS,
+            allow_messages_from=DEFAULT_ALLOW_MESSAGES_FROM,
+            allow_challenges_from=DEFAULT_ALLOW_CHALLENGES_FROM,
+            is_profile_public=DEFAULT_IS_PROFILE_PUBLIC,
             created_at=now,
             updated_at=now,
         )
@@ -399,12 +445,12 @@ class AccountService:
         """Create default social counters."""
         social_counters = AccountSocialCounters(
             account_id=account_id,
-            followers_count=0,
-            following_count=0,
-            friends_count=0,
-            clubs_count=0,
-            total_games_played=0,
-            total_puzzles_solved=0,
+            followers_count=DEFAULT_COUNTER_VALUE,
+            following_count=DEFAULT_COUNTER_VALUE,
+            friends_count=DEFAULT_COUNTER_VALUE,
+            clubs_count=DEFAULT_COUNTER_VALUE,
+            total_games_played=DEFAULT_COUNTER_VALUE,
+            total_puzzles_solved=DEFAULT_COUNTER_VALUE,
             last_game_at=None,
             last_puzzle_at=None,
             updated_at=now,

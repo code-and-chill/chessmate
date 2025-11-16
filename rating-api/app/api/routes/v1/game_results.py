@@ -1,5 +1,5 @@
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
@@ -10,7 +10,11 @@ from app.core.config import get_settings
 from app.core.security import require_auth
 from app.domain.engine.glicko2 import Glicko2Engine
 from app.domain.engine.base import RatingState
-from app.domain.models import EventOutbox, RatingIngestion, RatingPool, RatingEvent, UserRating
+from app.domain.event_outbox import EventOutbox
+from app.domain.rating_event import RatingEvent
+from app.domain.rating_ingestion import RatingIngestion
+from app.domain.rating_pool import RatingPool
+from app.domain.user_rating import UserRating
 from app.domain.schemas import GameResultIn, GameResultOut
 from app.infrastructure.database import get_db_session
 
@@ -102,7 +106,7 @@ async def ingest_game_result(
     b_after = engine.update(b_before, [w_before], [s_b])
 
     # Apply updates
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     white.rating = w_after.rating
     white.rating_deviation = w_after.rd
     white.volatility = w_after.volatility

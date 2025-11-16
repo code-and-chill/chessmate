@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 
-from app.domain.models import EvaluateRequest, EvaluateResponse
+from app.domain.evaluate_request import EvaluateRequest
+from app.domain.evaluate_response import EvaluateResponse
 from app.engine.evaluator import evaluate_position
 
 router = APIRouter()

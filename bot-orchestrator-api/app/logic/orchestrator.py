@@ -8,16 +8,16 @@ from typing import Deque, Dict, List, Optional, Tuple
 from app.clients.config import fetch_spec
 from app.clients.engine import evaluate_position
 from app.clients.knowledge import get_opening_book_move, get_tablebase_move
-from app.domain.models import (
-    BotSpecEnvelope,
-    Candidate,
+from app.domain.bot_spec import BotSpecEnvelope
+from app.domain.candidate import Candidate
+from app.domain.move_request import MoveRequest
+from app.domain.move_response import (
     ChosenReason,
     DebugInfo,
     EngineQuery,
-    MistakeType,
-    MoveRequest,
     MoveResponse,
 )
+from app.domain.types import MistakeType
 
 
 _LAST_MOVES: Deque[dict] = deque(maxlen=200)

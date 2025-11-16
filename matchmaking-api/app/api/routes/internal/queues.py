@@ -1,14 +1,11 @@
 """Internal/admin routes."""
-import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Header, status
 
 from app.api.models import QueueSummary, QueuesSummaryResponse
 from app.core.security import JWTTokenData, decode_token
-
-logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/internal", tags=["internal"])
 
@@ -55,10 +52,9 @@ async def get_queues_summary(
         Queue summary response
     """
     # TODO: Inject queue store and aggregate stats
-    logger.info("Get queues summary")
 
     return QueuesSummaryResponse(
-        timestamp=datetime.utcnow(),
+        timestamp=datetime.now(timezone.utc),
         queues=[
             QueueSummary(
                 tenant_id="t_default",

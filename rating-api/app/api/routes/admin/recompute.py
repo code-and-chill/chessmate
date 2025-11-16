@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 from fastapi import APIRouter, Depends
@@ -24,4 +24,4 @@ async def trigger_recompute(
         "time_from": body.get("time_from"),
         "time_to": body.get("time_to"),
     }
-    return {"status": "accepted", "scheduled_at": datetime.utcnow().isoformat() + "Z", "scope": scope}
+    return {"status": "accepted", "scheduled_at": datetime.now(timezone.utc).isoformat() + "Z", "scope": scope}

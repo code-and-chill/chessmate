@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Response, status
 
-from app.domain.models import OpeningBookRequest, OpeningBookResponse
+from app.domain.opening_book import OpeningBookRequest, OpeningBookResponse
 from app.services.opening_book import query_opening_book
 
 router = APIRouter()

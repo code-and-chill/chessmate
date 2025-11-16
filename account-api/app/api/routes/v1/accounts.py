@@ -1,8 +1,16 @@
+"""
+Public API routes for account management.
+
+These endpoints provide user-facing account operations with proper
+authentication and privacy controls.
+"""
+
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.api.dependencies import get_account_service, get_current_user_id
+from app.core.logging import get_logger
 from app.api.models import (
     CreateAccountRequest,
     FullAccountResponse,
@@ -15,6 +23,7 @@ from app.core.exceptions import AccountNotFoundError, InvalidUsernameError
 from app.domain.services.account_service import AccountService
 
 router = APIRouter(prefix="/v1/accounts", tags=["accounts"])
+logger = get_logger(__name__)
 
 
 @router.get("/me", response_model=FullAccountResponse)
@@ -23,6 +32,7 @@ async def get_current_account(
     account_service: AccountService = Depends(get_account_service),
 ) -> FullAccountResponse:
     """Get current user's full account profile."""
+    logger.debug("v1.get_current_account", user_id=str(user_id))
     try:
         account = await account_service.get_account_by_auth_user_id(user_id)
         account_data = await account_service.get_full_account(account.id)
@@ -46,6 +56,7 @@ async def update_current_account(
     account_service: AccountService = Depends(get_account_service),
 ) -> FullAccountResponse:
     """Update current user's account profile."""
+    logger.info("v1.update_account", user_id=str(user_id))
     try:
         account = await account_service.get_account_by_auth_user_id(user_id)
 
@@ -80,6 +91,7 @@ async def update_profile_details(
     account_service: AccountService = Depends(get_account_service),
 ) -> dict:
     """Update current user's profile details."""
+    logger.info("v1.update_profile", user_id=str(user_id))
     try:
         account = await account_service.get_account_by_auth_user_id(user_id)
 
@@ -108,6 +120,7 @@ async def update_preferences(
     account_service: AccountService = Depends(get_account_service),
 ) -> dict:
     """Update current user's preferences."""
+    logger.info("v1.update_preferences", user_id=str(user_id))
     try:
         account = await account_service.get_account_by_auth_user_id(user_id)
 
@@ -136,6 +149,7 @@ async def update_privacy(
     account_service: AccountService = Depends(get_account_service),
 ) -> dict:
     """Update current user's privacy settings."""
+    logger.info("v1.update_privacy", user_id=str(user_id))
     try:
         account = await account_service.get_account_by_auth_user_id(user_id)
 
@@ -161,6 +175,7 @@ async def get_public_profile(
     account_service: AccountService = Depends(get_account_service),
 ) -> dict:
     """Get public profile by username (respecting privacy settings)."""
+    logger.debug("v1.get_public_profile", username=username)
     try:
         profile_data = await account_service.get_public_profile(username)
 

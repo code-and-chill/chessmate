@@ -9,3 +9,4 @@ redis>=5.0.0
 httpx>=0.25.0
 pyjwt>=2.8.0
 python-jose[cryptography]>=3.3.0
+structlog>=24.1.0

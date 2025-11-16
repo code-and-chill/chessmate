@@ -10,19 +10,38 @@ from app.api.routes.internal.accounts import router as internal_accounts_router
 from app.api.routes.v1.accounts import router as v1_accounts_router
 from app.core.config import get_settings
 from app.core.exceptions import setup_exception_handlers
+from app.core.logging import setup_logging, get_logger
 from app.infrastructure.database import database_manager
+
+logger = get_logger(__name__)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Application lifespan manager."""
+    settings = get_settings()
+    
+    # Setup logging
+    setup_logging(settings.LOG_LEVEL)
+    logger.info("application.startup.started", environment=settings.ENVIRONMENT)
+    
     # Startup
-    await database_manager.connect()
+    try:
+        await database_manager.connect()
+        logger.info("database.connected")
+    except Exception as e:
+        logger.error("database.connection.failed", error=str(e))
+        raise
 
     yield
 
     # Shutdown
-    await database_manager.disconnect()
+    logger.info("application.shutdown.started")
+    try:
+        await database_manager.disconnect()
+        logger.info("database.disconnected")
+    except Exception as e:
+        logger.error("database.disconnect.failed", error=str(e))
 
 
 def create_app() -> FastAPI:

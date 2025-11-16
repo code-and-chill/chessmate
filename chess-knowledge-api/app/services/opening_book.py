@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import List, Optional
 import chess
 
-from app.domain.models import BookMove, OpeningBookRequest
+from app.domain.opening_book import BookMove, OpeningBookRequest
 
 
 async def query_opening_book(request: OpeningBookRequest) -> Optional[List[BookMove]]:

@@ -4,12 +4,10 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
-from app.domain.models.account import (
-    AnimationLevel,
-    DefaultTimeControl,
-    PrivacyLevel,
-    TitleCode,
-)
+from app.domain.models.animation_level import AnimationLevel
+from app.domain.models.default_time_control import DefaultTimeControl
+from app.domain.models.privacy_level import PrivacyLevel
+from app.domain.models.title_code import TitleCode
 
 
 # Request models for account creation and updates

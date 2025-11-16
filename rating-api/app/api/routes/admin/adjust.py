@@ -1,11 +1,13 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Path, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import require_auth
-from app.domain.models import RatingEvent, RatingPool, UserRating
+from app.domain.rating_event import RatingEvent
+from app.domain.rating_pool import RatingPool
+from app.domain.user_rating import UserRating
 from app.infrastructure.database import get_db_session
 
 
@@ -49,7 +51,7 @@ async def manual_adjust(
         ur.rating_deviation = float(body["rating_deviation"])
     if "volatility" in body:
         ur.volatility = float(body["volatility"])
-    ur.last_updated_at = datetime.utcnow()
+    ur.last_updated_at = datetime.now(timezone.utc)
 
     db.add(
         RatingEvent(

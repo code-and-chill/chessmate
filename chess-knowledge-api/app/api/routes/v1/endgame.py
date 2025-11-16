@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Response, status
 
-from app.domain.models import TablebaseRequest, TablebaseResponse
+from app.domain.tablebase import TablebaseRequest, TablebaseResponse
 from app.services.tablebase import query_tablebase
 
 router = APIRouter()

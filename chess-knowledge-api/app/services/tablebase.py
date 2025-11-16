@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import Optional
 import chess
 
-from app.domain.models import TablebaseRequest, TablebaseResponse
+from app.domain.tablebase import TablebaseRequest, TablebaseResponse
 
 
 async def query_tablebase(request: TablebaseRequest) -> Optional[TablebaseResponse]:

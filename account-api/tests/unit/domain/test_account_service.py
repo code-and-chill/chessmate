@@ -8,17 +8,15 @@ from app.core.exceptions import (
     AccountNotFoundError,
     InvalidUsernameError,
 )
-from app.domain.models.account import (
-    Account,
-    AccountMedia,
-    AccountPreferences,
-    AccountPrivacySettings,
-    AccountProfileDetails,
-    AccountSocialCounters,
-    AnimationLevel,
-    DefaultTimeControl,
-    PrivacyLevel,
-)
+from app.domain.models.account_media import AccountMedia
+from app.domain.models.account_model import Account
+from app.domain.models.account_preferences import AccountPreferences
+from app.domain.models.account_privacy_settings import AccountPrivacySettings
+from app.domain.models.account_profile_details import AccountProfileDetails
+from app.domain.models.account_social_counters import AccountSocialCounters
+from app.domain.models.animation_level import AnimationLevel
+from app.domain.models.default_time_control import DefaultTimeControl
+from app.domain.models.privacy_level import PrivacyLevel
 from app.domain.services.account_service import AccountService
 from app.infrastructure.repositories import (
     AccountRepository,

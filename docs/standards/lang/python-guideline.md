@@ -2194,6 +2194,96 @@ class UserService:
 - Split larger files into logical submodules
 - Group related functionality in packages
 
+**One Class Per File Rule** ⚠️ **CRITICAL**
+- **Each public class MUST be in its own file** for maintainability and discoverability
+- File name MUST match the class name in snake_case (e.g., `AccountRepository` → `account_repository.py`)
+- **Repositories**: One repository class per file - NO exceptions
+- **Services**: One service class per file - NO exceptions
+- **Domain Models**: Split by aggregate root - see exceptions below
+
+**VERY LIMITED Exceptions for Multiple Classes:**
+1. **Single Aggregate Root with Sub-Models** (Same lifecycle, never used independently)
+   - ✅ Example: `Account`, `AccountProfile`, `AccountMedia` in ONE `domain/models/account.py`
+   - ✅ Must represent ONE domain concept with tightly coupled components
+   - ✅ Sub-models are ALWAYS loaded/saved with the parent
+   - ❌ NOT for: Independent models, different aggregates, or separately used models
+
+2. **~~Request/Response DTOs in API Layer~~** ❌ **REMOVED - DTOs must follow one-class-per-file**
+   - ❌ Each DTO (request/response model) MUST be in its own file
+   - ❌ No grouping allowed, even for related API endpoints
+   - ✅ Example: `create_account_request.py`, `create_account_response.py`, `account_response.py`
+
+3. **Enums Directly Related to ONE Model** (< 5 enum classes, < 50 total lines)
+   - ✅ Example: `AnimationLevel`, `DefaultTimeControl` used ONLY by `AccountPreferences`
+   - ❌ NOT for: Shared enums used by multiple models
+
+4. **Exception Hierarchies** (Only in dedicated `exceptions.py`)
+   - ✅ Example: Multiple exception classes in `core/exceptions.py`
+
+5. **Test Classes** (Multiple test classes per test file is fine)
+
+**MUST Split Into Separate Files:**
+- ❌ **Different domain aggregates**: `Account` vs `Game` → MUST be separate files
+- ❌ **Different repositories**: `AccountRepository` vs `GameRepository` → MUST be separate files
+- ❌ **Different services**: `AccountService` vs `GameService` → MUST be separate files
+- ❌ **Models used independently**: Imported separately → MUST be separate files
+- ❌ **File exceeds 500 lines**: MUST split immediately
+- ❌ **Generic models.py with multiple unrelated classes**: NEVER allowed
+
+**When to Split Files:**
+- **Different aggregates/domains**: `Account` vs `Game` vs `Tournament` → separate files
+- **Different responsibilities**: `AccountRepository` vs `GameRepository` → separate files  
+- **File exceeds 500 lines**: Split by logical grouping
+- **Classes used independently**: Each class imported/used separately → separate files
+
+```python
+# Good: Related aggregate components together
+# domain/models/account.py
+class TitleCode(str, Enum):
+    """Chess titles."""
+    GM = "GM"
+    IM = "IM"
+
+class Account(BaseModel):
+    """Main account aggregate root."""
+    title_code: Optional[TitleCode] = None
+
+class AccountPreferences(BaseModel):
+    """Account preferences (part of account aggregate)."""
+    account_id: UUID
+
+# Good: Separate files for different aggregates
+# domain/models/account.py
+class Account(BaseModel):
+    pass
+
+# domain/models/game.py  
+class Game(BaseModel):
+    pass
+
+# Bad: Multiple unrelated classes (different aggregates) in one file
+# domain/models/models.py
+class Account(BaseModel):
+    pass
+
+class Game(BaseModel):
+    pass
+
+class Tournament(BaseModel):
+    pass
+
+# Bad: Multiple repository classes in one file
+# infrastructure/repositories.py (350+ lines)
+class AccountRepository:
+    pass
+
+class GameRepository:
+    pass
+
+class TournamentRepository:
+    pass
+```
+
 **Import Organization**
 ```python
 # 1. Standard library imports

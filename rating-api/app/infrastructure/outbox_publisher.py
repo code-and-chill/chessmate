@@ -1,13 +1,13 @@
 import asyncio
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import get_settings
-from app.domain.models import EventOutbox
+from app.domain.event_outbox import EventOutbox
 from app.infrastructure.database import get_db_session
 
 
@@ -65,7 +65,7 @@ class OutboxPublisher:
             return
         for row in rows:
             await nc.publish(subject, row.payload.encode("utf-8"))
-            row.published_at = datetime.utcnow()
+            row.published_at = datetime.now(timezone.utc)
         await session.commit()
 
 

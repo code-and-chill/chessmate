@@ -1,22 +1,13 @@
 from datetime import datetime
-from enum import Enum
 from typing import Optional
 from uuid import UUID
 
 from pydantic import BaseModel, Field, field_validator
 
-
-class TitleCode(str, Enum):
-    """Chess titles."""
-
-    GM = "GM"  # Grandmaster
-    IM = "IM"  # International Master
-    FM = "FM"  # FIDE Master
-    NM = "NM"  # National Master
-    WGM = "WGM"  # Woman Grandmaster
-    WIM = "WIM"  # Woman International Master
-    WFM = "WFM"  # Woman FIDE Master
-    WNM = "WNM"  # Woman National Master
+from app.domain.models.animation_level import AnimationLevel
+from app.domain.models.default_time_control import DefaultTimeControl
+from app.domain.models.privacy_level import PrivacyLevel
+from app.domain.models.title_code import TitleCode
 
 
 class Account(BaseModel):
@@ -77,23 +68,6 @@ class AccountMedia(BaseModel):
         from_attributes = True
 
 
-class AnimationLevel(str, Enum):
-    """Animation levels."""
-
-    NONE = "none"
-    MINIMAL = "minimal"
-    FULL = "full"
-
-
-class DefaultTimeControl(str, Enum):
-    """Default time control."""
-
-    BULLET = "bullet"
-    BLITZ = "blitz"
-    RAPID = "rapid"
-    CLASSICAL = "classical"
-
-
 class AccountPreferences(BaseModel):
     """Account preferences domain model."""
 
@@ -112,15 +86,6 @@ class AccountPreferences(BaseModel):
 
     class Config:
         from_attributes = True
-
-
-class PrivacyLevel(str, Enum):
-    """Privacy level for settings."""
-
-    EVERYONE = "everyone"
-    FRIENDS_OF_FRIENDS = "friends_of_friends"
-    FRIENDS = "friends"
-    NO_ONE = "no_one"
 
 
 class AccountPrivacySettings(BaseModel):

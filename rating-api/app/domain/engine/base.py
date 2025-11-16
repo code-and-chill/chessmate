@@ -1,19 +1,5 @@
-from abc import ABC, abstractmethod
-from dataclasses import dataclass
+"""Rating engine base classes re-exports for backward compatibility."""
+from .rating_engine import RatingEngine
+from .rating_state import RatingState
 
-
-@dataclass
-class RatingState:
-    rating: float
-    rd: float
-    volatility: float
-
-
-class RatingEngine(ABC):
-    @abstractmethod
-    def expected_score(self, player: RatingState, opponent: RatingState) -> float:  # pragma: no cover - interface
-        raise NotImplementedError
-
-    @abstractmethod
-    def update(self, player: RatingState, opponents: list[RatingState], scores: list[float]) -> RatingState:  # pragma: no cover - interface
-        raise NotImplementedError
+__all__ = ["RatingState", "RatingEngine"]

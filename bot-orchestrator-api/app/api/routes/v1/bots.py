@@ -1,7 +1,9 @@
 from fastapi import APIRouter, Path, Query
 
 from app.clients.config import fetch_spec
-from app.domain.models import MoveRequest, BotSpecEnvelope, MoveResponse
+from app.domain.bot_spec import BotSpecEnvelope
+from app.domain.move_request import MoveRequest
+from app.domain.move_response import MoveResponse
 from app.logic.orchestrator import orchestrate_move, get_last_moves
 
 router = APIRouter()

@@ -3,7 +3,8 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import require_auth
-from app.domain.models import RatingPool, UserRating
+from app.domain.rating_pool import RatingPool
+from app.domain.user_rating import UserRating
 from app.domain.schemas import BulkRatingsRequest, BulkRatingsResponse, BulkRatingsResponseItem
 from app.infrastructure.database import get_db_session
 

@@ -7,7 +7,8 @@ import chess
 import chess.engine
 
 from app.core.config import get_settings
-from app.domain.models import Candidate, EvaluateRequest
+from app.domain.evaluate_request import EvaluateRequest
+from app.domain.evaluate_response import Candidate
 
 
 async def evaluate_position(request: EvaluateRequest) -> tuple[List[Candidate], int]:

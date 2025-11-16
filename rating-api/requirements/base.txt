@@ -10,3 +10,4 @@ python-jose[cryptography]==3.3.0
 PyJWT==2.8.0
 python-multipart==0.0.6
 nats-py==2.6.0
+structlog>=24.1.0
