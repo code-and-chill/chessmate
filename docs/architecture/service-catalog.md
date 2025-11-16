@@ -17,6 +17,9 @@ Complete index of all services in the platform with descriptions and quick refer
 | live-game-api | API | Python | Operational | [Owner] |
 | matchmaking-api | API | Python | Operational | [Owner] |
 | rating-api | API | Python | Draft | [Owner] |
+| bot-orchestrator-api | API | Python | Draft | [Owner] |
+| engine-cluster-api | Service | Python | Draft | [Owner] |
+| chess-knowledge-api | Service | Python | Draft | [Owner] |
 | chess-app | Client | TypeScript | Operational | [Owner] |
 
 ---
@@ -146,6 +149,100 @@ Complete index of all services in the platform with descriptions and quick refer
 
 **Quick Start**:
 - Repository: `/workspaces/chessmate/rating-api/`
+- Docs: `./docs/README.md`
+- Dev Guide: `./docs/how-to/local-dev.md`
+
+---
+
+## bot-orchestrator-api
+
+**Type**: API Service  
+**Language**: Python (FastAPI)  
+**Domain**: Bots & Orchestration
+
+**Responsibilities**:
+- Orchestrate bot move selection per BotSpec
+- Integrate engine-cluster and chess-knowledge
+- Apply mistake and style models
+- Provide introspection endpoints
+
+**Key Endpoints**:
+- `POST /v1/bots/{bot_id}/move`
+- `GET /v1/bots/{bot_id}/spec`
+- `GET /v1/debug/last-moves`
+- `GET /health`
+
+**Upstream Dependencies**:
+- bot-config-api (BotSpec)
+- engine-cluster-api (evaluation)
+- chess-knowledge-api (book/tablebases)
+
+**Downstream Dependencies**:
+- live-game-api (bot moves)
+
+**Quick Start**:
+- Repository: `/workspaces/chessmate/bot-orchestrator-api/`
+- Docs: `./docs/README.md`
+- Dev Guide: `./docs/how-to/local-dev.md`
+
+---
+
+## engine-cluster-api
+
+**Type**: Service  
+**Language**: Python (FastAPI)  
+**Domain**: Chess Engine
+
+**Responsibilities**:
+- Evaluate chess positions using Stockfish-like engines
+- Generate candidate moves with evaluations
+- Multi-PV analysis support
+- Configurable depth and time limits
+
+**Key Endpoints**:
+- `POST /v1/evaluate`
+- `GET /health`
+
+**Upstream Dependencies**:
+- None (core service)
+
+**Downstream Dependencies**:
+- bot-orchestrator-api (move evaluation)
+- analysis services (position analysis)
+
+**Quick Start**:
+- Repository: `/workspaces/chessmate/engine-cluster-api/`
+- Docs: `./docs/README.md`
+- Dev Guide: `./docs/how-to/local-dev.md`
+
+---
+
+## chess-knowledge-api
+
+**Type**: Service  
+**Language**: Python (FastAPI)  
+**Domain**: Chess Knowledge
+
+**Responsibilities**:
+- Provide opening book queries
+- Endgame tablebase lookups
+- Repertoire-based move suggestions
+- Optimal endgame play
+
+**Key Endpoints**:
+- `POST /v1/opening/book-moves`
+- `POST /v1/endgame/tablebase`
+- `GET /health`
+
+**Upstream Dependencies**:
+- None (data service)
+
+**Downstream Dependencies**:
+- bot-orchestrator-api (opening/endgame)
+- analysis services (knowledge lookups)
+
+**Quick Start**:
+- Repository: `/workspaces/chessmate/chess-knowledge-api/`
 - Docs: `./docs/README.md`
 - Dev Guide: `./docs/how-to/local-dev.md`
 

@@ -106,6 +106,9 @@ High-level overview of the Chessmate platform architecture.
 - **live-game-api**: Active game state and moves
 - **matchmaking-api**: Player pairing and matching
 - **rating-api**: Player rating computation and storage (Glicko-2)
+- **bot-orchestrator-api**: Engine-backed bot orchestration (BotSpec, engine, knowledge)
+- **engine-cluster-api**: Chess engine evaluation service (Stockfish)
+- **chess-knowledge-api**: Opening books and endgame tablebases
 - **Characteristics**: High performance required, state-heavy
 
 ### Tier 3: Client Applications

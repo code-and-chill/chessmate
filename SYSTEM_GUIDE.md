@@ -107,6 +107,27 @@ Player ratings across pools using Glicko-2.
 - **Status**: Draft
 - **Quick Links**: [README](./rating-api/README.md) | [Docs](./rating-api/docs/) | [API Spec](./rating-api/docs/api.md)
 
+#### [bot-orchestrator-api](./bot-orchestrator-api/)
+Engine-backed bot orchestration service (BotSpec, engine, knowledge integration).
+- **Language**: Python (FastAPI)
+- **Database**: None (stateless)
+- **Status**: Draft
+- **Quick Links**: [README](./bot-orchestrator-api/README.md) | [Docs](./bot-orchestrator-api/docs/) | [API Spec](./bot-orchestrator-api/docs/api.md)
+
+#### [engine-cluster-api](./engine-cluster-api/)
+Chess engine evaluation service running Stockfish-like engines.
+- **Language**: Python (FastAPI)
+- **Database**: None (stateless)
+- **Status**: Draft
+- **Quick Links**: [README](./engine-cluster-api/README.md) | [Docs](./engine-cluster-api/docs/) | [API Spec](./engine-cluster-api/docs/api.md)
+
+#### [chess-knowledge-api](./chess-knowledge-api/)
+Chess knowledge service for opening books and endgame tablebases.
+- **Language**: Python (FastAPI)
+- **Database**: None (stateless)
+- **Status**: Draft
+- **Quick Links**: [README](./chess-knowledge-api/README.md) | [Docs](./chess-knowledge-api/docs/) | [API Spec](./chess-knowledge-api/docs/api.md)
+
 ### Client Applications
 
 #### [chess-app](./chess-app/)
