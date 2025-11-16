@@ -117,7 +117,7 @@ testUserId=550e8400-e29b-41d4-a716-446655440000
 Check if all services comply with Bruno standard:
 
 ```bash
-./scripts/validate-bruno-standard.sh
+dx bruno validate
 ```
 
 Expected output:

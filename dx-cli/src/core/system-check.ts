@@ -63,7 +63,7 @@ const SYSTEM_REQUIREMENTS: SystemRequirement[] = [
     command: "poetry",
     versionArg: "--version",
     required: true,
-    install: "bash dx-cli/scripts/install-deps.sh",
+    install: "curl -sSL https://install.python-poetry.org | python3 -",
   },
   {
     name: "Docker",
@@ -317,7 +317,6 @@ Please visit the installation pages for your platform:
 - Poetry: https://python-poetry.org/docs/#installation
 - Docker: https://www.docker.com/
 
-You can also run the automated installer:
-bash dx-cli/scripts/install-deps.sh
+Run 'dx setup' again after installing the required tools.
 `;
 }

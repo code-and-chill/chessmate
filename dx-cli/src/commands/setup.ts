@@ -66,22 +66,15 @@ export const setupCommand = new Command()
         logger.info("Installing development dependencies...");
         logger.info("");
 
-        // Find and run install-deps.sh script
-        const scriptPath = path.resolve(__dirname, "../../scripts/install-deps.sh");
-        
-        try {
-          const result = await execSync("bash", [scriptPath], {
-            useMise: false,
-            ignoreErrors: false,
-          });
+        // TODO: Implement automatic installation of missing tools
+        // For now, provide manual installation instructions
+        const missingTools = results.filter(
+          (r) => r.required && (!r.installed || r.message.includes("too old"))
+        );
 
-          if (!result.success) {
-            logger.warn("Some dependencies may not have installed correctly");
-            logger.info("You can run: bash dx-cli/scripts/install-deps.sh");
-          }
-        } catch (err) {
-          logger.warn(`Could not run dependency installer: ${(err as Error).message}`);
-          logger.info("You can manually run: bash dx-cli/scripts/install-deps.sh");
+        if (missingTools.length > 0) {
+          logger.info("To install missing dependencies:");
+          logger.info(getInstallationInstructions());
         }
 
         logger.info("");

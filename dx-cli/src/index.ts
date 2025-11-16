@@ -17,6 +17,7 @@ import { envCommand } from "./commands/env";
 import { k8sCommand } from "./commands/k8s";
 import { shellCommand } from "./commands/shell";
 import { openCommand } from "./commands/open";
+import { brunoCommand } from "./commands/bruno";
 
 const program = commanderProgram;
 
@@ -42,6 +43,9 @@ program.addCommand(envCommand);
 program.addCommand(k8sCommand);
 program.addCommand(shellCommand);
 program.addCommand(openCommand);
+
+// Bruno API collection management
+program.addCommand(brunoCommand);
 
 // Help command
 program

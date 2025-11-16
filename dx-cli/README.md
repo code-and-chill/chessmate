@@ -17,7 +17,7 @@ type: overview
 ### Installation
 
 ```bash
-# Install dependencies
+# Install dx-cli dependencies
 cd dx-cli
 pnpm install
 
@@ -81,10 +81,16 @@ dx build
 
 ### `dx setup`
 
-Initialize development environment and verify prerequisites.
+Initialize development environment and verify prerequisites. This command automatically:
+- Checks system requirements (Node.js, Python, Git, etc.)
+- Installs missing system-level dependencies (Poetry, etc.)
+- Verifies the development environment is ready
 
 ```bash
 dx setup
+
+# Skip automatic dependency installation
+dx setup --skip-deps
 ```
 
 ### `dx doctor [service]`
@@ -244,6 +250,30 @@ dx sandbox reset
 
 # Reset specific service
 dx sandbox reset account-api --single
+```
+
+### `dx bruno generate [service]`
+
+Generate Bruno API collections for services.
+
+```bash
+# Generate for all services
+dx bruno generate
+
+# Generate for specific service
+dx bruno generate account-api
+```
+
+### `dx bruno validate [service]`
+
+Validate Bruno API collections compliance.
+
+```bash
+# Validate all services
+dx bruno validate
+
+# Validate specific service
+dx bruno validate account-api
 ```
 
 ## Command Behavior

@@ -225,7 +225,7 @@ bruno open bruno/collections
 
 ### Validate All Collections
 ```bash
-./scripts/validate-bruno-standard.sh
+dx bruno validate
 ```
 
 ## CI/CD Integration
@@ -264,8 +264,8 @@ All future agents working on this monorepo **MUST**:
 - **AGENTS.md**: Section "Bruno API Collections Standard"
 - **Global Standard**: `/docs/standards/bruno-api-testing.md`
 - **Service Spec**: `/docs/dx-service-spec.md`
-- **Validation Script**: `/scripts/validate-bruno-standard.sh`
-- **Generation Script**: `/scripts/generate-bruno-collections.sh`
+- **Validation Command**: `dx bruno validate`
+- **Generation Command**: `dx bruno generate`
 
 ## Summary
 

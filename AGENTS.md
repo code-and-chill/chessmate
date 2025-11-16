@@ -272,7 +272,7 @@ Install service-level dependencies with: `dx install [service]`
 
 ### Adding a New Repository-Level Tool
 
-1. **Update system-check.ts**:
+1. **Update system-check.ts** in `dx-cli/src/core/system-check.ts`:
    ```typescript
    const SYSTEM_REQUIREMENTS = [
      // ... existing tools
@@ -287,10 +287,12 @@ Install service-level dependencies with: `dx install [service]`
    ];
    ```
 
-2. **Update install-deps.sh**:
-   - Add installation logic for macOS and Linux
+2. **Update install-deps.sh** in `dx-cli/src/core/system-check.ts`:
+   - Add tool to SYSTEM_REQUIREMENTS array
+   - Implement installation logic for macOS and Linux in getInstallationInstructions()
    - Test on both platforms
    - Verify `which yourtool` finds the executable
+   - **Note**: System dependencies are installed automatically by `dx setup`
 
 3. **Update setup.ts**:
    - No changes needed if tool is in SYSTEM_REQUIREMENTS
