@@ -30,6 +30,18 @@ This document defines the architectural principles and implementation patterns f
     - 10.6 Error Handling Best Practices
     - 10.7 Logging and Observability
     - 10.8 Security Best Practices
+11. [PEP 8 Style Guide Reference](#11-pep-8-style-guide-reference)
+    - 11.1 Code Layout
+    - 11.2 Imports
+    - 11.3 Whitespace in Expressions and Statements
+    - 11.4 Comments and Docstrings
+    - 11.5 Naming Conventions
+    - 11.6 Programming Recommendations
+    - 11.7 Function and Method Arguments
+12. [Automated Tooling](#12-automated-tooling)
+    - 12.1 Code Formatting
+    - 12.2 Static Analysis
+    - 12.3 Pre-commit Hooks
 
 ---
 
@@ -2415,6 +2427,506 @@ async def find_user(username: str) -> User:
     return await db.scalar(
         select(User).where(User.username == username)
     )
+```
+
+---
+
+## 11. PEP 8 Style Guide Reference
+
+This section provides key PEP 8 conventions. For complete details, see [PEP 8](https://www.python.org/dev/peps/pep-0008/).
+
+### 11.1 Code Layout
+
+**Indentation**
+- Use 4 spaces per indentation level
+- Never mix tabs and spaces
+- Continuation lines should align wrapped elements vertically or use a hanging indent
+
+```python
+# Good: Aligned with opening delimiter
+foo = long_function_name(var_one, var_two,
+                         var_three, var_four)
+
+# Good: Hanging indent
+foo = long_function_name(
+    var_one, var_two,
+    var_three, var_four)
+```
+
+**Maximum Line Length**
+- Limit all lines to 100 characters (configurable via Black)
+- For docstrings and comments, limit to 72 characters
+- Use implicit line continuation inside parentheses, brackets, and braces
+
+```python
+# Good: Break before binary operator
+income = (gross_wages
+          + taxable_interest
+          + (dividends - qualified_dividends)
+          - ira_deduction
+          - student_loan_interest)
+```
+
+**Blank Lines**
+- Surround top-level function and class definitions with two blank lines
+- Method definitions inside a class are surrounded by a single blank line
+- Use blank lines sparingly inside functions to indicate logical sections
+
+```python
+class MyClass:
+    """Example class."""
+    
+    def __init__(self):
+        self.value = 0
+    
+    def method_one(self):
+        """First method."""
+        pass
+    
+    def method_two(self):
+        """Second method."""
+        pass
+
+
+def top_level_function():
+    """Top level function."""
+    pass
+```
+
+### 11.2 Imports
+
+**Import Order**
+```python
+# 1. Standard library imports
+import os
+import sys
+from datetime import datetime
+
+# 2. Related third-party imports
+import numpy as np
+import requests
+from fastapi import APIRouter
+
+# 3. Local application/library specific imports
+from app.core.config import settings
+from app.domain.models import User
+```
+
+**Import Guidelines**
+- Imports should be on separate lines
+- Absolute imports are recommended
+- Avoid wildcard imports (`from module import *`)
+- Use `import` for packages and modules
+- Use `from module import name` for specific names
+
+```python
+# Good
+import os
+import sys
+from subprocess import Popen, PIPE
+
+# Bad
+import os, sys
+from subprocess import *
+```
+
+### 11.3 Whitespace in Expressions and Statements
+
+**Avoid extraneous whitespace**
+```python
+# Good
+spam(ham[1], {eggs: 2})
+foo = (0,)
+if x == 4:
+    print(x, y)
+    x, y = y, x
+
+# Bad
+spam( ham[ 1 ], { eggs: 2 } )
+foo = (0, )
+if x == 4 :
+    print(x , y)
+    x , y = y , x
+```
+
+**Binary Operators**
+```python
+# Good
+i = i + 1
+submitted += 1
+x = x*2 - 1
+hypot2 = x*x + y*y
+c = (a+b) * (a-b)
+
+# Bad
+i=i+1
+submitted +=1
+x = x * 2 - 1
+hypot2 = x * x + y * y
+c = (a + b) * (a - b)
+```
+
+**Function Annotations**
+```python
+# Good
+def complex_function(
+    real: float,
+    imag: float = 0.0
+) -> Complex:
+    pass
+
+# Bad
+def complex_function(real:float, imag:float=0.0)->Complex:
+    pass
+```
+
+### 11.4 Comments and Docstrings
+
+**Block Comments**
+```python
+# Block comments generally apply to some (or all) code that follows them,
+# and are indented to the same level as that code. Each line of a block
+# comment starts with a # and a single space.
+#
+# Paragraphs inside a block comment are separated by a line containing
+# a single #.
+```
+
+**Inline Comments**
+```python
+# Use sparingly
+x = x + 1  # Compensate for border
+
+# Don't state the obvious
+x = x + 1  # Increment x  # BAD
+```
+
+**Docstrings**
+```python
+def complex_function(arg1: str, arg2: int) -> bool:
+    """
+    Summary line: Brief description of function.
+    
+    Extended description providing more details about the function's
+    behavior, parameters, and return values.
+    
+    Args:
+        arg1: Description of arg1
+        arg2: Description of arg2
+        
+    Returns:
+        Description of return value
+        
+    Raises:
+        ValueError: Description of when this is raised
+        
+    Examples:
+        >>> complex_function("test", 42)
+        True
+    """
+    pass
+```
+
+### 11.5 Naming Conventions
+
+**General Principles**
+- Names should be descriptive and unambiguous
+- Avoid single letter names except for counters or iterators
+- Avoid names that are similar to Python keywords
+
+**Naming Styles**
+```python
+# Modules and packages: lowercase with underscores
+my_module.py
+my_package/
+
+# Classes: CapWords (PascalCase)
+class MyClass:
+    pass
+
+class HTTPResponseHandler:
+    pass
+
+# Functions and variables: lowercase with underscores
+def my_function():
+    pass
+
+user_count = 0
+
+# Constants: UPPERCASE with underscores
+MAX_OVERFLOW = 100
+TOTAL_CONNECTIONS = 500
+
+# Private names: prefix with single underscore
+class MyClass:
+    def __init__(self):
+        self._internal_value = 0  # Protected
+        self.__private_value = 0  # Private (name mangling)
+    
+    def _internal_method(self):  # Protected method
+        pass
+
+# Type variables: CapWords
+T = TypeVar('T')
+UserType = TypeVar('UserType', bound=User)
+```
+
+**Special Cases**
+```python
+# Boolean variables: use is_, has_, can_, should_
+is_active = True
+has_permission = False
+can_edit = True
+should_retry = False
+
+# Collections: use plural names
+users = []
+booking_ids = set()
+user_map = {}
+
+# Single item from collection: singular
+for user in users:
+    process_user(user)
+```
+
+### 11.6 Programming Recommendations
+
+**Comparisons**
+```python
+# Good: Use 'is' for None
+if value is None:
+    pass
+
+if value is not None:
+    pass
+
+# Bad
+if value == None:
+    pass
+
+# Good: Use implicit boolean testing
+if sequence:
+    pass
+
+if not sequence:
+    pass
+
+# Bad
+if len(sequence) > 0:
+    pass
+
+if len(sequence) == 0:
+    pass
+```
+
+**Exception Handling**
+```python
+# Good: Be specific about exceptions
+try:
+    value = collection[key]
+except KeyError:
+    return default_value
+
+# Bad: Too broad
+try:
+    value = collection[key]
+except:
+    return default_value
+
+# Good: Use finally for cleanup
+try:
+    process_file(file)
+finally:
+    file.close()
+
+# Better: Use context managers
+with open('file.txt') as file:
+    process_file(file)
+```
+
+**Return Statements**
+```python
+# Good: Be consistent with return statements
+def foo(x):
+    if x >= 0:
+        return math.sqrt(x)
+    else:
+        return None
+
+# Bad: Inconsistent
+def foo(x):
+    if x >= 0:
+        return math.sqrt(x)
+```
+
+**String Methods**
+```python
+# Good: Use string methods instead of string module
+if name.startswith('prefix'):
+    pass
+
+if name.endswith('suffix'):
+    pass
+
+# Bad
+import string
+if name[:6] == 'prefix':
+    pass
+```
+
+**Type Comparisons**
+```python
+# Good: Use isinstance()
+if isinstance(obj, int):
+    pass
+
+# Bad: Direct type comparison
+if type(obj) is int:
+    pass
+
+# Good: Check for specific types
+if isinstance(obj, (int, float)):
+    pass
+```
+
+**Boolean Comparisons**
+```python
+# Good: Don't compare boolean values to True or False
+if greeting:
+    pass
+
+# Bad
+if greeting == True:
+    pass
+
+if greeting is True:
+    pass
+```
+
+### 11.7 Function and Method Arguments
+
+**Argument Ordering**
+```python
+def function(
+    positional_arg,
+    *args,
+    keyword_arg=None,
+    **kwargs
+):
+    pass
+```
+
+**Default Argument Values**
+```python
+# Good: Use None for mutable defaults
+def append_to_list(value, target=None):
+    if target is None:
+        target = []
+    target.append(value)
+    return target
+
+# Bad: Mutable default argument
+def append_to_list(value, target=[]):  # BUG!
+    target.append(value)
+    return target
+```
+
+---
+
+## 12. Automated Tooling
+
+### 12.1 Code Formatting
+
+**Black**
+- Automatic code formatter
+- Line length: 100 characters
+- No configuration needed beyond line length
+
+```toml
+# pyproject.toml
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+```
+
+**isort**
+- Automatically sort and organize imports
+- Compatible with Black
+
+```toml
+# pyproject.toml
+[tool.isort]
+profile = "black"
+line_length = 100
+```
+
+### 12.2 Static Analysis
+
+**mypy**
+- Static type checker
+- Enforce type hints throughout codebase
+
+```toml
+# pyproject.toml
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+```
+
+**flake8**
+- Linting and style checking
+- Enforce PEP 8 compliance
+
+```ini
+# .flake8
+[flake8]
+max-line-length = 100
+extend-ignore = E203, W503
+exclude = .git,__pycache__,venv
+```
+
+**pylint**
+- Additional static analysis
+- Catch potential bugs and code smells
+
+```toml
+# pyproject.toml
+[tool.pylint.messages_control]
+max-line-length = 100
+disable = [
+    "missing-docstring",
+    "too-few-public-methods",
+]
+```
+
+### 12.3 Pre-commit Hooks
+
+```yaml
+# .pre-commit-config.yaml
+repos:
+  - repo: https://github.com/psf/black
+    rev: 23.10.0
+    hooks:
+      - id: black
+        language_version: python3.11
+
+  - repo: https://github.com/pycqa/isort
+    rev: 5.12.0
+    hooks:
+      - id: isort
+
+  - repo: https://github.com/pycqa/flake8
+    rev: 6.1.0
+    hooks:
+      - id: flake8
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.6.0
+    hooks:
+      - id: mypy
+        additional_dependencies: [pydantic, types-requests]
 ```
 
 ---
