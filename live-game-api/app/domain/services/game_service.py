@@ -1,8 +1,11 @@
 """Game domain service."""
 
 import asyncio
+from datetime import datetime, timezone
 from typing import List, Optional
 from uuid import UUID
+
+import chess
 
 from app.core.exceptions import (
     GameAlreadyEndedError,
@@ -50,9 +53,18 @@ class GameService:
             rated=rated,
         )
 
-        # If opponent specified, assign colors now
-        if opponent_account_id:
-            game.assign_colors(opponent_account_id, color_preference)
+        # Assign creator's color based on preference
+        # If no opponent, we still need to assign creator's side
+        import random
+        if color_preference == "white":
+            game.white_account_id = creator_id
+        elif color_preference == "black":
+            game.black_account_id = creator_id
+        else:  # random
+            if random.choice([True, False]):
+                game.white_account_id = creator_id
+            else:
+                game.black_account_id = creator_id
 
         # Save game
         saved_game = await self.repository.create(game)
@@ -132,9 +144,44 @@ class GameService:
         if game.side_to_move != player_color:
             raise NotPlayersTurnError(str(game_id))
 
-        # TODO: Validate move using chess engine
-        # For MVP, we'll accept moves as-is and trust client validation
-        # This should be replaced with proper move validation
+        # Validate move using chess engine
+        board = chess.Board(game.fen)
+        
+        try:
+            # Parse squares
+            from_sq = chess.parse_square(from_square)
+            to_sq = chess.parse_square(to_square)
+            
+            # Parse promotion piece
+            promotion_piece = None
+            if promotion:
+                promotion_map = {
+                    "q": chess.QUEEN,
+                    "r": chess.ROOK,
+                    "b": chess.BISHOP,
+                    "n": chess.KNIGHT,
+                }
+                promotion_piece = promotion_map.get(promotion.lower())
+            
+            # Create move
+            chess_move = chess.Move(from_sq, to_sq, promotion=promotion_piece)
+            
+            # Validate move is legal
+            if chess_move not in board.legal_moves:
+                raise InvalidMoveError(
+                    f"Illegal move: {from_square} to {to_square}", str(game_id)
+                )
+            
+            # Apply move to board
+            san = board.san(chess_move)
+            board.push(chess_move)
+            fen_after = board.fen()
+            
+        except ValueError as e:
+            raise InvalidMoveError(f"Invalid move format: {str(e)}", str(game_id))
+
+        # Calculate elapsed time (simplified for MVP)
+        elapsed_ms = 0  # TODO: Calculate from actual clock
 
         # Create move object
         ply = len(game.moves) + 1
@@ -147,19 +194,31 @@ class GameService:
             from_square=from_square,
             to_square=to_square,
             promotion=promotion,
-            san=f"{from_square}{to_square}",  # Simplified SAN
-            fen_after=game.fen,  # TODO: Calculate new FEN
-            elapsed_ms=0,  # TODO: Calculate from clock
+            san=san,
+            fen_after=fen_after,
+            played_at=datetime.now(timezone.utc),
+            elapsed_ms=elapsed_ms,
         )
 
         # Add move to game
         game.add_move(move)
 
-        # Switch sides
+        # Update game state
+        game.fen = fen_after
         game.side_to_move = "b" if game.side_to_move == "w" else "w"
 
-        # Update clocks
-        # TODO: Implement proper clock updates
+        # Check for game end conditions
+        if board.is_checkmate():
+            result = GameResult.WHITE_WIN if player_color == "w" else GameResult.BLACK_WIN
+            game.end_game(result, EndReason.CHECKMATE)
+        elif board.is_stalemate():
+            game.end_game(GameResult.DRAW, EndReason.STALEMATE)
+        elif board.is_insufficient_material():
+            game.end_game(GameResult.DRAW, EndReason.INSUFFICIENT_MATERIAL)
+        elif board.is_fifty_moves():
+            game.end_game(GameResult.DRAW, EndReason.FIFTY_MOVE_RULE)
+        elif board.is_repetition():
+            game.end_game(GameResult.DRAW, EndReason.THREEFOLD_REPETITION)
 
         # Save updated game
         saved_game = await self.repository.update(game)
@@ -170,6 +229,20 @@ class GameService:
                 aggregate_id=saved_game.id, move=move, fen=saved_game.fen
             )
         )
+        
+        # If game ended, emit game ended event
+        if saved_game.is_ended():
+            self.events.append(
+                GameEndedEvent(
+                    aggregate_id=saved_game.id,
+                    white_account_id=saved_game.white_account_id,
+                    black_account_id=saved_game.black_account_id,
+                    result=saved_game.result,
+                    end_reason=saved_game.end_reason,
+                    time_control=saved_game.time_control,
+                    rated=saved_game.rated,
+                )
+            )
 
         return saved_game
 

@@ -73,21 +73,30 @@ class Game(BaseEntity):
 
     def assign_colors(self, opponent_id: UUID, color_preference: str) -> None:
         """Assign colors to players based on preference."""
-        if color_preference == "white":
-            self.white_account_id = self.creator_account_id
+        # If creator already has a color, assign opponent to the opposite color
+        if self.white_account_id == self.creator_account_id:
+            # Creator is white, opponent must be black
             self.black_account_id = opponent_id
-        elif color_preference == "black":
+        elif self.black_account_id == self.creator_account_id:
+            # Creator is black, opponent must be white
             self.white_account_id = opponent_id
-            self.black_account_id = self.creator_account_id
-        else:  # random
-            import random
-
-            if random.choice([True, False]):
+        else:
+            # No colors assigned yet, use preference
+            if color_preference == "white":
                 self.white_account_id = self.creator_account_id
                 self.black_account_id = opponent_id
-            else:
+            elif color_preference == "black":
                 self.white_account_id = opponent_id
                 self.black_account_id = self.creator_account_id
+            else:  # random
+                import random
+
+                if random.choice([True, False]):
+                    self.white_account_id = self.creator_account_id
+                    self.black_account_id = opponent_id
+                else:
+                    self.white_account_id = opponent_id
+                    self.black_account_id = self.creator_account_id
 
     def start_game(self) -> None:
         """Start the game after opponent joins."""

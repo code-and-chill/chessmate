@@ -2,13 +2,11 @@
 from uuid import UUID
 
 from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Text
-from sqlalchemy.dialects.postgresql import UUID as PG_UUID
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
+from app.infrastructure.database import Base
+from app.infrastructure.database.game_orm import GUID
 from app.domain.models.move import Move
-
-Base = declarative_base()
 
 
 class GameMoveORM(Base):
@@ -16,9 +14,9 @@ class GameMoveORM(Base):
 
     __tablename__ = "game_moves"
 
-    id = Column(PG_UUID(as_uuid=True), primary_key=True)
+    id = Column(GUID(), primary_key=True)
     game_id = Column(
-        PG_UUID(as_uuid=True), ForeignKey("games.id"), nullable=False
+        GUID(), ForeignKey("games.id"), nullable=False
     )
 
     ply = Column(Integer, nullable=False)
@@ -54,7 +52,9 @@ class GameMoveORM(Base):
     @staticmethod
     def from_domain(move: Move, game_id: UUID) -> "GameMoveORM":
         """Convert domain model to ORM model."""
+        import uuid
         return GameMoveORM(
+            id=uuid.uuid4(),
             game_id=game_id,
             ply=move.ply,
             move_number=move.move_number,

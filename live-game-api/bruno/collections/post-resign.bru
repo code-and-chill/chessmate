@@ -1,0 +1,37 @@
+meta {
+  name: POST Resign
+  type: http
+  seq: 5
+}
+
+request {
+  method: POST
+  url: ${baseUrl}/api/v1/games/${testGameId}/resign
+}
+
+headers {
+  Content-Type: application/json
+  Authorization: Bearer ${authToken}
+}
+
+tests {
+  test("status is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("game has ended", function() {
+    expect(res.body.status).to.equal("ended");
+  });
+
+  test("end reason is resignation", function() {
+    expect(res.body.end_reason).to.equal("resignation");
+  });
+
+  test("result is set", function() {
+    expect(res.body.result).to.not.be.null;
+  });
+
+  test("game has ended_at", function() {
+    expect(res.body.ended_at).to.not.be.null;
+  });
+}

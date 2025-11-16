@@ -7,12 +7,15 @@ from .game_result import GameResult
 from .time_control import TimeControl
 
 
+from typing import Optional
+
+
 class GameEndedEvent(BaseDomainEvent):
     """Game ended domain event."""
 
     event_type: str = "game.ended"
-    white_account_id: UUID
-    black_account_id: UUID
+    white_account_id: Optional[UUID] = None
+    black_account_id: Optional[UUID] = None
     result: GameResult
     end_reason: EndReason
     time_control: TimeControl

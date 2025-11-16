@@ -1,0 +1,40 @@
+meta {
+  name: POST Join Game
+  type: http
+  seq: 3
+}
+
+request {
+  method: POST
+  url: ${baseUrl}/api/v1/games/${testGameId}/join
+}
+
+headers {
+  Content-Type: application/json
+  Authorization: Bearer ${authToken}
+}
+
+body:application/json {
+  {
+    "color_preference": "random"
+  }
+}
+
+tests {
+  test("status is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("game is in progress", function() {
+    expect(res.body.status).to.equal("in_progress");
+  });
+
+  test("both players assigned", function() {
+    expect(res.body.white_account_id).to.not.be.null;
+    expect(res.body.black_account_id).to.not.be.null;
+  });
+
+  test("game has started_at", function() {
+    expect(res.body.started_at).to.not.be.null;
+  });
+}

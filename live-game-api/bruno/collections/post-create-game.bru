@@ -6,7 +6,7 @@ meta {
 
 request {
   method: POST
-  url: ${baseUrl}/v1/games
+  url: ${baseUrl}/api/v1/games
 }
 
 headers {
@@ -17,13 +17,16 @@ headers {
 body:application/json {
   {
     "time_control": {
-      "initial_time_seconds": 600,
-      "increment_seconds": 5,
-      "type": "increment"
+      "initial_seconds": 600,
+      "increment_seconds": 5
     },
-    "rated": true,
-    "variant": "standard"
+    "color_preference": "white",
+    "rated": true
   }
+}
+
+post-request {
+  bru.setVar("testGameId", res.body.id);
 }
 
 tests {
@@ -31,12 +34,13 @@ tests {
     expect(res.status).to.equal(201);
   });
 
-  test("response has game_id", function() {
-    expect(res.body.game_id).to.not.be.null;
+  test("response has game id", function() {
+    expect(res.body.id).to.not.be.null;
   });
 
   test("game structure is valid", function() {
-    expect(res.body.white_player).to.not.be.null;
     expect(res.body.status).to.equal("waiting_for_opponent");
+    expect(res.body.rated).to.equal(true);
+    expect(res.body.white_account_id).to.not.be.null;
   });
 }

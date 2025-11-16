@@ -1,0 +1,116 @@
+meta {
+  name: Complete Game Flow
+  type: test
+}
+
+pre-request {
+  bru.setVar("testUserId", crypto.randomUUID());
+}
+
+request "Create Game" {
+  method: POST
+  url: ${baseUrl}/api/v1/games
+  body {
+    "time_control": {
+      "initial_seconds": 300,
+      "increment_seconds": 0
+    },
+    "color_preference": "white",
+    "rated": true
+  }
+  
+  tests {
+    test("game created", function() {
+      expect(res.status).to.equal(201);
+      bru.setVar("gameId", res.body.id);
+    });
+  }
+}
+
+request "Get Game" {
+  method: GET
+  url: ${baseUrl}/api/v1/games/${gameId}
+  
+  tests {
+    test("game retrieved", function() {
+      expect(res.status).to.equal(200);
+      expect(res.body.status).to.equal("waiting_for_opponent");
+    });
+  }
+}
+
+request "Join Game" {
+  method: POST
+  url: ${baseUrl}/api/v1/games/${gameId}/join
+  body {
+    "color_preference": "random"
+  }
+  
+  tests {
+    test("game joined", function() {
+      expect(res.status).to.equal(200);
+      expect(res.body.status).to.equal("in_progress");
+    });
+  }
+}
+
+request "Play Move 1 - e4" {
+  method: POST
+  url: ${baseUrl}/api/v1/games/${gameId}/moves
+  body {
+    "from_square": "e2",
+    "to_square": "e4"
+  }
+  
+  tests {
+    test("move played", function() {
+      expect(res.status).to.equal(200);
+      expect(res.body.moves.length).to.equal(1);
+    });
+  }
+}
+
+request "Play Move 2 - e5" {
+  method: POST
+  url: ${baseUrl}/api/v1/games/${gameId}/moves
+  body {
+    "from_square": "e7",
+    "to_square": "e5"
+  }
+  
+  tests {
+    test("move played", function() {
+      expect(res.status).to.equal(200);
+      expect(res.body.moves.length).to.equal(2);
+    });
+  }
+}
+
+request "Play Move 3 - Nf3" {
+  method: POST
+  url: ${baseUrl}/api/v1/games/${gameId}/moves
+  body {
+    "from_square": "g1",
+    "to_square": "f3"
+  }
+  
+  tests {
+    test("move played", function() {
+      expect(res.status).to.equal(200);
+      expect(res.body.moves.length).to.equal(3);
+    });
+  }
+}
+
+request "Resign Game" {
+  method: POST
+  url: ${baseUrl}/api/v1/games/${gameId}/resign
+  
+  tests {
+    test("game resigned", function() {
+      expect(res.status).to.equal(200);
+      expect(res.body.status).to.equal("ended");
+      expect(res.body.end_reason).to.equal("resignation");
+    });
+  }
+}

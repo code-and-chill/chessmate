@@ -11,3 +11,6 @@ class EndReason(str, Enum):
     DRAW_AGREED = "draw_agreed"
     STALEMATE = "stalemate"
     INSUFFICIENT_MATERIAL = "insufficient_material"
+    FIFTY_MOVE_RULE = "fifty_move_rule"
+    THREEFOLD_REPETITION = "threefold_repetition"
+    ABANDONED = "abandoned"

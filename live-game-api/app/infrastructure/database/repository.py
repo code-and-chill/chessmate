@@ -19,15 +19,19 @@ class GameRepository(GameRepositoryInterface):
 
     async def create(self, game: Game) -> Game:
         """Create a new game."""
+        from sqlalchemy.orm import selectinload
+        
         orm_obj = GameORM.from_domain(game)
         self.session.add(orm_obj)
         await self.session.commit()
-        await self.session.refresh(orm_obj)
+        await self.session.refresh(orm_obj, ["moves"])
         return orm_obj.to_domain()
 
     async def get_by_id(self, game_id: UUID) -> Optional[Game]:
         """Get game by ID."""
-        stmt = select(GameORM).where(GameORM.id == game_id)
+        from sqlalchemy.orm import selectinload
+        
+        stmt = select(GameORM).where(GameORM.id == game_id).options(selectinload(GameORM.moves))
         result = await self.session.execute(stmt)
         orm_obj = result.scalar_one_or_none()
         return orm_obj.to_domain() if orm_obj else None
