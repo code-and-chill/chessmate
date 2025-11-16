@@ -13,6 +13,8 @@ commands:
   migrate: "poetry run alembic upgrade head"
   seed: "poetry run python scripts/seed.py"
   logs: "docker logs live-game-api --tail ${lines}"
+  bruno: "bruno open bruno/collections"
+  bruno-test: "bruno run bruno/collections --env local"
 
 dependencies:
   dev:

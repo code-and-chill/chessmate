@@ -1,0 +1,39 @@
+meta {
+  name: POST Join Queue
+  type: http
+  seq: 2
+}
+
+request {
+  method: POST
+  url: ${baseUrl}/v1/queues/{{queueId}}/join
+}
+
+headers {
+  Content-Type: application/json
+  Authorization: Bearer ${authToken}
+}
+
+body:application/json {
+  {
+    "user_rating": 1500,
+    "preferences": {
+      "time_control": "blitz"
+    }
+  }
+}
+
+vars:pre-request {
+  queueId: standard_blitz
+}
+
+tests {
+  test("status is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("response has queue confirmation", function() {
+    expect(res.body.queue_id).to.not.be.null;
+    expect(res.body.position).to.not.be.null;
+  });
+}

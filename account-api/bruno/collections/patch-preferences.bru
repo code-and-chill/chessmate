@@ -1,0 +1,40 @@
+meta {
+  name: PATCH Preferences
+  type: http
+  seq: 5
+}
+
+request {
+  method: PATCH
+  url: ${baseUrl}/v1/accounts/me/preferences
+}
+
+headers {
+  Content-Type: application/json
+  Authorization: Bearer ${authToken}
+}
+
+body:application/json {
+  {
+    "board_theme": "green",
+    "piece_set": "classic",
+    "sound_enabled": true,
+    "animation_level": 2,
+    "highlight_legal_moves": true,
+    "show_coordinates": true,
+    "confirm_moves": false,
+    "auto_queen_promotion": true
+  }
+}
+
+tests {
+  test("status is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("preferences updated", function() {
+    expect(res.body.board_theme).to.equal("green");
+    expect(res.body.piece_set).to.equal("classic");
+    expect(res.body.sound_enabled).to.equal(true);
+  });
+}

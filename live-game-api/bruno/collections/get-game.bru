@@ -1,0 +1,32 @@
+meta {
+  name: GET Game by ID
+  type: http
+  seq: 3
+}
+
+request {
+  method: GET
+  url: ${baseUrl}/v1/games/{{gameId}}
+}
+
+headers {
+  Content-Type: application/json
+  Authorization: Bearer ${authToken}
+}
+
+vars:pre-request {
+  gameId: {{testGameId}}
+}
+
+tests {
+  test("status is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("game structure is complete", function() {
+    expect(res.body.game_id).to.not.be.null;
+    expect(res.body.white_player).to.not.be.null;
+    expect(res.body.black_player).to.not.be.null;
+    expect(res.body.position).to.not.be.null;
+  });
+}

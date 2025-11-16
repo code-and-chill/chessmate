@@ -1,0 +1,32 @@
+meta {
+  name: GET Internal Account by ID
+  type: http
+  seq: 11
+}
+
+request {
+  method: GET
+  url: ${baseUrl}/internal/accounts/{{accountId}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+vars:pre-request {
+  accountId: 550e8400-e29b-41d4-a716-446655440000
+}
+
+tests {
+  test("status is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("response has complete account data", function() {
+    expect(res.body.account).to.not.be.null;
+    expect(res.body.profile_details).to.not.be.null;
+    expect(res.body.preferences).to.not.be.null;
+    expect(res.body.privacy_settings).to.not.be.null;
+    expect(res.body.social_counters).to.not.be.null;
+  });
+}

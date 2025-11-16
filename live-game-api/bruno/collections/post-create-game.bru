@@ -1,0 +1,42 @@
+meta {
+  name: POST Create Game
+  type: http
+  seq: 2
+}
+
+request {
+  method: POST
+  url: ${baseUrl}/v1/games
+}
+
+headers {
+  Content-Type: application/json
+  Authorization: Bearer ${authToken}
+}
+
+body:application/json {
+  {
+    "time_control": {
+      "initial_time_seconds": 600,
+      "increment_seconds": 5,
+      "type": "increment"
+    },
+    "rated": true,
+    "variant": "standard"
+  }
+}
+
+tests {
+  test("status is 201", function() {
+    expect(res.status).to.equal(201);
+  });
+
+  test("response has game_id", function() {
+    expect(res.body.game_id).to.not.be.null;
+  });
+
+  test("game structure is valid", function() {
+    expect(res.body.white_player).to.not.be.null;
+    expect(res.body.status).to.equal("waiting_for_opponent");
+  });
+}

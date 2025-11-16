@@ -1,0 +1,41 @@
+meta {
+  name: PATCH Current Account
+  type: http
+  seq: 3
+}
+
+request {
+  method: PATCH
+  url: ${baseUrl}/v1/accounts/me
+}
+
+headers {
+  Content-Type: application/json
+  Authorization: Bearer ${authToken}
+}
+
+body:application/json {
+  {
+    "display_name": "Updated Display Name",
+    "country_code": "US",
+    "language_code": "en",
+    "time_zone": "America/New_York"
+  }
+}
+
+tests {
+  test("status is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("response has updated account", function() {
+    expect(res.body.account).to.not.be.null;
+    expect(res.body.account.display_name).to.equal("Updated Display Name");
+  });
+
+  test("response structure is complete", function() {
+    expect(res.body.profile_details).to.not.be.null;
+    expect(res.body.preferences).to.not.be.null;
+    expect(res.body.privacy_settings).to.not.be.null;
+  });
+}

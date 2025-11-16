@@ -1,0 +1,42 @@
+meta {
+  name: GET Public Profile by Username
+  type: http
+  seq: 7
+}
+
+request {
+  method: GET
+  url: ${baseUrl}/v1/accounts/{{username}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+vars:pre-request {
+  username: testuser
+}
+
+tests {
+  test("status is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("response has account", function() {
+    expect(res.body.account).to.not.be.null;
+    expect(res.body.account.username).to.not.be.null;
+  });
+
+  test("response has profile_details", function() {
+    expect(res.body.profile_details).to.not.be.null;
+  });
+
+  test("response has social_counters", function() {
+    expect(res.body.social_counters).to.not.be.null;
+  });
+
+  test("private data not exposed", function() {
+    expect(res.body.preferences).to.be.undefined;
+    expect(res.body.privacy_settings).to.be.undefined;
+  });
+}

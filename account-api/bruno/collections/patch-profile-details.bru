@@ -1,0 +1,41 @@
+meta {
+  name: PATCH Profile Details
+  type: http
+  seq: 4
+}
+
+request {
+  method: PATCH
+  url: ${baseUrl}/v1/accounts/me/profile
+}
+
+headers {
+  Content-Type: application/json
+  Authorization: Bearer ${authToken}
+}
+
+body:application/json {
+  {
+    "bio": "Chess enthusiast and aspiring grandmaster",
+    "location_text": "New York, USA",
+    "website_url": "https://example.com",
+    "twitter_url": "https://twitter.com/example",
+    "favorite_players": ["Magnus Carlsen", "Hikaru Nakamura"],
+    "favorite_openings": ["Sicilian Defense", "Queen's Gambit"]
+  }
+}
+
+tests {
+  test("status is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("profile details updated", function() {
+    expect(res.body.bio).to.equal("Chess enthusiast and aspiring grandmaster");
+    expect(res.body.location_text).to.equal("New York, USA");
+  });
+
+  test("social links updated", function() {
+    expect(res.body.website_url).to.equal("https://example.com");
+  });
+}

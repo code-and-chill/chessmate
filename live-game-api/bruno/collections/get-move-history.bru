@@ -1,0 +1,29 @@
+meta {
+  name: GET Move History
+  type: http
+  seq: 5
+}
+
+request {
+  method: GET
+  url: ${baseUrl}/v1/games/{{gameId}}/moves
+}
+
+headers {
+  Content-Type: application/json
+  Authorization: Bearer ${authToken}
+}
+
+vars:pre-request {
+  gameId: {{testGameId}}
+}
+
+tests {
+  test("status is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("moves array returned", function() {
+    expect(Array.isArray(res.body.moves)).to.be.true;
+  });
+}

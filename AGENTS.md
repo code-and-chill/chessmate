@@ -766,4 +766,375 @@ When creating a new service, ensure:
 
 ---
 
+## Bruno API Collections Standard
+
+All services exposing HTTP APIs **MUST** maintain Bruno API collections for:
+- **Documentation**: Human-readable API examples
+- **Testing**: Automated integration tests
+- **DX**: Developer experience and onboarding
+
+### Directory Structure (Mandatory)
+
+Every service with HTTP endpoints **MUST** have:
+
+```
+<service-name>/
+  bruno/
+    environments/
+      local.env              # Local development environment
+      staging.env            # Staging environment
+      production.env         # Production environment
+    collections/
+      <service-name>.bru     # Service collection metadata
+      health.bru             # Health check endpoint
+      <endpoint-or-flow>.bru # Individual endpoints
+    tests/
+      <workflow>.test.bru    # Multi-step workflow tests
+    snippets/
+      auth.bru               # Reusable authentication logic (if applicable)
+```
+
+**Rules**:
+- Collections are **organized by resource**, not by HTTP method
+- File names use **kebab-case**
+- Each endpoint has **one `.bru` file** in `collections/`
+- Multi-step flows go in `tests/`
+- Reusable logic goes in `snippets/`
+
+### Request Coverage (Mandatory)
+
+For **every endpoint** defined in `app/api/routes/`:
+
+1. **Create a Bruno request** under `bruno/collections/`
+2. **Include**:
+   - HTTP method and URL
+   - Request headers (including `Content-Type`)
+   - Request body with example payload
+   - Path variables and query parameters
+   - Environment variable substitution (`${baseUrl}`, `${authToken}`)
+3. **Provide curl equivalent** (Bruno auto-generates this)
+4. **Add at least one example payload**
+
+**Example**: For `POST /v1/accounts`, create `bruno/collections/post-account.bru`:
+
+```
+meta {
+  name: Create Account
+  type: http
+  seq: 1
+}
+
+request {
+  method: POST
+  url: ${baseUrl}/v1/accounts
+}
+
+headers {
+  Content-Type: application/json
+  Authorization: Bearer ${authToken}
+}
+
+body:application/json {
+  {
+    "user_id": "550e8400-e29b-41d4-a716-446655440000",
+    "username": "testuser",
+    "email": "test@example.com"
+  }
+}
+
+tests {
+  test("status is 201", function() {
+    expect(res.status).to.equal(201);
+  });
+
+  test("response has account_id", function() {
+    expect(res.body.account_id).to.not.be.null;
+  });
+}
+```
+
+### Authentication Rules
+
+**If the service requires authentication**:
+
+1. **Create `bruno/snippets/auth.bru`** with reusable auth logic:
+
+```
+meta {
+  name: Authentication
+  type: snippet
+}
+
+pre-request {
+  // Fetch or refresh token if needed
+  if (!bru.getEnvVar("authToken")) {
+    const authRes = await axios.post(`${bru.getEnvVar("authBaseUrl")}/login`, {
+      username: "testuser",
+      password: "testpass"
+    });
+    bru.setEnvVar("authToken", authRes.data.access_token);
+  }
+}
+```
+
+2. **Use in requests**:
+
+```
+headers {
+  Authorization: Bearer ${authToken}
+}
+
+pre-request {
+  // Include authentication snippet
+  await bru.include("snippets/auth.bru");
+}
+```
+
+3. **All authenticated endpoints** must use `${authToken}` variable
+
+### Multi-Step Flow Rules
+
+**For workflows involving multiple endpoints** (e.g., login → create resource → verify):
+
+1. **Create a test flow** under `bruno/tests/`
+2. **Chain requests** using response variables
+3. **Extract values** from responses for subsequent requests
+4. **Assert expected outcomes** at each step
+
+**Example**: `bruno/tests/account-creation-flow.test.bru`:
+
+```
+meta {
+  name: Account Creation Flow
+  type: test
+}
+
+pre-request {
+  bru.setVar("testUserId", crypto.randomUUID());
+}
+
+request "Create Account" {
+  method: POST
+  url: ${baseUrl}/v1/accounts
+  body {
+    "user_id": "${testUserId}",
+    "username": "testuser_${testUserId}",
+    "email": "test_${testUserId}@example.com"
+  }
+  
+  tests {
+    test("account created", function() {
+      expect(res.status).to.equal(201);
+      bru.setVar("accountId", res.body.account_id);
+    });
+  }
+}
+
+request "Get Account" {
+  method: GET
+  url: ${baseUrl}/v1/accounts/${accountId}
+  
+  tests {
+    test("account retrieved", function() {
+      expect(res.status).to.equal(200);
+      expect(res.body.user_id).to.equal(bru.getVar("testUserId"));
+    });
+  }
+}
+
+request "Update Account" {
+  method: PATCH
+  url: ${baseUrl}/v1/accounts/${accountId}
+  body {
+    "display_name": "Updated Name"
+  }
+  
+  tests {
+    test("account updated", function() {
+      expect(res.status).to.equal(200);
+      expect(res.body.display_name).to.equal("Updated Name");
+    });
+  }
+}
+```
+
+### Assertion Rules (Mandatory)
+
+**Every endpoint request MUST include assertions** for:
+
+1. **Response status code**:
+   ```javascript
+   test("status is 200", function() {
+     expect(res.status).to.equal(200);
+   });
+   ```
+
+2. **Required fields in response**:
+   ```javascript
+   test("response has required fields", function() {
+     expect(res.body.id).to.not.be.null;
+     expect(res.body.created_at).to.not.be.null;
+   });
+   ```
+
+3. **Error cases** (if applicable):
+   ```javascript
+   test("returns 404 for invalid ID", function() {
+     expect(res.status).to.equal(404);
+     expect(res.body.error).to.contain("not found");
+   });
+   ```
+
+**Format**:
+```javascript
+tests {
+  test("description", function() {
+    expect(res.status).to.equal(expectedStatus);
+    expect(res.body.field).to.not.be.null;
+  });
+}
+```
+
+### CI Integration Rules
+
+**All Bruno tests MUST run in CI/CD pipeline**:
+
+1. **Add to GitHub Actions workflow** (`.github/workflows/ci.yml`):
+   ```yaml
+   - name: Run Bruno Tests
+     run: |
+       npm install -g @usebruno/cli
+       bruno run bruno/collections/ --env local
+   ```
+
+2. **Fail pipeline on assertion failures**:
+   - Exit code must be non-zero if any test fails
+   - CI must report which tests failed
+
+3. **Run tests on**:
+   - Pull request creation
+   - Merge to main
+   - Before deployment
+
+### DX CLI Integration
+
+**Agents MUST ensure Bruno is integrated with `dx` CLI**:
+
+1. **Add `bruno` command** to `dx-cli/src/commands/`:
+   ```typescript
+   dx bruno <service>          # Open Bruno collection for service
+   dx bruno <service> --test   # Run Bruno tests for service
+   dx bruno <service> --watch  # Run tests in watch mode
+   ```
+
+2. **Functionality**:
+   - Load environment variables from `bruno/environments/local.env`
+   - Open the correct collection for the service
+   - Run tests with `--test` flag
+   - Watch for changes with `--watch` flag
+
+3. **Example implementation** (in `service.yaml`):
+   ```yaml
+   commands:
+     bruno: "bruno open bruno/collections"
+     bruno-test: "bruno run bruno/collections --env local"
+   ```
+
+### Agent Behavior Requirements
+
+**Whenever an agent**:
+
+1. **Creates a new microservice** → Generate full Bruno structure
+2. **Adds a new endpoint** → Create corresponding `.bru` file
+3. **Refactors routes** → Update all affected `.bru` files
+4. **Changes domain logic affecting payloads** → Update request/response examples
+
+**The agent MUST NEVER**:
+- Skip Bruno generation for new endpoints
+- Leave Bruno tests in broken state
+- Create endpoints without corresponding `.bru` files
+
+**Agents MUST** treat Bruno files with the same importance as:
+- Source code
+- Tests
+- Documentation
+
+### Documentation Requirements
+
+**When updating AGENTS.md**:
+
+1. **Link to Bruno standard**: Reference this section
+2. **State expectation**: All services maintain Bruno tests
+3. **Require compliance**: All API examples must come from Bruno collections
+4. **Enforce for future agents**: All future agents must respect this workflow
+
+### Quality Guarantees
+
+All Bruno collections **MUST**:
+
+1. ✅ **Be readable in Git**
+   - Plain text `.bru` format
+   - Human-readable structure
+   - Clear naming conventions
+
+2. ✅ **Require no cloud login**
+   - 100% local execution
+   - No external dependencies
+   - No authentication with Bruno cloud
+
+3. ✅ **Run offline**
+   - No internet required (except for API calls to localhost)
+   - All dependencies bundled
+   - Environment files committed to repo
+
+4. ✅ **Be portable across machines**
+   - No machine-specific configuration
+   - Environment variables in `.env` files
+   - Consistent across team members
+
+5. ✅ **Be compatible with `dx` workflows**
+   - Integrate with `dx` CLI commands
+   - Follow monorepo conventions
+   - Respect `service.yaml` structure
+
+### Validation
+
+**Agents MUST validate**:
+
+1. ✅ All endpoints have corresponding `.bru` files
+2. ✅ All `.bru` files have assertions
+3. ✅ Environment files exist for all environments
+4. ✅ Multi-step flows test critical workflows
+5. ✅ Authentication logic is reusable (if applicable)
+6. ✅ CI pipeline includes Bruno tests
+
+**Run validation**:
+```bash
+dx doctor                     # Check all services
+dx doctor <service-name>      # Check specific service
+dx bruno <service> --test     # Run Bruno tests
+```
+
+### Migration for Existing Services
+
+When adding Bruno to an existing service:
+
+1. Create directory structure under `<service>/bruno/`
+2. Generate environment files for local, staging, production
+3. Create `.bru` file for each existing endpoint
+4. Add assertions to all requests
+5. Create test flows for critical workflows
+6. Update `service.yaml` with Bruno commands
+7. Add to CI pipeline
+8. Update service documentation
+
+### Examples
+
+See working examples in the monorepo:
+- `rating-api/bruno/` - Complete Bruno structure
+- `account-api/bruno/` - Authentication patterns
+- `live-game-api/bruno/` - Multi-step flows
+
+---
+
 *This guide is a living document. Update it as the platform evolves and new patterns emerge.*

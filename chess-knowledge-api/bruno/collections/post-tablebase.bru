@@ -1,0 +1,32 @@
+meta {
+  name: POST Query Tablebase
+  type: http
+  seq: 3
+}
+
+request {
+  method: POST
+  url: ${baseUrl}/v1/endgame/tablebase
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:application/json {
+  {
+    "fen": "8/8/8/8/8/4K3/4P3/4k3 w - - 0 1"
+  }
+}
+
+tests {
+  test("status is 200 or 204", function() {
+    expect([200, 204]).to.include(res.status);
+  });
+
+  test("if 200, response has move", function() {
+    if (res.status === 200) {
+      expect(res.body.move).to.not.be.null;
+    }
+  });
+}

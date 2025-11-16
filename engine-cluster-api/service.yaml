@@ -11,6 +11,8 @@ commands:
   build: "poetry build"
   lint: "poetry run black --check app/ && poetry run isort --check-only app/ && poetry run flake8 app/"
   logs: "docker logs engine-cluster-api --tail ${lines}"
+  bruno: "bruno open bruno/collections"
+  bruno-test: "bruno run bruno/collections --env local"
 
 dependencies:
   dev: []

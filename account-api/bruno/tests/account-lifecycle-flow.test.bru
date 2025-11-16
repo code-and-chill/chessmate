@@ -1,0 +1,175 @@
+meta {
+  name: Account Lifecycle Flow
+  type: test
+}
+
+docs {
+  # Account Lifecycle Test
+  
+  Tests the complete account lifecycle:
+  1. Create account (internal)
+  2. Fetch account by auth_user_id
+  3. Update profile details
+  4. Update preferences
+  5. Update privacy settings
+  6. Verify public profile
+  7. Deactivate account
+}
+
+pre-request {
+  // Generate unique test data
+  bru.setVar("testAuthUserId", crypto.randomUUID());
+  bru.setVar("testUsername", `testuser_${Date.now()}`);
+  bru.setVar("testEmail", `test_${Date.now()}@example.com`);
+}
+
+request "Create Account" {
+  method: POST
+  url: ${baseUrl}/internal/accounts
+  
+  headers {
+    Content-Type: application/json
+  }
+  
+  body:application/json {
+    {
+      "auth_user_id": "${testAuthUserId}",
+      "username": "${testUsername}",
+      "display_name": "Test User",
+      "country_code": "US",
+      "language_code": "en",
+      "time_zone": "America/New_York"
+    }
+  }
+  
+  tests {
+    test("account created", function() {
+      expect(res.status).to.equal(200);
+      expect(res.body.account_id).to.not.be.null;
+      
+      bru.setVar("accountId", res.body.account_id);
+      bru.setVar("username", res.body.username);
+    });
+  }
+}
+
+request "Get Account by Auth User ID" {
+  method: GET
+  url: ${baseUrl}/internal/accounts/by-auth-user/${testAuthUserId}
+  
+  headers {
+    Content-Type: application/json
+  }
+  
+  tests {
+    test("account retrieved", function() {
+      expect(res.status).to.equal(200);
+      expect(res.body.account_id).to.equal(bru.getVar("accountId"));
+      expect(res.body.username).to.equal(bru.getVar("username"));
+    });
+  }
+}
+
+request "Update Profile" {
+  method: PATCH
+  url: ${baseUrl}/v1/accounts/me/profile
+  
+  headers {
+    Content-Type: application/json
+    Authorization: Bearer ${authToken}
+  }
+  
+  body:application/json {
+    {
+      "bio": "Integration test bio",
+      "location_text": "Test City"
+    }
+  }
+  
+  tests {
+    test("profile updated", function() {
+      expect(res.status).to.equal(200);
+      expect(res.body.bio).to.equal("Integration test bio");
+    });
+  }
+}
+
+request "Update Preferences" {
+  method: PATCH
+  url: ${baseUrl}/v1/accounts/me/preferences
+  
+  headers {
+    Content-Type: application/json
+    Authorization: Bearer ${authToken}
+  }
+  
+  body:application/json {
+    {
+      "board_theme": "blue",
+      "sound_enabled": false
+    }
+  }
+  
+  tests {
+    test("preferences updated", function() {
+      expect(res.status).to.equal(200);
+      expect(res.body.board_theme).to.equal("blue");
+    });
+  }
+}
+
+request "Update Privacy" {
+  method: PATCH
+  url: ${baseUrl}/v1/accounts/me/privacy
+  
+  headers {
+    Content-Type: application/json
+    Authorization: Bearer ${authToken}
+  }
+  
+  body:application/json {
+    {
+      "is_profile_public": true,
+      "show_ratings": false
+    }
+  }
+  
+  tests {
+    test("privacy updated", function() {
+      expect(res.status).to.equal(200);
+      expect(res.body.is_profile_public).to.equal(true);
+    });
+  }
+}
+
+request "Get Public Profile" {
+  method: GET
+  url: ${baseUrl}/v1/accounts/${username}
+  
+  headers {
+    Content-Type: application/json
+  }
+  
+  tests {
+    test("public profile accessible", function() {
+      expect(res.status).to.equal(200);
+      expect(res.body.account.username).to.equal(bru.getVar("username"));
+    });
+  }
+}
+
+request "Deactivate Account" {
+  method: POST
+  url: ${baseUrl}/internal/accounts/${accountId}/deactivate
+  
+  headers {
+    Content-Type: application/json
+  }
+  
+  tests {
+    test("account deactivated", function() {
+      expect(res.status).to.equal(200);
+      expect(res.body.is_active).to.equal(false);
+    });
+  }
+}

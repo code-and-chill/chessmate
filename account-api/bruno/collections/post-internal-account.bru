@@ -1,0 +1,45 @@
+meta {
+  name: POST Internal Create Account
+  type: http
+  seq: 10
+}
+
+request {
+  method: POST
+  url: ${baseUrl}/internal/accounts
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:application/json {
+  {
+    "auth_user_id": "{{testUserId}}",
+    "username": "{{testUsername}}",
+    "display_name": "{{testDisplayName}}",
+    "country_code": "US",
+    "language_code": "en",
+    "time_zone": "America/New_York"
+  }
+}
+
+vars:pre-request {
+  testUserId: {{$randomUUID}}
+  testUsername: testuser_{{$timestamp}}
+  testDisplayName: Test User {{$timestamp}}
+}
+
+tests {
+  test("status is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("response has account_id", function() {
+    expect(res.body.account_id).to.not.be.null;
+  });
+
+  test("response has username", function() {
+    expect(res.body.username).to.not.be.null;
+  });
+}

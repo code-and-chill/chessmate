@@ -1,0 +1,36 @@
+meta {
+  name: POST Play Move
+  type: http
+  seq: 4
+}
+
+request {
+  method: POST
+  url: ${baseUrl}/v1/games/{{gameId}}/moves
+}
+
+headers {
+  Content-Type: application/json
+  Authorization: Bearer ${authToken}
+}
+
+body:application/json {
+  {
+    "move": "e2e4"
+  }
+}
+
+vars:pre-request {
+  gameId: {{testGameId}}
+}
+
+tests {
+  test("status is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("move recorded", function() {
+    expect(res.body.move_number).to.not.be.null;
+    expect(res.body.position).to.not.be.null;
+  });
+}

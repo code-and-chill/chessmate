@@ -12,6 +12,8 @@ commands:
   lint: "poetry run flake8 app/ && poetry run black --check app/"
   migrate: "poetry run alembic upgrade head"
   logs: "docker logs rating-api --tail ${lines}"
+  bruno: "bruno open bruno/collections"
+  bruno-test: "bruno run bruno/collections --env local"
 
 dependencies:
   dev: []

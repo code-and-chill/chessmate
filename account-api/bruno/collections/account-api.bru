@@ -1,0 +1,24 @@
+meta {
+  name: Account API
+  type: collection
+  version: 1.0.0
+}
+
+docs {
+  # Account API Collection
+  
+  This collection contains all account management endpoints:
+  - Public API (`/v1/accounts`)
+  - Internal API (`/internal/accounts`)
+  
+  ## Authentication
+  
+  All `/v1/accounts` endpoints require Bearer token authentication.
+  Internal endpoints are for service-to-service communication only.
+  
+  ## Usage
+  
+  1. Set environment variables in `environments/local.env`
+  2. Run individual requests or full test flows
+  3. All requests include assertions for response validation
+}

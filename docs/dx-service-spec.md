@@ -66,6 +66,12 @@ commands:
   # Logs: Display service logs (template variables supported)
   logs: "docker logs account-api --tail ${lines}"
 
+  # Bruno: Open Bruno API collection
+  bruno: "bruno open bruno/collections"
+
+  # Bruno Test: Run Bruno API tests
+  bruno-test: "bruno run bruno/collections --env local"
+
 # ============================================================================
 # OPTIONAL: Lifecycle Dependencies
 # ============================================================================
@@ -164,6 +170,8 @@ commands:
   migrate: "poetry run alembic upgrade head"
   seed: "poetry run python scripts/seed.py"
   logs: "docker logs account-api --tail ${lines}"
+  bruno: "bruno open bruno/collections"
+  bruno-test: "bruno run bruno/collections --env local"
 
 dependencies:
   dev: []
