@@ -20,10 +20,20 @@ Chess App is a cross-platform application built with React Native and React prov
 
 ## Quick Links
 
-- **API Spec**: [overview.md](./overview.md)
-- **Architecture**: [ARCHITECTURE.md](./ARCHITECTURE.md)
-- **Development**: [how-to/local-dev.md](./how-to/local-dev.md)
-- **Theming**: see `ARCHITECTURE.md` (consolidated; feature-specific theming docs were removed)
+**Getting Started** (Start Here! 👇)
+- **[GETTING_STARTED.md](./GETTING_STARTED.md)** – Setup guide for new developers
+- **[FOLDER_STRUCTURE.md](./FOLDER_STRUCTURE.md)** – Complete directory layout
+- **[COMPONENT_INDEX.md](./COMPONENT_INDEX.md)** – All 20+ components reference
+
+**Architecture & Design**
+- **[ARCHITECTURE.md](./ARCHITECTURE.md)** – System design and patterns
+- **[MIGRATION_SUMMARY.md](./MIGRATION_SUMMARY.md)** – November 2025 restructuring details
+- **[overview.md](./overview.md)** – Feature specification
+
+**Development**
+- **[how-to/local-dev.md](./how-to/local-dev.md)** – Local development setup
+- **[domain.md](./domain.md)** – Domain models and glossary
+- **[operations.md](./operations.md)** – Deployment and operations
 
 ## Key Features
 

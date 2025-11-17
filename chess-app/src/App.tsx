@@ -1,8 +1,8 @@
 import React from 'react';
 import { SafeAreaView } from 'react-native';
-import { I18nProvider } from './core/i18n/I18nContext';
+import { I18nProvider } from './i18n/I18nContext';
 import { ThemeProvider } from './ui/theme/ThemeContext';
-import { PlayScreen } from './ui/screens';
+import { PlayScreen } from './screens';
 
 export default function App() {
   const gameId = 'default-game-id';

@@ -1,7 +1,7 @@
 {
   "name": "chess-app",
   "version": "0.1.0",
-  "description": "Shared chess /play experience for web and mobile using React Native + react-native-web",
+  "description": "Shared chess experience for web and mobile using React Native + react-native-web",
   "main": "index.ts",
   "module": "dist/index.es.js",
   "types": "dist/index.d.ts",

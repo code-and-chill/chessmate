@@ -80,23 +80,44 @@ Verifies TypeScript without output. Run before commits.
 
 ```
 chess-app/
-├── index.ts                 # Expo entry point (registerRootComponent)
+├── index.ts                     # Expo entry point (registerRootComponent)
 ├── src/
-│   ├── App.tsx              # Root component
-│   ├── core/                # Business logic, hooks, API clients
-│   │   ├── models/          # TypeScript types (GameState, Color, etc.)
-│   │   ├── api/             # HTTP client for live-game-api
-│   │   └── hooks/           # useGame, useAuth
-│   └── ui/                  # Design system & components
-│       ├── tokens/          # Colors, spacing, typography
-│       ├── components/      # Reusable primitives & compound components
-│       └── screens/         # Full-page compositions (PlayScreen)
-├── app.json                 # Expo config (platforms, splash, icons)
-├── metro.config.js          # Metro bundler config
-├── tsconfig.json            # TypeScript config
+│   ├── App.tsx                  # Root component
+│   ├── api/                     # HTTP clients (3 clients)
+│   ├── hooks/                   # Business logic hooks (8 hooks)
+│   ├── types/                   # Domain types & interfaces
+│   ├── i18n/                    # Internationalization (7 locales)
+│   ├── screens/                 # Full-page components (13 screens)
+│   │   ├── play/                # Play-related screens (8)
+│   │   ├── puzzle/              # Puzzle-related screens (5)
+│   │   └── __tests__/           # Screen tests
+│   ├── components/              # UI components (20+)
+│   │   ├── primitives/          # Base building blocks (Box, Text, Button, Surface)
+│   │   ├── compound/            # Reusable complex (ChessBoard, GameActions, etc.)
+│   │   ├── play/                # Play feature components
+│   │   ├── puzzle/              # Puzzle feature components
+│   │   └── identity/            # User/identity components
+│   └── ui/                      # Design system
+│       ├── theme/               # Theme configuration
+│       └── tokens/              # Colors, spacing, typography
+├── docs/
+│   ├── FOLDER_STRUCTURE.md      # Complete structure guide
+│   ├── COMPONENT_INDEX.md       # Component reference
+│   ├── MIGRATION_SUMMARY.md     # Architecture migration details
+│   ├── ARCHITECTURE.md          # Technical design
+│   ├── overview.md              # Feature overview
+│   └── ...
+├── app.json                     # Expo config (platforms, splash, icons)
+├── metro.config.js              # Metro bundler config
+├── tsconfig.json                # TypeScript config
 ├── package.json
 └── README.md
 ```
+
+**📚 New Structure Documentation**:
+- **[FOLDER_STRUCTURE.md](./docs/FOLDER_STRUCTURE.md)** – Complete directory layout with all files
+- **[COMPONENT_INDEX.md](./docs/COMPONENT_INDEX.md)** – Quick reference for all components
+- **[MIGRATION_SUMMARY.md](./docs/MIGRATION_SUMMARY.md)** – November 2025 architecture migration details
 
 ## Build for Production
 
