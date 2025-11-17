@@ -1,0 +1,25 @@
+meta {
+  name: Puzzle Endpoints
+  type: http
+  seq: 1
+}
+
+request {
+  method: GET
+  url: ${baseUrl}/v1/puzzles
+}
+
+headers {
+  Content-Type: application/json
+  Authorization: Bearer ${authToken}
+}
+
+tests {
+  test("status is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("response has puzzles", function() {
+    expect(res.body.puzzles).to.be.an("array");
+  });
+}

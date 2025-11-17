@@ -1,0 +1,18 @@
+{
+  "dependencies": {
+    "axios": "^1.13.2",
+    "fs": "^0.0.1-security",
+    "js-yaml": "^4.1.1",
+    "path": "^0.12.7",
+    "react": "^19.2.0",
+    "react-native": "^0.82.1"
+  },
+  "devDependencies": {
+    "@types/commander": "^2.12.0",
+    "@types/jest": "^30.0.0",
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^24.10.1",
+    "@types/react": "^19.2.5",
+    "@types/react-native": "^0.72.8"
+  }
+}

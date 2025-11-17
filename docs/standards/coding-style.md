@@ -74,6 +74,14 @@ Planned topics:
 - Module organization
 - React/framework-specific patterns
 
+### TypeScript Style Guide
+
+For TypeScript-specific coding standards, refer to the [TypeScript Coding Guidelines](typescript-guideline.md).
+
+### React and JavaScript Style Guide
+
+We follow the [Airbnb JavaScript Style Guide](https://github.com/airbnb/javascript/tree/master/react) for all React and JavaScript code. This ensures consistency and best practices across the codebase.
+
 ### Rust
 
 **Status:** To be defined

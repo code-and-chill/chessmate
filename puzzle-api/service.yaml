@@ -1,0 +1,10 @@
+# Service configuration for puzzle-api
+name: puzzle-api
+description: Service for managing chess puzzles and Daily Puzzle feature.
+version: 1.0.0
+language: python
+dependencies:
+  - account-api
+  - engine-cluster-api
+  - chess-knowledge-api
+  - rating-api
