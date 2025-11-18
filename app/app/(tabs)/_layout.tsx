@@ -1,10 +1,8 @@
 import { Tabs, useRouter } from 'expo-router';
-import { TouchableOpacity, View } from 'react-native';
+import { TouchableOpacity, View, useColorScheme } from 'react-native';
 
-import { HapticTab } from '@/components/haptic-tab';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { IconSymbol } from '@/ui';
+import { Colors } from '@/core/constants';
 import { useThemeTokens } from '@/ui';
 
 function HeaderActions() {
@@ -31,7 +29,6 @@ export default function TabLayout() {
       screenOptions={{
         tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
         headerShown: true,
-        tabBarButton: HapticTab,
         headerRight: () => <HeaderActions />,
       }}>
       <Tabs.Screen

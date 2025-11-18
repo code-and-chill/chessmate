@@ -1,8 +1,8 @@
 ---
-title: Migration Complete - Final Summary
-service: chess-app
+title: Folder Structure Migration Complete - 75%
+service: app
 status: active
-last_reviewed: 2025-11-17
+last_reviewed: 2025-01-18
 type: overview
 ---
 

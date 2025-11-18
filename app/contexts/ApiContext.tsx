@@ -4,13 +4,17 @@
  */
 
 import React, { createContext, useContext, ReactNode, useMemo } from 'react';
-import { AccountApiClient } from '../api/accountApi';
-import { RatingApiClient } from '../api/ratingApi';
-import { MatchmakingApiClient } from '../api/matchmakingApi';
-import { MockAccountApiClient, MockRatingApiClient, MockMatchmakingApiClient } from '../api/mockClients';
-import { PuzzleApiClient } from '../api/puzzleApi';
-import { LiveGameApiClient } from '../api/liveGameClient';
-import { PlayApiClient } from '../api/playApi';
+import { 
+  AccountApiClient,
+  RatingApiClient,
+  MatchmakingApiClient,
+  MockAccountApiClient,
+  MockRatingApiClient,
+  MockMatchmakingApiClient,
+  PuzzleApiClient,
+  LiveGameApiClient,
+  GameApiClient as PlayApiClient
+} from '@/services/api';
 import { useAuth } from './AuthContext';
 
 interface ApiContextType {
@@ -70,9 +74,9 @@ export function ApiProvider({ children }: { children: ReactNode }) {
 
     // These always use real implementations (or can be mocked later if needed)
     const puzzleApi = new PuzzleApiClient(API_BASE_URLS.puzzle);
-    const liveGameApi = new LiveGameApiClient(API_BASE_URLS.liveGame);
-    const playApi = new PlayApiClient(API_BASE_URLS.play);
-
+    const liveGameApi = new LiveGameApiClient(API_BASE_URLS.liveGame, token || "");
+    const playApi = new PlayApiClient(API_BASE_URLS.play, token || "");
+    
     return {
       accountApi,
       ratingApi,

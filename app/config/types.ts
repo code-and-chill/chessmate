@@ -110,6 +110,11 @@ export interface ConfigChangeEvent {
 }
 
 /**
+ * Configuration change listener function
+ */
+export type ConfigChangeListener = (event: ConfigChangeEvent) => void;
+
+/**
  * Configuration validator function
  */
 export type ConfigValidator = (config: RuntimeConfig) => ValidationResult;

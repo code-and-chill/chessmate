@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { StyleSheet, View, TextInput, TouchableOpacity, Text, SafeAreaView, ActivityIndicator } from 'react-native';
-import { PuzzlePlayScreen } from '@/screens/PuzzlePlayScreen';
+import { PuzzlePlayScreen } from '@/features/puzzle';
 
 type PuzzleResult = Record<string, unknown>;
 

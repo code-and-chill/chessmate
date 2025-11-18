@@ -4,13 +4,14 @@
  */
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { View, Text } from 'react-native';
 import type { RuntimeConfig, ConfigChangeEvent, ConfigChangeListener } from './types';
 import { getConfigStore } from './store';
 
 /**
  * Configuration Context
  */
-const ConfigContext = createContext<RuntimeConfig | null>(null);
+export const ConfigContext = createContext<RuntimeConfig | null>(null);
 
 interface ConfigProviderProps {
   children: React.ReactNode;
@@ -30,7 +31,7 @@ export const ConfigProvider: React.FC<ConfigProviderProps> = ({ children }) => {
     const store = getConfigStore();
 
     // Subscribe to configuration changes
-    const unsubscribe = store.subscribe((event: ConfigChangeEvent) => {
+    const unsubscribe = store.subscribe((_event: ConfigChangeEvent) => {
       // Update state on any configuration change
       setConfig(store.getConfig());
     });
@@ -69,7 +70,7 @@ export const useApiConfig = () => {
  * Hook to get specific feature flag
  * Provides type safety and memoization
  */
-export const useFeatureFlag = (flag: keyof typeof config.features): boolean => {
+export const useFeatureFlag = (flag: keyof RuntimeConfig['features']): boolean => {
   const config = useConfig();
   return config.features[flag] as boolean;
 };
@@ -149,7 +150,7 @@ export const useConfigValue = <K extends keyof RuntimeConfig>(
  * Hook for conditional rendering based on feature flags
  * Returns boolean for use in if statements
  */
-export const useFeatureEnabled = (flag: keyof typeof config.features): boolean => {
+export const useFeatureEnabled = (flag: keyof RuntimeConfig['features']): boolean => {
   return useFeatureFlag(flag);
 };
 
@@ -181,7 +182,7 @@ export const useLogLevel = () => {
  * Component to conditionally render based on feature flag
  */
 interface FeatureFlagProps {
-  flag: keyof typeof config.features;
+  flag: keyof RuntimeConfig['features'];
   children: React.ReactNode;
   fallback?: React.ReactNode;
 }

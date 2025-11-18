@@ -1,6 +1,5 @@
 import { StyleSheet, Platform, ViewStyle, TextStyle } from 'react-native';
-import { Colors } from '@/constants/theme';
-import { Spacing } from '@/constants/layout';
+import { Colors, Spacing } from '@/core/constants';
 
 /**
  * Consistent Button Styles

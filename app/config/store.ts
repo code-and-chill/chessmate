@@ -1,5 +1,5 @@
 /**
- * Configuration Store (Single Responsibility + Observer Pattern)
+ * Configuration Store
  * Manages runtime configuration state with change notifications
  */
 
@@ -13,12 +13,6 @@ export type ConfigChangeListener = (event: ConfigChangeEvent) => void;
 
 /**
  * ConfigStore class - manages configuration state
- * Follows SOLID principles:
- * - Single Responsibility: Only manages config state and listeners
- * - Open/Closed: Extensible via listeners without modification
- * - Liskov Substitution: Can be replaced with other implementations
- * - Interface Segregation: Minimal, focused interface
- * - Dependency Inversion: Depends on abstractions (listeners)
  */
 export class ConfigStore {
   private currentConfig: RuntimeConfig;

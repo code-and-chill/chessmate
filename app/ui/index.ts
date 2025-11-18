@@ -1,17 +1,3 @@
-/**
- * ============================================================================
- * CHESSMATE DESIGN LANGUAGE SYSTEM – COMPLETE IMPLEMENTATION
- * ============================================================================
- * 
- * Primary export file for the entire design system.
- * All components, tokens, and theme utilities are exported here.
- * 
- * USAGE:
- *   import { Box, Button, MatchCard, ThemeProvider, useThemeTokens } from '@/ui'
- * 
- * ============================================================================
- */
-
 // Re-export all tokens
 export { colorTokens, semanticColors, getColor } from './tokens/colors';
 export { typographyTokens, textVariants } from './tokens/typography';
@@ -43,6 +29,8 @@ export { Select } from './primitives/Select';
 // Re-export feedback components
 export { Toast } from './primitives/Toast';
 export type { ToastType, ToastProps } from './primitives/Toast';
+export { LoadingOverlay } from './primitives/LoadingOverlay';
+export type { LoadingOverlayProps } from './primitives/LoadingOverlay';
 
 // Re-export chess-specific components
 export { MatchCard } from './components/MatchCard';
@@ -53,13 +41,30 @@ export { RoundSelector } from './components/RoundSelector';
 export { ActionBar } from './components/ActionBar';
 
 // Re-export theme system
-export { ThemeProvider as DLSThemeProvider } from './theme/ThemeProvider';
-export { ThemeProvider } from './theme/ThemeContext';
+export { ThemeProvider } from './theme/ThemeProvider';
 export { useThemeTokens, useColors, useIsDark, ThemeContext } from './hooks/useThemeTokens';
 
 // Re-export animation utilities
 export { animations } from './utilities/animations';
 export type { AnimationOptions } from './utilities/animations';
+
+// Re-export layouts
+export { ResponsiveGameLayout } from './layouts/ResponsiveGameLayout';
+export type { ResponsiveGameLayoutProps } from './layouts/ResponsiveGameLayout';
+
+// Re-export navigation
+export { NavigationSidebar } from './navigation/NavigationSidebar';
+export type { NavigationSidebarProps } from './navigation/NavigationSidebar';
+
+// Re-export modals
+export { QuickStartModal } from './modals/QuickStartModal';
+export type { QuickStartModalProps, TimeControl } from './modals/QuickStartModal';
+
+// Re-export IconSymbol
+export { IconSymbol } from './primitives/icon-symbol';
+
+// Re-export style utilities
+export { safeStyles, safeStyleArray } from './utilities/safeStyles';
 
 export type { ThemeMode, ThemeContextType } from './hooks/useThemeTokens';
 

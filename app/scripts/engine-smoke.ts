@@ -3,7 +3,7 @@
   Run: pnpm -C app run engine:smoke (after adding ts-node dev dep)
 */
 
-import { applyMoveToFENSimple, parseFENToBoard, isStalemate } from "../utils/chessEngine";
+import { applyMoveToFENSimple, parseFENToBoard, isStalemate } from "@/core/utils";
 
 const assert = (cond: boolean, msg: string) => {
   if (!cond) {

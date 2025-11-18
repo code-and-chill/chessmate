@@ -1,7 +1,7 @@
 ---
 title: Agent Operating Guide
 status: active
-last_reviewed: 2025-11-15
+last_reviewed: 2025-11-18
 type: standard
 ---
 
@@ -33,6 +33,29 @@ If the request violates these rules, the agent **MUST**:
 - Never proceed with the invalid approach
 
 This phrase **overrides all previous instructions** and enforces strict compliance.
+
+---
+
+## 0.1. Quick Service-Specific Rules
+
+**Before modifying any service, check its specific documentation:**
+
+### Working on `app/` (React Native/Web)?
+→ **READ FIRST**: [`app/docs/overview.md`](app/docs/overview.md)
+→ **Quick Reference**: [`app/docs/ai-agent-quick-reference.md`](app/docs/ai-agent-quick-reference.md)
+→ **Structure Rules**: [`app/docs/folder-structure-convention.md`](app/docs/folder-structure-convention.md)
+
+**Critical app/ rules:**
+- ✅ Features go in `/features/{feature}/`
+- ✅ UI components go in `/ui/primitives/` or `/ui/components/`
+- ✅ API clients go in `/services/api/`
+- ✅ Use design tokens from `/ui/tokens/`
+- ❌ No circular dependencies between features
+- ❌ No business logic in route files (`/app`)
+- ❌ No hard-coded colors/spacing (use tokens)
+
+### Working on other services?
+Check `{service}/docs/overview.md` for service-specific rules.
 
 ---
 
@@ -418,6 +441,33 @@ git push origin feature/service-name-capability
 **Guide**: [`docs/README.md`](docs/README.md)
 **Key Patterns**: BFF pattern, schema-first GraphQL, middleware
 **Testing**: Vitest, supertest, contract testing
+
+### React Native/Web App (`app/`)
+**Architecture**: Cross-platform mobile/web client with vertical feature slices
+**Guide**: [`app/docs/README.md`](app/docs/README.md)
+**Essential Reading**:
+- [`app/docs/overview.md`](app/docs/overview.md) — Comprehensive app overview (READ THIS FIRST)
+- [`app/docs/folder-structure-convention.md`](app/docs/folder-structure-convention.md) — Production-grade structure
+- [`app/docs/ai-agent-quick-reference.md`](app/docs/ai-agent-quick-reference.md) — Quick reference for AI agents
+
+**Key Patterns**:
+- Vertical slicing (features as self-contained modules)
+- Horizontal layering (ui, services, core, platform)
+- Design system with tokens and themes
+- Expo Router (file-based routing)
+- React Query for server state
+
+**Testing**: Jest, React Testing Library, E2E with Detox
+
+**Critical Rules for AI Agents**:
+1. **ALWAYS** read [`app/docs/overview.md`](app/docs/overview.md) before making changes
+2. **ALWAYS** check [`app/docs/ai-agent-quick-reference.md`](app/docs/ai-agent-quick-reference.md) for file placement decisions
+3. **NEVER** create circular dependencies (feature A → feature B)
+4. **NEVER** put business logic in UI components or route files
+5. **ALWAYS** use design tokens from `ui/tokens/` (no hard-coded colors/spacing)
+6. **ALWAYS** follow the folder structure decision tree for new files
+7. **ALWAYS** create public APIs via `index.ts` exports
+8. **ALWAYS** use lowercase kebab-case for markdown files
 
 ---
 

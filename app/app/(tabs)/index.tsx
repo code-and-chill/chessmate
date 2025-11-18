@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { StyleSheet, View, TouchableOpacity, Text, SafeAreaView, ActivityIndicator, Platform, Dimensions, TextInput } from 'react-native';
 import Animated, { FadeInDown, FadeInUp, Layout } from 'react-native-reanimated';
-import { PlayScreen } from '@/screens/PlayScreen';
-import { EnhancedCard } from '@/ui/primitives/EnhancedCard';
+import { PlayScreen } from '@/features/play';
+import { Card } from '@/ui/primitives/Card';
 import { VStack, HStack } from '@/ui';
 
 type PlayMode = 'hub' | 'online' | 'bot' | 'friend' | 'game';
@@ -51,7 +51,7 @@ export default function PlayTab() {
 
           <VStack gap={4} style={styles.cardsContainer}>
             <Animated.View entering={FadeInDown.duration(500).delay(200)}>
-              <EnhancedCard
+              <Card
                 variant="elevated"
                 size="lg"
                 hoverable
@@ -69,11 +69,11 @@ export default function PlayTab() {
                     <Text style={styles.modeDescription}>Find opponents worldwide</Text>
                   </VStack>
                 </TouchableOpacity>
-              </EnhancedCard>
+              </Card>
             </Animated.View>
 
             <Animated.View entering={FadeInDown.duration(500).delay(300)}>
-              <EnhancedCard
+              <Card
                 variant="elevated"
                 size="lg"
                 hoverable
@@ -91,11 +91,11 @@ export default function PlayTab() {
                     <Text style={styles.modeDescription}>Practice with AI opponents</Text>
                   </VStack>
                 </TouchableOpacity>
-              </EnhancedCard>
+              </Card>
             </Animated.View>
 
             <Animated.View entering={FadeInDown.duration(500).delay(400)}>
-              <EnhancedCard
+              <Card
                 variant="elevated"
                 size="lg"
                 hoverable
@@ -113,7 +113,7 @@ export default function PlayTab() {
                     <Text style={styles.modeDescription}>Invite and play with friends</Text>
                   </VStack>
                 </TouchableOpacity>
-              </EnhancedCard>
+              </Card>
             </Animated.View>
           </VStack>
         </VStack>
@@ -141,7 +141,7 @@ export default function PlayTab() {
                 key={tc}
                 entering={FadeInDown.delay(idx * 100).duration(400).springify()}
               >
-                <EnhancedCard
+                <Card
                   variant={timeControl === tc ? 'gradient' : 'default'}
                   size="md"
                   hoverable
@@ -160,7 +160,7 @@ export default function PlayTab() {
                       {tc === '30+0' && '🐢 Classical 30 min'}
                     </Text>
                   </TouchableOpacity>
-                </EnhancedCard>
+                </Card>
               </Animated.View>
             ))}
           </VStack>
@@ -205,7 +205,7 @@ export default function PlayTab() {
                 key={difficulty}
                 entering={FadeInDown.delay(idx * 100).duration(400).springify()}
               >
-                <EnhancedCard
+                <Card
                   variant="elevated"
                   size="md"
                   hoverable
@@ -231,7 +231,7 @@ export default function PlayTab() {
                       {difficulty === 'Expert' && '👑 Expert (2000+)'}
                     </Text>
                   </TouchableOpacity>
-                </EnhancedCard>
+                </Card>
               </Animated.View>
             ))}
           </VStack>
@@ -255,7 +255,7 @@ export default function PlayTab() {
           </VStack>
 
           <Animated.View entering={FadeInDown.delay(100).duration(400).springify()}>
-            <EnhancedCard variant="elevated" size="lg">
+            <Card variant="elevated" size="lg">
               <VStack gap={4}>
                 <TextInput
                   style={styles.input}
@@ -292,7 +292,7 @@ export default function PlayTab() {
                   <Text style={styles.buttonText}>Try Demo Game</Text>
                 </TouchableOpacity>
               </VStack>
-            </EnhancedCard>
+            </Card>
           </Animated.View>
         </VStack>
       </SafeAreaView>

@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { SafeAreaView, View } from 'react-native';
 import { ConfigProvider } from './config';
 import { I18nProvider } from './i18n/I18nContext';
-import { PlayScreen, MatchesScreen, SettingsScreen, AnimationsScreen } from './screens';
+import { PlayScreen } from './features/play';
+import { MatchesScreen, SettingsScreen, AnimationsScreen } from './features/demo';
 import { HStack, Button, useColors, ThemeProvider } from './ui';
 
 type Screen = 'play' | 'matches' | 'settings' | 'animations';
@@ -69,7 +70,7 @@ export default function App() {
   return (
     <ConfigProvider>
       <I18nProvider defaultLocale="en">
-        <ThemeProvider defaultMode="light" defaultBoardTheme="green">
+        <ThemeProvider defaultMode="light">
           <AppContent />
         </ThemeProvider>
       </I18nProvider>

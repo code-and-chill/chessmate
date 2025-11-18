@@ -1,7 +1,7 @@
 import { Drawer } from 'expo-router/drawer';
-import { useColorScheme } from '@/hooks/use-color-scheme';
-import { Colors } from '@/constants/theme';
-import { IconSymbol } from '@/components/ui/icon-symbol';
+import { useColorScheme } from 'react-native';
+import { Colors } from '@/core/constants';
+import { IconSymbol } from '@/ui';
 
 export default function DrawerLayout() {
   const colorScheme = useColorScheme();
