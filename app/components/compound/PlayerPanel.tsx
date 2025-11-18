@@ -68,7 +68,7 @@ export const PlayerPanel = React.forwardRef<View, PlayerPanelProps>(
         </View>
 
         <View style={styles.clockContainer}>
-          <Text style={[styles.clock, isActive && styles.activeClock]}>
+          <Text style={[styles.clock, isActive ? styles.activeClock : null].filter(Boolean)}>
             {formatClock(displayTime)}
           </Text>
         </View>

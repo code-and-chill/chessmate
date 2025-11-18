@@ -1,82 +1,11 @@
 import { useState } from 'react';
-import {
-  StyleSheet,
-  View,
-  Text,
-  ScrollView,
-  Platform,
-} from 'react-native';
+import { ScrollView, Platform } from 'react-native';
 import { ChessBoard, GameActions, MoveList, PlayerPanel, type Move } from '@/components/compound';
 import { createPlayScreenConfig, getHydratedBoardProps, type PlayScreenConfig } from '@/components/config';
-import { isCheckmate, isStalemate, type Board } from '@/utils/chessEngine';
+import { isCheckmate, isStalemate, parseFENToBoard, applyMoveToFENSimple, type Board } from '@/utils/chessEngine';
+import { Box, VStack, Text, useColors } from '@/ui';
 
-/**
- * Helper function to apply a move to FEN string
- * Takes algebraic notation (e.g., "e2e4") and updates the board
- */
-const applyMoveToFEN = (fen: string, moveAlgebraic: string): string => {
-  const fromFile = moveAlgebraic.charCodeAt(0) - 97; // a=0, b=1, ..., h=7
-  const fromRank = parseInt(moveAlgebraic[1]) - 1; // 1=0, 2=1, ..., 8=7
-  const toFile = moveAlgebraic.charCodeAt(2) - 97;
-  const toRank = parseInt(moveAlgebraic[3]) - 1;
-
-  // Parse FEN into board
-  const fenParts = fen.split(' ');
-  const fenBoard = fenParts[0];
-  const ranks = fenBoard.split('/');
-
-  // Convert FEN ranks to board array
-  const board: (string | null)[][] = Array(8)
-    .fill(null)
-    .map(() => Array(8).fill(null));
-
-  ranks.forEach((rankStr, fenRankIdx) => {
-    const boardRankIdx = 7 - fenRankIdx;
-    let fileIdx = 0;
-    for (const char of rankStr) {
-      if (/\d/.test(char)) {
-        fileIdx += parseInt(char);
-      } else {
-        board[boardRankIdx][fileIdx] = char;
-        fileIdx++;
-      }
-    }
-  });
-
-  // Apply move: move piece from source to destination
-  const piece = board[fromRank][fromFile];
-  board[toRank][toFile] = piece;
-  board[fromRank][fromFile] = null;
-
-  // Convert board back to FEN
-  const newRanks = board
-    .map((rankArray) => {
-      let rankStr = '';
-      let emptyCount = 0;
-
-      rankArray.forEach((square) => {
-        if (square === null) {
-          emptyCount++;
-        } else {
-          if (emptyCount > 0) {
-            rankStr += emptyCount;
-            emptyCount = 0;
-          }
-          rankStr += square;
-        }
-      });
-
-      if (emptyCount > 0) {
-        rankStr += emptyCount;
-      }
-      return rankStr;
-    })
-    .reverse()
-    .join('/');
-
-  // Return updated FEN (simplified - only updates board, keeps other parts)
-  return `${newRanks} ${fenParts[1]} ${fenParts[2]} ${fenParts[3]} ${fenParts[4]} ${fenParts[5]}`;
-};
+// Move application now handled by engine util: applyMoveToFENSimple
 
 /**
  * PlayScreen Props
@@ -121,31 +50,11 @@ export const PlayScreen = ({ gameId, screenConfig }: PlayScreenProps) => {
     const nextSideToMove = gameState.sideToMove === 'w' ? 'b' : 'w';
     
     // Calculate new FEN after move
-    const newFEN = applyMoveToFEN(gameState.fen, moveAlgebraic);
+    const newFEN = applyMoveToFENSimple(gameState.fen, moveAlgebraic);
     console.log(`[PLAY_SCREEN] FEN updated: ${newFEN}`);
     
-    // Convert FEN to board for game state checking
-    const fenParts = newFEN.split(' ');
-    const fenBoard = fenParts[0];
-    const ranks = fenBoard.split('/');
-    const boardArray: (string | null)[][] = Array(8)
-      .fill(null)
-      .map(() => Array(8).fill(null));
-    ranks.forEach((rankStr, fenRankIdx) => {
-      const boardRankIdx = 7 - fenRankIdx;
-      let fileIdx = 0;
-      for (const char of rankStr) {
-        if (/\d/.test(char)) {
-          fileIdx += parseInt(char);
-        } else {
-          boardArray[boardRankIdx][fileIdx] = char;
-          fileIdx++;
-        }
-      }
-    });
-    
-    // Cast to Board type (pieces are represented as strings like 'w', 'p', etc)
-    const board = boardArray as unknown as Board;
+    // Convert FEN to engine Board (Piece objects)
+    const board: Board = parseFENToBoard(newFEN);
     
     // Check for checkmate or stalemate for opponent
     let newStatus: 'in_progress' | 'ended' = 'in_progress';
@@ -188,13 +97,28 @@ export const PlayScreen = ({ gameId, screenConfig }: PlayScreenProps) => {
     console.log('Player resigned');
   };
 
+  const colors = useColors();
+
   return (
-    <View style={styles.container}>
-      <ScrollView style={styles.content}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Live Chess Game</Text>
-          <Text style={styles.gameId}>Game ID: {gameId}</Text>
-        </View>
+    <Box flex={1} backgroundColor={colors.background.primary}>
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{ padding: 16, paddingBottom: 20 }}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Header */}
+        <VStack gap={2} style={{ marginBottom: 24 }}>
+          <Text variant="heading" color={colors.foreground.primary}>
+            Live Chess Game
+          </Text>
+          <Text
+            variant="caption"
+            color={colors.foreground.tertiary}
+            style={{ fontFamily: Platform.OS === 'web' ? 'monospace' : 'Courier New' }}
+          >
+            Game ID: {gameId}
+          </Text>
+        </VStack>
 
         {/* Opponent Panel */}
         <PlayerPanel
@@ -207,7 +131,12 @@ export const PlayScreen = ({ gameId, screenConfig }: PlayScreenProps) => {
         />
 
         {/* Chess Board */}
-        <View style={styles.boardSection}>
+        <Box
+          padding={3}
+          backgroundColor={colors.background.secondary}
+          radius="md"
+          style={{ alignItems: 'center', marginBottom: 24 }}
+        >
           <ChessBoard
             {...getHydratedBoardProps(screenConfigObj)}
             fen={gameState.fen}
@@ -216,7 +145,7 @@ export const PlayScreen = ({ gameId, screenConfig }: PlayScreenProps) => {
             isInteractive={gameState.status === 'in_progress'}
             onMove={handleMove}
           />
-        </View>
+        </Box>
 
         {/* Self Player Panel */}
         <PlayerPanel
@@ -236,76 +165,55 @@ export const PlayScreen = ({ gameId, screenConfig }: PlayScreenProps) => {
         />
 
         {/* Move List */}
-        <View style={styles.moveListSection}>
+        <Box style={{ marginBottom: 20 }}>
           <MoveList moves={gameState.moves} />
-        </View>
+        </Box>
 
-        <View style={styles.infoSection}>
-          <Text style={styles.sectionTitle}>Game Status</Text>
-          <Text style={styles.infoText}>Status: {gameState.status}</Text>
-          <Text style={styles.infoText}>Players: {gameState.players.join(' vs ')}</Text>
-        </View>
+        {/* Game Status */}
+        <Box
+          padding={3}
+          backgroundColor={colors.background.secondary}
+          radius="md"
+          style={{ marginBottom: 20 }}
+        >
+          <VStack gap={2}>
+            <Text variant="subheading" color={colors.foreground.primary}>
+              Game Status
+            </Text>
+            <Text variant="body" color={colors.foreground.secondary}>
+              Status: {gameState.status}
+            </Text>
+            <Text variant="body" color={colors.foreground.secondary}>
+              Players: {gameState.players.join(' vs ')}
+            </Text>
+          </VStack>
+        </Box>
 
-        <View style={styles.infoSection}>
-          <Text style={styles.sectionTitle}>Configuration</Text>
-          <Text style={styles.infoText}>Board Size: {screenConfigObj.board.size}px</Text>
-          <Text style={styles.infoText}>Board Theme: {screenConfigObj.theme.boardTheme}</Text>
-          <Text style={styles.infoText}>Theme Mode: {screenConfigObj.theme.mode}</Text>
-          <Text style={styles.infoText}>API Base: {screenConfigObj.apiBaseUrl}</Text>
-        </View>
+        {/* Configuration */}
+        <Box
+          padding={3}
+          backgroundColor={colors.background.secondary}
+          radius="md"
+        >
+          <VStack gap={2}>
+            <Text variant="subheading" color={colors.foreground.primary}>
+              Configuration
+            </Text>
+            <Text variant="caption" color={colors.foreground.tertiary}>
+              Board Size: {screenConfigObj.board.size}px
+            </Text>
+            <Text variant="caption" color={colors.foreground.tertiary}>
+              Board Theme: {screenConfigObj.theme.boardTheme}
+            </Text>
+            <Text variant="caption" color={colors.foreground.tertiary}>
+              Theme Mode: {screenConfigObj.theme.mode}
+            </Text>
+            <Text variant="caption" color={colors.foreground.tertiary}>
+              API Base: {screenConfigObj.apiBaseUrl}
+            </Text>
+          </VStack>
+        </Box>
       </ScrollView>
-    </View>
+    </Box>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  content: {
-    flex: 1,
-    padding: 16,
-  },
-  header: {
-    marginBottom: 24,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#000',
-    marginBottom: 8,
-  },
-  gameId: {
-    fontSize: 16,
-    color: '#666',
-    fontFamily: Platform.OS === 'web' ? 'monospace' : 'Courier New',
-  },
-  boardSection: {
-    alignItems: 'center',
-    marginBottom: 24,
-    padding: 12,
-    backgroundColor: '#f9f9f9',
-    borderRadius: 8,
-  },
-  moveListSection: {
-    marginBottom: 20,
-  },
-  infoSection: {
-    marginBottom: 20,
-    padding: 12,
-    backgroundColor: '#f5f5f5',
-    borderRadius: 8,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#000',
-    marginBottom: 8,
-  },
-  infoText: {
-    fontSize: 14,
-    color: '#333',
-    lineHeight: 20,
-  },
-});

@@ -3,10 +3,6 @@
  *
  * Defines the visual and interactive configuration for the chess board.
  * This separates board presentation concerns from game logic.
- * 
- * Note: Theme/color configuration is handled separately in ThemeConfig
- * and passed through PlayScreenConfig. BoardConfig focuses only on
- * layout and interactivity.
  */
 
 export interface BoardConfig {

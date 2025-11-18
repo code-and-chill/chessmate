@@ -2,8 +2,9 @@
 title: Chess App Overview
 service: chess-app
 status: active
-last_reviewed: 2025-11-15
+last_reviewed: 2025-11-18
 type: overview
+phase: 6
 ---
 
 1. Background
@@ -43,6 +44,265 @@ Hooks + “core” for networking/state
 UI components purely presentational
 
 This spec defines the frontend architecture for /play plus the base design system it depends on.
+
+Navigation Map (Phase 6)
+
+- **Play**: Multi-mode hub with Online Play, Play vs Bot, Friend Challenge
+  - **Online Play**: Time control selection (3+0 Blitz, 10+0 Rapid, 15|10 Rapid, 30+0 Classical) → Matchmaking → Live Game
+  - **Play vs Bot**: Difficulty selection (Easy 800-1200, Medium 1200-1600, Hard 1600-2000, Expert 2000+) → Bot Game
+  - **Friend Challenge**: Game ID entry or demo game → Private Game
+- **Puzzle**: Daily puzzle hub and play entry
+- **Learn**: Multi-mode learning hub with four core sections
+  - **Lessons**: Category-based learning path (Beginner → Intermediate → Advanced) with lesson cards showing title, time estimate, and completion status
+  - **Tactics Trainer**: Rating-based puzzle system with category selection (Forks, Pins, Discovered Attacks, Skewers, Back Rank Mates, Deflections)
+  - **Game Review**: Analysis of past games showing opponent, result, accuracy, blunders, and mistakes
+  - **Openings Explorer**: Opening database with ECO codes, games played, and win rates
+- **Watch**: Placeholder for live games/streams
+- **Social**: Multi-mode social hub with four core sections
+  - **Friends**: Friend list with online status indicators, quick challenge buttons, add friend functionality
+  - **Clubs**: Club cards showing member count and activity level, join/create club functionality, club search
+  - **Messages**: Conversation list with message preview, direct messages and club chat, unread message counts
+  - **Leaderboards**: Global, Friends, and Club rankings with rating, games played, and win percentage
+- **Settings**: Multi-mode personalization hub with five core sections
+  - **Profile**: Avatar, username, bio, country settings with profile editing
+  - **Statistics**: Rating history across time controls (Blitz/Rapid/Classical), win/loss records, performance insights, recent games
+  - **Achievements**: Badge system with 45 milestones, progress tracking, unlocked/locked states
+  - **Game Preferences**: Board theme, piece sets, sounds, animations, gameplay options (auto-queen, legal moves, premoves)
+  - **Appearance**: Light/dark/auto theme, language, time format, notation style, accessibility options
+
+Play Flow Architecture
+
+```
+Play Hub
+  ├─ Online Play
+  │   ├─ Time Control Selection (3+0, 10+0, 15+10, 30+0)
+  │   ├─ Find Match (matchmaking loading state)
+  │   └─ Game Screen (with WebSocket connection)
+  │
+  ├─ Play vs Bot
+  │   ├─ Difficulty Selection (Easy, Medium, Hard, Expert)
+  │   └─ Game Screen (vs bot engine)
+  │
+  └─ Friend Challenge
+      ├─ Game ID Input
+      └─ Game Screen (private match)
+```
+
+Learn Module Architecture (Phase 3)
+
+The Learn tab implements a multi-mode learning system:
+
+```
+Learn Hub
+  ├─ Stats Overview (Daily Streak, Tactics Rating)
+  │
+  ├─ Lessons
+  │   ├─ Category Tabs (Beginner, Intermediate, Advanced)
+  │   ├─ Lesson Cards (Title, Time Estimate, Icon)
+  │   └─ Navigation to Lesson Content (future)
+  │
+  ├─ Tactics Trainer
+  │   ├─ Current Rating Display (e.g., 1450 ⚡ +25)
+  │   ├─ Category Selection (6 tactical themes)
+  │   └─ Link to Puzzle Tab for solving
+  │
+  ├─ Game Review
+  │   ├─ Game Cards (Opponent, Result, Date)
+  │   ├─ Accuracy Metrics (Accuracy %, Blunders, Mistakes)
+  │   └─ Navigation to Analysis (future)
+  │
+  └─ Openings Explorer
+      ├─ Opening Cards (Name, ECO Code)
+      ├─ Statistics (Games Played, Win Rate)
+      └─ Navigation to Opening Details (future)
+```
+
+Learning System Patterns
+
+**Progressive Difficulty**: Lessons organized by skill level (Beginner → Advanced)
+**Spaced Repetition**: Tactics rating system with performance tracking (+25 rating changes)
+**Personalized Analysis**: Game review with accuracy metrics and error detection
+**Opening Repertoire**: Database of openings with statistics for evidence-based learning
+
+Social Module Architecture (Phase 4)
+
+The Social tab implements a community engagement system:
+
+```
+Social Hub
+  ├─ Stats Overview (Online Friends, Clubs, Unread Messages)
+  │
+  ├─ Friends
+  │   ├─ Online/Offline Sections
+  │   ├─ Friend Cards (Username, Rating, Online Status)
+  │   ├─ Quick Challenge Button (for online friends)
+  │   ├─ Add Friend Search
+  │   └─ Friend Profile Navigation (future)
+  │
+  ├─ Clubs
+  │   ├─ My Clubs Section (with role badges)
+  │   ├─ Discover Clubs Section
+  │   ├─ Club Cards (Name, Members, Activity Level)
+  │   ├─ Join/Create Club Actions
+  │   └─ Club Detail Navigation (future)
+  │
+  ├─ Messages
+  │   ├─ Conversation List (Direct + Club Chats)
+  │   ├─ Chat Preview (Last Message, Time, Unread Count)
+  │   ├─ Search Conversations
+  │   └─ Chat Detail Navigation (future)
+  │
+  └─ Leaderboards
+      ├─ Tab Navigation (Global, Friends, Club)
+      ├─ Leaderboard Entries (Rank, Username, Rating, Stats)
+      ├─ User Highlight (current user position)
+      └─ Profile Navigation (future)
+```
+
+Social System Patterns
+
+**Presence Indicators**: Real-time online/offline status with "Playing" state
+**Engagement Metrics**: Track online friends, club activity, unread messages
+**Community Building**: Clubs with member counts, activity levels, role badges (Member, Admin)
+**Communication Channels**: Direct messages and club chat with unread indicators
+**Competitive Elements**: Multi-context leaderboards (Global, Friends, Club) with win rates
+
+Personalization Module Architecture (Phase 5)
+
+The Settings tab implements a comprehensive personalization system:
+
+```
+Settings Hub
+  ├─ Profile Summary (Avatar, Username, Stats Overview)
+  │
+  ├─ Profile
+  │   ├─ Avatar Selection
+  │   ├─ User Info (Username, Email, Bio, Country)
+  │   ├─ Edit Profile Form
+  │   └─ Save Changes
+  │
+  ├─ Statistics
+  │   ├─ Time Control Tabs (Blitz, Rapid, Classical)
+  │   ├─ Rating Display (Current, Peak)
+  │   ├─ Win/Loss/Draw Record with Visual Bar
+  │   ├─ Performance Insights (Best Opening, Avg Move Time, Streak, Trend)
+  │   └─ Recent Games List
+  │
+  ├─ Achievements
+  │   ├─ Progress Bar (12 of 45 unlocked = 27%)
+  │   ├─ Unlocked Badges (with unlock date)
+  │   ├─ In Progress Badges (with progress counter)
+  │   └─ Badge Categories (First Steps, Milestones, Mastery)
+  │
+  ├─ Game Preferences
+  │   ├─ Board & Pieces (Theme, Piece Set, Coordinates, Highlighting)
+  │   ├─ Gameplay (Auto-Queen, Legal Moves, Premoves, Confirm Moves)
+  │   ├─ Sounds & Animations (Sound Effects, Move/Piece Animation, Vibration)
+  │   └─ Analysis (Post-Game Analysis, Engine Lines, Evaluation Bar, Hints)
+  │
+  └─ Appearance
+      ├─ Theme Selection (Light/Dark/Auto with visual options)
+      ├─ Display (Language, Time Format, Notation Style, Font Size)
+      └─ Accessibility (High Contrast, Reduce Motion, Screen Reader, Large Text)
+```
+
+Personalization System Patterns
+
+**Comprehensive Stats Tracking**: Multi-format ratings (Blitz 1650, Rapid 1580, Classical 1720) with peak tracking
+**Achievement System**: 45 total milestones across categories with visual progress tracking (27% complete)
+**Performance Analytics**: Win rate visualization, opening statistics, move time analysis, rating trends
+**Rich Customization**: 20+ preference options across gameplay, visual, audio, and accessibility domains
+**User Identity**: Profile management with avatar, bio, country for social presence
+
+Infrastructure Module Architecture (Phase 6)
+
+The app implements a comprehensive API and state management infrastructure:
+
+```
+API Layer
+  ├─ API Clients
+  │   ├─ AccountApiClient (user profiles, friends, social features)
+  │   ├─ RatingApiClient (ratings, stats, leaderboards, achievements)
+  │   ├─ MatchmakingApiClient (queue management, bot games, challenges)
+  │   ├─ PuzzleApiClient (daily puzzles, attempts, user stats)
+  │   ├─ LiveGameApiClient (game state, moves, WebSocket connection)
+  │   └─ PlayApiClient (game creation, joining)
+  │
+  ├─ Context Providers
+  │   ├─ AuthProvider (authentication state, token management)
+  │   └─ ApiProvider (API client instances with auth tokens)
+  │
+  └─ Data Hooks
+      ├─ useProfile (fetch user profile with loading/error states)
+      ├─ useFriends (fetch friends list with online status)
+      ├─ useStats (fetch game statistics by time control)
+      ├─ useAchievements (fetch and track achievements)
+      ├─ useLeaderboard (fetch rankings by type and time control)
+      └─ useMatchmaking (queue operations with polling)
+```
+
+API Client Architecture
+
+**Base Client Pattern**:
+- Consistent request/response handling across all clients
+- Automatic auth token injection via headers
+- Centralized error handling with descriptive messages
+- Type-safe interfaces for all requests and responses
+
+**API Endpoints**:
+- AccountAPI (port 8002): `/api/v1/accounts/*`
+- RatingAPI (port 8003): `/api/v1/ratings/*`
+- MatchmakingAPI (port 8004): `/api/v1/matchmaking/*`
+- PuzzleAPI (port 8000): `/api/v1/puzzles/*`
+- LiveGameAPI (port 8001): `/api/v1/games/*`
+
+**Environment Configuration**:
+- Base URLs configured via `EXPO_PUBLIC_*_API_URL` environment variables
+- Defaults to localhost for local development
+- Production URLs configurable per deployment environment
+
+State Management Patterns
+
+**Authentication Flow**:
+1. AuthProvider loads saved token/user from AsyncStorage on mount
+2. ApiProvider creates API clients with current auth token
+3. Token updates trigger automatic re-instantiation of clients
+4. Logout clears AsyncStorage and resets all state
+
+**Data Fetching Pattern**:
+- Custom hooks (`useProfile`, `useFriends`, etc.) encapsulate API calls
+- Return `{ data, loading, error, refetch }` for consistent UI patterns
+- Automatic refetch on mount, manual refetch via returned function
+- Loading states prevent multiple simultaneous requests
+
+**Persistent Storage**:
+- Auth tokens stored in AsyncStorage with keys `@chess_auth_token`
+- User data cached in `@chess_auth_user`
+- Multi-key removal on logout for security
+- Async load on app startup for seamless auth restoration
+
+**Error Handling**:
+- API clients throw descriptive errors with status codes
+- Hooks catch errors and expose via `error` state
+- UI components can display error messages or fallback content
+- Retry logic available via `refetch` function
+
+WebSocket Integration
+
+The app uses `useWebSocket` hook for live game updates:
+- URL: `ws://localhost:8001/ws/games/{game_id}`
+- Messages: Move updates, clock ticks, game state changes
+- Auto-reconnection with 3s backoff
+- Ready for live-game-api integration
+
+Time Controls
+
+| Preset | Format | Category | Description |
+|--------|--------|----------|-------------|
+| 3+0    | 3 min  | Blitz    | Fast-paced games |
+| 10+0   | 10 min | Rapid    | Standard quick games |
+| 15+10  | 15\|10  | Rapid    | Increment format |
+| 30+0   | 30 min | Classical| Longer strategic games |
 
 2. Tech Stack Used
 Core

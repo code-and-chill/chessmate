@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Pressable, StyleSheet, View, Text } from 'react-native';
 import { defaultBoardConfig, type BoardConfig } from '@/components/config';
 import { getBoardColors, type BoardTheme, type ThemeMode } from '@/components/config/themeConfig';
-import { isKingInCheck, wouldMoveExposureKing } from '@/utils/chessEngine';
+import { isKingInCheck, wouldMoveExposureKing, parseFENToBoard } from '@/utils/chessEngine';
 
 // Color type: 'w' for white, 'b' for black
 export type Color = 'w' | 'b';
@@ -34,37 +34,8 @@ interface Square {
  * Returns an 8x8 array where board[rank][file] is a piece or null
  * Note: board[0] = rank 1 (white's first rank), board[7] = rank 8 (black's first rank)
  */
-const parseFEN = (fen: string): (Piece | null)[][] => {
-  const board: (Piece | null)[][] = Array(8)
-    .fill(null)
-    .map(() => Array(8).fill(null));
-
-  const fenParts = fen.split(' ');
-  const fenBoard = fenParts[0];
-  const ranks = fenBoard.split('/');
-
-  ranks.forEach((rankStr, fenRankIdx) => {
-    // Convert FEN rank index to board index
-    // FEN rank 0 = rank 8 (board[7]), FEN rank 7 = rank 1 (board[0])
-    const boardRankIdx = 7 - fenRankIdx;
-    
-    let fileIdx = 0;
-    for (const char of rankStr) {
-      if (/\d/.test(char)) {
-        // Empty squares
-        fileIdx += parseInt(char);
-      } else {
-        // Piece
-        const color = char === char.toUpperCase() ? 'w' : 'b';
-        const type = char.toUpperCase() as PieceType;
-        board[boardRankIdx][fileIdx] = { type, color };
-        fileIdx++;
-      }
-    }
-  });
-
-  return board;
-};
+// Use shared engine parser to keep FEN parsing consistent
+const parseFEN = (fen: string): (Piece | null)[][] => parseFENToBoard(fen) as unknown as (Piece | null)[][];
 
 /**
  * Get piece emoji symbol

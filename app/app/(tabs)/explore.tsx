@@ -1,14 +1,13 @@
 import { useState } from 'react';
-import { StyleSheet, View, TextInput, TouchableOpacity, Text, SafeAreaView } from 'react-native';
+import { StyleSheet, View, TextInput, TouchableOpacity, Text, SafeAreaView, ActivityIndicator } from 'react-native';
 import { PuzzlePlayScreen } from '@/screens/PuzzlePlayScreen';
 
-interface PuzzleResult {
-  [key: string]: string | number | boolean;
-}
+type PuzzleResult = Record<string, unknown>;
 
 export default function PuzzleTab() {
   const [puzzleId, setPuzzleId] = useState('puzzle-123');
   const [showPuzzle, setShowPuzzle] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handlePuzzleComplete = (data: PuzzleResult) => {
     console.log('Puzzle completed:', data);
@@ -20,9 +19,16 @@ export default function PuzzleTab() {
       <View style={styles.container}>
         <PuzzlePlayScreen 
           puzzleId={puzzleId} 
-          onComplete={handlePuzzleComplete}
-          apiBaseUrl="http://localhost:8000"
+          onComplete={handlePuzzleComplete as (data: Record<string, unknown>) => void}
         />
+      </View>
+    );
+  }
+
+  if (loading) {
+    return (
+      <View style={styles.loader}>
+        <ActivityIndicator size="large" color="#007AFF" />
       </View>
     );
   }
@@ -43,7 +49,13 @@ export default function PuzzleTab() {
         
         <TouchableOpacity
           style={styles.button}
-          onPress={() => setShowPuzzle(true)}
+          onPress={() => {
+            setLoading(true);
+            setTimeout(() => {
+              setShowPuzzle(true);
+              setLoading(false);
+            }, 500);
+          }}
         >
           <Text style={styles.buttonText}>Start Puzzle</Text>
         </TouchableOpacity>
@@ -52,7 +64,11 @@ export default function PuzzleTab() {
           style={[styles.button, styles.demoButton]}
           onPress={() => {
             setPuzzleId('puzzle-demo');
-            setShowPuzzle(true);
+            setLoading(true);
+            setTimeout(() => {
+              setShowPuzzle(true);
+              setLoading(false);
+            }, 500);
           }}
         >
           <Text style={styles.buttonText}>Try Daily Puzzle</Text>
@@ -106,5 +122,11 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  loader: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff',
   },
 });
