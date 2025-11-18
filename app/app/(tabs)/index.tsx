@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { StyleSheet, View, TouchableOpacity, Text, SafeAreaView, ActivityIndicator, Platform, Dimensions, TextInput } from 'react-native';
 import Animated, { FadeInDown, FadeInUp, Layout } from 'react-native-reanimated';
-import { PlayScreen } from '@/features/play';
+import { PlayScreen } from '@/features/board';
 import { Card } from '@/ui/primitives/Card';
 import { VStack, HStack } from '@/ui';
 

@@ -22,12 +22,12 @@ const { width } = Dimensions.get('window');
 const isDesktop = Platform.OS === 'web' && width >= 1024;
 const isTablet = Platform.OS === 'web' && width >= 768 && width < 1024;
 
-export interface EnhancedPlayScreenProps {
+export interface PlayScreenProps {
   gameId: string;
   screenConfig?: Partial<PlayScreenConfig>;
 }
 
-export const EnhancedPlayScreen: React.FC<EnhancedPlayScreenProps> = ({ 
+export const PlayScreen: React.FC<PlayScreenProps> = ({ 
   gameId, 
   screenConfig 
 }) => {

@@ -12,7 +12,14 @@
  */
 
 // Components
+/**
+ * Board Feature - Component Exports
+ * Exports for chess board components and play screen
+ */
+
 export { ChessBoard } from './components/ChessBoard';
+export { PlayScreen } from './screens/PlayScreen';
+export type { PlayScreenProps } from './screens/PlayScreen';
 
 // Types
 export type { BoardProps, Square, Piece } from './types/board.types';
