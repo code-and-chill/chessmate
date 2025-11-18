@@ -20,7 +20,11 @@ import Animated, {
 import { GestureDetector, Gesture } from 'react-native-gesture-handler';
 import { defaultBoardConfig, type BoardConfig } from '@/features/board/config';
 import { getBoardColors, type BoardTheme, type ThemeMode, type PieceTheme } from '@/features/board/config/themeConfig';
-import { isKingInCheck, wouldMoveExposureKing, parseFENToBoard } from '@/core/utils';
+import { 
+  parseFENToBoard,
+  isValidMove as validateMove,
+  isKingInCheck,
+} from '@/core/utils';
 
 // Color type: 'w' for white, 'b' for black
 export type Color = 'w' | 'b';
@@ -99,11 +103,12 @@ export const ChessBoard = React.forwardRef<View, ChessBoardProps>(
     orientation = 'white',
     sideToMove = 'w',
     myColor = 'w',
-    showCoordinates = false,
+    lastMove = null,
     fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
     onMove,
   }, ref) => {
     const [selectedSquare, setSelectedSquare] = useState<Square | null>(null);
+    const [legalMoves, setLegalMoves] = useState<Square[]>([]);
     const board = parseFEN(fen);
     
     // Ensure boardSize is never undefined
@@ -122,47 +127,6 @@ export const ChessBoard = React.forwardRef<View, ChessBoardProps>(
     };
 
     /**
-     * Check if a move is valid for the selected piece
-     */
-    const isValidPawnMove = (
-      fromFile: number,
-      fromRank: number,
-      toFile: number,
-      toRank: number,
-      piece: Piece | null
-    ): boolean => {
-      if (!piece || piece.type !== 'P') return false;
-
-      const direction = piece.color === 'w' ? 1 : -1;
-      const startRank = piece.color === 'w' ? 1 : 6;
-      const isStartingPosition = fromRank === startRank;
-
-      // Same file (forward move)
-      if (fromFile === toFile) {
-        // One square forward
-        if (toRank === fromRank + direction) {
-          return !board[toRank][toFile]; // Destination must be empty
-        }
-        // Two squares forward from starting position
-        if (
-          isStartingPosition &&
-          toRank === fromRank + direction * 2 &&
-          !board[fromRank + direction][fromFile] && // Intermediate square must be empty
-          !board[toRank][toFile] // Destination must be empty
-        ) {
-          return true;
-        }
-      }
-
-      // Diagonal capture
-      if (Math.abs(fromFile - toFile) === 1 && toRank === fromRank + direction) {
-        return !!board[toRank][toFile]; // Destination must have opponent piece
-      }
-
-      return false;
-    };
-
-    /**
      * Check if a square has a piece of our color
      */
     const hasOwnPiece = (file: number, rank: number): boolean => {
@@ -171,100 +135,7 @@ export const ChessBoard = React.forwardRef<View, ChessBoardProps>(
     };
 
     /**
-     * Check if a move is valid for a knight
-     */
-    const isValidKnightMove = (
-      fromFile: number,
-      fromRank: number,
-      toFile: number,
-      toRank: number
-    ): boolean => {
-      const fileDiff = Math.abs(fromFile - toFile);
-      const rankDiff = Math.abs(fromRank - toRank);
-      return (fileDiff === 2 && rankDiff === 1) || (fileDiff === 1 && rankDiff === 2);
-    };
-
-    /**
-     * Check if a move is valid for a bishop (diagonal)
-     */
-    const isValidBishopMove = (
-      fromFile: number,
-      fromRank: number,
-      toFile: number,
-      toRank: number
-    ): boolean => {
-      const fileDiff = Math.abs(fromFile - toFile);
-      const rankDiff = Math.abs(fromRank - toRank);
-      if (fileDiff !== rankDiff || fileDiff === 0) return false;
-
-      // Check if path is clear
-      const fileDir = toFile > fromFile ? 1 : -1;
-      const rankDir = toRank > fromRank ? 1 : -1;
-      let f = fromFile + fileDir;
-      let r = fromRank + rankDir;
-      while (f !== toFile) {
-        if (board[r][f]) return false;
-        f += fileDir;
-        r += rankDir;
-      }
-      return true;
-    };
-
-    /**
-     * Check if a move is valid for a rook (straight)
-     */
-    const isValidRookMove = (
-      fromFile: number,
-      fromRank: number,
-      toFile: number,
-      toRank: number
-    ): boolean => {
-      if (fromFile !== toFile && fromRank !== toRank) return false;
-
-      // Check if path is clear
-      if (fromFile === toFile) {
-        const rankDir = toRank > fromRank ? 1 : -1;
-        for (let r = fromRank + rankDir; r !== toRank; r += rankDir) {
-          if (board[r][fromFile]) return false;
-        }
-      } else {
-        const fileDir = toFile > fromFile ? 1 : -1;
-        for (let f = fromFile + fileDir; f !== toFile; f += fileDir) {
-          if (board[fromRank][f]) return false;
-        }
-      }
-      return true;
-    };
-
-    /**
-     * Check if a move is valid for a queen (combination of rook and bishop)
-     */
-    const isValidQueenMove = (
-      fromFile: number,
-      fromRank: number,
-      toFile: number,
-      toRank: number
-    ): boolean => {
-      return (
-        isValidRookMove(fromFile, fromRank, toFile, toRank) ||
-        isValidBishopMove(fromFile, fromRank, toFile, toRank)
-      );
-    };
-
-    /**
-     * Check if a move is valid for a king (one square in any direction)
-     */
-    const isValidKingMove = (
-      fromFile: number,
-      fromRank: number,
-      toFile: number,
-      toRank: number
-    ): boolean => {
-      return Math.abs(fromFile - toFile) <= 1 && Math.abs(fromRank - toRank) <= 1;
-    };
-
-    /**
-     * Check if a move is valid based on piece type and check constraints
+     * Check if a move is valid (delegated to utils)
      */
     const isValidMove = (
       fromFile: number,
@@ -272,132 +143,72 @@ export const ChessBoard = React.forwardRef<View, ChessBoardProps>(
       toFile: number,
       toRank: number,
       piece: Piece
-    ): boolean => {
-      if (fromFile === toFile && fromRank === toRank) return false;
-
-      const targetSquare = board[toRank][toFile];
-      if (targetSquare && targetSquare.color === piece.color) return false; // Can't capture own piece
-
-      // Check basic move validity based on piece type
-      let isMoveValid = false;
-      
-      switch (piece.type) {
-        case 'P':
-          isMoveValid = isValidPawnMove(fromFile, fromRank, toFile, toRank, piece);
-          break;
-        case 'N':
-          isMoveValid = isValidKnightMove(fromFile, fromRank, toFile, toRank);
-          break;
-        case 'B':
-          isMoveValid = isValidBishopMove(fromFile, fromRank, toFile, toRank);
-          break;
-        case 'R':
-          isMoveValid = isValidRookMove(fromFile, fromRank, toFile, toRank);
-          break;
-        case 'Q':
-          isMoveValid = isValidQueenMove(fromFile, fromRank, toFile, toRank);
-          break;
-        case 'K':
-          isMoveValid = isValidKingMove(fromFile, fromRank, toFile, toRank);
-          break;
-        default:
-          isMoveValid = false;
-      }
-
-      if (!isMoveValid) return false;
-
-      // If king is in check, verify the move resolves it
-      if (isKingInCheck(board, piece.color)) {
-        console.log(`[CHESS] King is in check! Only moves that resolve check are allowed.`);
-        if (wouldMoveExposureKing(board, fromFile, fromRank, toFile, toRank, piece.color)) {
-          console.log(`[CHESS] ❌ Move does not resolve check!`);
-          return false;
-        }
-      } else {
-        // If not in check, verify move doesn't expose king
-        if (wouldMoveExposureKing(board, fromFile, fromRank, toFile, toRank, piece.color)) {
-          console.log(`[CHESS] ❌ Move would expose king to check!`);
-          return false;
-        }
-      }
-
-      return true;
-    };
+    ): boolean => validateMove(board, fromFile, fromRank, toFile, toRank, piece, lastMove || undefined);
 
     const handleSquarePress = async (file: number, rank: number) => {
-      const squareAlg = toAlgebraic(file, rank);
-      console.log(`
-[CHESS] Square pressed: ${squareAlg} (file=${file}, rank=${rank})`);
-      console.log(`[CHESS] Board state: sideToMove=${sideToMove}, myColor=${myColor}, isInteractive=${isInteractive}`);
-      
       if (!isInteractive) {
-        console.log('[CHESS] ❌ Board not interactive');
         return;
       }
       
       if (sideToMove !== myColor) {
-        console.log(`[CHESS] ❌ Not your turn. sideToMove=${sideToMove}, myColor=${myColor}`);
         return;
       }
 
       if (!selectedSquare) {
         // Select a piece
-        const piece = board[rank][file];
-        console.log(`[CHESS] First click - checking piece at ${squareAlg}:`, piece);
-        
         if (hasOwnPiece(file, rank)) {
-          console.log(`[CHESS] ✅ Selected own piece: ${piece?.type} at ${squareAlg}`);
           setSelectedSquare({ file, rank });
-        } else {
-          console.log(`[CHESS] ❌ No own piece at ${squareAlg}`);
+          
+          // Calculate legal moves for this piece
+          const piece = board[rank][file];
+          if (piece) {
+            const moves: Square[] = [];
+            for (let r = 0; r < 8; r++) {
+              for (let f = 0; f < 8; f++) {
+                if (isValidMove(file, rank, f, r, piece)) {
+                  moves.push({ file: f, rank: r });
+                }
+              }
+            }
+            setLegalMoves(moves);
+          }
         }
       } else {
         // Try to move the selected piece
         const fromAlgebraic = toAlgebraic(selectedSquare.file, selectedSquare.rank);
         const toAlgebraicStr = toAlgebraic(file, rank);
         const fromPiece = board[selectedSquare.rank][selectedSquare.file];
-        const toPiece = board[rank][file];
-
-        console.log(`[CHESS] Move attempt: ${fromAlgebraic} → ${toAlgebraicStr}`);
-        console.log(`[CHESS] From piece: ${fromPiece?.type} (color=${fromPiece?.color})`);
-        console.log(`[CHESS] To piece: ${toPiece?.type || 'empty'} (color=${toPiece?.color || 'none'})`);
 
         // Check if destination is our own piece
         if (hasOwnPiece(file, rank)) {
-          console.log(`[CHESS] ℹ️ Destination has own piece, switching selection`);
           setSelectedSquare({ file, rank });
           return;
         }
 
         // Validate move based on piece type
         if (!fromPiece) {
-          console.log('[CHESS] ❌ No piece at source square');
           setSelectedSquare(null);
           return;
         }
         
         const isValid = isValidMove(selectedSquare.file, selectedSquare.rank, file, rank, fromPiece);
-        console.log(`[CHESS] Move validation: ${isValid ? '✅ VALID' : '❌ INVALID'}`);
         
         if (!isValid) {
-          console.log(`[CHESS] Invalid ${fromPiece.type} move from ${fromAlgebraic} to ${toAlgebraicStr}`);
           setSelectedSquare(null);
+          setLegalMoves([]);
           return;
         }
 
         // Execute the move
         if (onMove) {
           try {
-            console.log(`[CHESS] 🎮 Executing move: ${fromAlgebraic} → ${toAlgebraicStr}`);
             await onMove(fromAlgebraic, toAlgebraicStr);
-            console.log(`[CHESS] ✅ Move executed successfully`);
             setSelectedSquare(null);
-          } catch (err) {
-            console.error('[CHESS] ❌ Move failed:', err);
+            setLegalMoves([]);
+          } catch {
             setSelectedSquare(null);
+            setLegalMoves([]);
           }
-        } else {
-          console.log('[CHESS] ⚠️ No onMove callback provided');
         }
       }
     };
@@ -410,8 +221,6 @@ export const ChessBoard = React.forwardRef<View, ChessBoardProps>(
 
     // Detect if current player is in check
     const isMyKingInCheck = isKingInCheck(board, myColor);
-    
-    console.log(`[CHESS] Check detection: myColor=${myColor}, isInCheck=${isMyKingInCheck}`);
 
     return (
       <View
@@ -439,6 +248,7 @@ export const ChessBoard = React.forwardRef<View, ChessBoardProps>(
                 const isSelected =
                   selectedSquare?.file === file &&
                   selectedSquare?.rank === rank;
+                const isLegalMove = legalMoves.some(m => m.file === file && m.rank === rank);
                 const piece = board[rank][file];
                 
                 // Check if this square contains the king in check
@@ -471,6 +281,22 @@ export const ChessBoard = React.forwardRef<View, ChessBoardProps>(
                         {getPieceEmoji(piece)}
                       </Text>
                     ) : null}
+                    {isLegalMove && !piece && (
+                      <View style={[
+                        styles.legalMoveIndicator,
+                        { width: squareSize * 0.25, height: squareSize * 0.25 }
+                      ]} />
+                    )}
+                    {isLegalMove && piece && (
+                      <View style={[
+                        styles.legalMoveCaptureIndicator,
+                        { 
+                          width: squareSize * 0.9, 
+                          height: squareSize * 0.9,
+                          borderWidth: squareSize * 0.08,
+                        }
+                      ]} />
+                    )}
                   </Pressable>
                 );
               })}
@@ -509,5 +335,16 @@ const styles = StyleSheet.create({
     fontSize: 8,
     color: 'rgba(0, 0, 0, 0.3)',
     fontWeight: '600',
+  },
+  legalMoveIndicator: {
+    position: 'absolute',
+    borderRadius: 100,
+    backgroundColor: 'rgba(0, 0, 0, 0.2)',
+  },
+  legalMoveCaptureIndicator: {
+    position: 'absolute',
+    borderRadius: 4,
+    borderColor: 'rgba(0, 0, 0, 0.3)',
+    backgroundColor: 'transparent',
   },
 });

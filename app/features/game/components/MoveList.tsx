@@ -59,13 +59,13 @@ export const MoveList = React.forwardRef<ScrollView, MoveListProps>(
               >
                 <Text style={styles.moveNumber}>{group.number}.</Text>
 
-                {group.white && (
-                  <Text style={styles.moveText}>{group.white.san}</Text>
-                )}
+                <Text style={styles.moveText}>
+                  {group.white?.san || '—'}
+                </Text>
 
-                {group.black && (
-                  <Text style={styles.moveText}>{group.black.san}</Text>
-                )}
+                <Text style={styles.moveText}>
+                  {group.black?.san || '—'}
+                </Text>
               </View>
             ))
           )}
@@ -97,7 +97,7 @@ const styles = StyleSheet.create({
   },
   moveGroup: {
     flexDirection: 'row',
-    gap: 12,
+    alignItems: 'center',
     paddingVertical: 6,
     paddingHorizontal: 8,
     borderRadius: 4,
@@ -110,12 +110,14 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: '#666',
-    minWidth: 30,
+    width: 32,
   },
   moveText: {
     fontSize: 12,
     color: '#000',
     fontWeight: '500',
+    flex: 1,
+    textAlign: 'left',
   },
   emptyText: {
     fontSize: 12,

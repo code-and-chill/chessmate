@@ -13,7 +13,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { ChessBoard } from '@/features/board';
 import { GameActions, MoveList, PlayerPanel, type Move } from '@/features/game';
-import { createPlayScreenConfig, type PlayScreenConfig } from '@/features/board/config';
+import { createPlayScreenConfig, getHydratedBoardProps, type PlayScreenConfig } from '@/features/board/config';
 import { isCheckmate, isStalemate, parseFENToBoard, applyMoveToFENSimple, type Board } from '@/core/utils';
 import { Box, VStack, HStack, Text, useColors } from '@/ui';
 import { Card } from '@/ui/primitives/Card';
@@ -27,15 +27,6 @@ export interface EnhancedPlayScreenProps {
   screenConfig?: Partial<PlayScreenConfig>;
 }
 
-/**
- * EnhancedPlayScreen Component
- * 
- * Modern chess game interface with:
- * - Sophisticated spacing and hierarchy
- * - Depth through shadows and gradients
- * - Smooth micro-interactions
- * - Responsive layout with proper flow
- */
 export const EnhancedPlayScreen: React.FC<EnhancedPlayScreenProps> = ({ 
   gameId, 
   screenConfig 
@@ -50,10 +41,15 @@ export const EnhancedPlayScreen: React.FC<EnhancedPlayScreenProps> = ({
     fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
     sideToMove: 'w' as 'w' | 'b',
     endReason: '',
+    lastMove: null as { from: string; to: string } | null,
   });
 
   const handleMove = (from: string, to: string) => {
-    const newMoveNumber = gameState.moves.length + 1;
+    // Calculate move number: white moves increment, black moves use same number
+    const newMoveNumber = gameState.sideToMove === 'w' 
+      ? Math.floor(gameState.moves.length / 2) + 1
+      : Math.floor(gameState.moves.length / 2) + 1;
+    
     const playerColor = gameState.sideToMove === 'w' ? 'White' : 'Black';
     const moveAlgebraic = `${from}${to}`;
     
@@ -85,6 +81,7 @@ export const EnhancedPlayScreen: React.FC<EnhancedPlayScreenProps> = ({
       sideToMove: nextSideToMove,
       status: newStatus,
       endReason: endReason,
+      lastMove: { from, to },
     }));
   };
 
@@ -92,9 +89,12 @@ export const EnhancedPlayScreen: React.FC<EnhancedPlayScreenProps> = ({
     console.log('Player resigned');
   };
 
-  // Responsive board size calculation
-  const boardSize = isDesktop ? 540 : isTablet ? 480 : Math.min(width - 48, 420);
-  const squareSize = boardSize / 8;
+  // Use responsive board configuration from config
+  const responsiveBoardConfig = {
+    ...screenConfigObj.board,
+    size: isDesktop ? 540 : isTablet ? 480 : Math.min(width - 48, 420),
+  };
+  responsiveBoardConfig.squareSize = responsiveBoardConfig.size / 8;
 
   return (
     <View style={styles.container}>
@@ -152,16 +152,16 @@ export const EnhancedPlayScreen: React.FC<EnhancedPlayScreenProps> = ({
               style={styles.boardCard}
             >
               <ChessBoard
-                size={boardSize}
-                squareSize={squareSize}
+                {...getHydratedBoardProps(screenConfigObj)}
+                size={responsiveBoardConfig.size}
+                squareSize={responsiveBoardConfig.squareSize}
                 fen={gameState.fen}
                 sideToMove={gameState.sideToMove}
                 myColor={gameState.sideToMove}
                 orientation={gameState.sideToMove === 'w' ? 'white' : 'black'}
                 onMove={handleMove}
                 isInteractive={gameState.status === 'in_progress'}
-                boardTheme="green"
-                themeMode="light"
+                lastMove={gameState.lastMove}
               />
             </Card>
           </Animated.View>
