@@ -18,6 +18,8 @@
  */
 
 export { ChessBoard } from './components/ChessBoard';
+export { BoardAndMovesContainer } from './components/BoardAndMovesContainer';
+export type { BoardAndMovesContainerProps } from './components/BoardAndMovesContainer';
 export { PlayScreen } from './screens/PlayScreen';
 export type { PlayScreenProps } from './screens/PlayScreen';
 

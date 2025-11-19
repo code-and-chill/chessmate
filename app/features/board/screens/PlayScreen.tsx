@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { Dimensions } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { 
   GameActions, 
@@ -6,17 +7,16 @@ import {
   GameResultModal, 
   PawnPromotionModal,
   PlayerCard,
+  MoveList,
   type PieceType 
 } from '@/features/game';
 import { createPlayScreenConfig, getHydratedBoardProps } from '@/features/board/config';
-import { GameBoardSection } from '@/features/board/components/GameBoardSection';
-import { GameBoardContainer } from '@/features/board/components/PlayersSection';
+import { ChessBoard } from '@/features/board/components/ChessBoard';
 import { useGameState, usePromotionModal, useGameTimer } from '@/features/board/hooks';
 import { useReducedMotion } from '@/features/board/hooks/useReducedMotion';
-import { useResponsiveLayout } from '@/features/board/hooks/useResponsiveLayout';
 import { Box } from '@/ui/primitives/Box';
-import { Card } from '@/ui/primitives/Card';
 import { VStack } from '@/ui/primitives/Stack';
+import { Card } from '@/ui/primitives/Card';
 import { useThemeTokens } from '@/ui/hooks/useThemeTokens';
 import { spacingTokens } from '@/ui/tokens/spacing';
 
@@ -36,14 +36,9 @@ export function PlayScreen(_props: PlayScreenProps = {}): React.ReactElement {
   // UI state
   const [showResultModal, setShowResultModal] = useState(false);
   const reduceMotion = useReducedMotion();
-  const { isWideLayout, boardSize, squareSize } = useResponsiveLayout();
-
-  // Derived state
-  const boardConfig = {
-    ...getHydratedBoardProps(screenConfig),
-    size: boardSize,
-    squareSize,
-  };
+  
+  // Calculate board size (screen width - padding, max 420px)
+  const BOARD_SIZE = Math.min(Dimensions.get('window').width - 48, 420);
 
   /**
    * Handle move from the chess board
@@ -72,6 +67,18 @@ export function PlayScreen(_props: PlayScreenProps = {}): React.ReactElement {
     },
     [gameState.fen, gameState.sideToMove, gameState.status, makeMove, promotionActions]
   );
+
+  // Board props for BoardAndMovesContainer
+  const boardProps = {
+    ...getHydratedBoardProps(screenConfig),
+    fen: gameState.fen,
+    sideToMove: gameState.sideToMove,
+    myColor: gameState.sideToMove,
+    orientation: (gameState.sideToMove === 'w' ? 'white' : 'black') as 'white' | 'black',
+    lastMove: gameState.lastMove,
+    isInteractive: gameState.status === 'in_progress',
+    onMove: handleMove,
+  };
 
   /**
    * Handle pawn promotion selection
@@ -117,70 +124,61 @@ export function PlayScreen(_props: PlayScreenProps = {}): React.ReactElement {
   );
 
   return (
-    <Box flex={1} style={{ backgroundColor: colors.background.primary }}>
-      <VStack flex={1} gap={0}>
+    <Box flex={1} style={{ backgroundColor: colors.background.primary, padding: spacingTokens[4] }}>
+      <VStack flex={1} gap={spacingTokens[4]}>
         {/* Game Header */}
-        <Box style={{ padding: spacingTokens[4], paddingBottom: spacingTokens[2] }}>
-          <GameHeaderCard
-            status={gameState.status === 'in_progress' ? 'live' : 'ended'}
-            gameMode="Blitz"
-            timeControl="10+0"
-            isRated={true}
-          />
-        </Box>
+        <GameHeaderCard
+          status={gameState.status === 'in_progress' ? 'live' : 'ended'}
+          gameMode="Blitz"
+          timeControl="10+0"
+          isRated={true}
+        />
 
-        {/* Opponent Player Card */}
-        <Box style={{ paddingHorizontal: spacingTokens[4], paddingBottom: spacingTokens[2] }}>
-          <Animated.View entering={createAnimConfig(0)}>
-            <PlayerCard
-              color="b"
-              name="Opponent"
-              rating={1500}
-              isSelf={false}
-              isActive={gameState.sideToMove === 'b'}
-              remainingMs={timerState.blackTimeMs}
-              capturedPieces={gameState.capturedByWhite}
-              onTimeExpire={() => handleTimeExpire('b')}
-            />
-          </Animated.View>
-        </Box>
+        {/* Main Game Area: Left Column (Players + Board + Actions) + Right Column (Move List) */}
+        <Box style={{ flexDirection: 'row', flex: 1, gap: spacingTokens[4] }}>
+          {/* Left Column - 50% */}
+          <VStack flex={1} gap={spacingTokens[4]}>
+            {/* Top Player Card (Opponent) */}
+            <Animated.View entering={createAnimConfig(0)}>
+              <PlayerCard
+                color="b"
+                name="Opponent"
+                rating={1500}
+                isSelf={false}
+                isActive={gameState.sideToMove === 'b'}
+                remainingMs={timerState.blackTimeMs}
+                capturedPieces={gameState.capturedByWhite}
+                onTimeExpire={() => handleTimeExpire('b')}
+              />
+            </Animated.View>
 
-        {/* Board and Move List Container */}
-        <GameBoardContainer>
-          <GameBoardSection
-            boardConfig={boardConfig}
-            fen={gameState.fen}
-            sideToMove={gameState.sideToMove}
-            lastMove={gameState.lastMove}
-            isInteractive={gameState.status === 'in_progress'}
-            onMove={handleMove}
-            moves={gameState.moves}
-            isWideLayout={isWideLayout}
-            boardSize={boardSize}
-            reduceMotion={reduceMotion}
-          />
-        </GameBoardContainer>
+            {/* Chess Board */}
+            <Animated.View entering={createAnimConfig(50)} style={{ alignItems: 'center' }}>
+              <Card variant="elevated" size="md" padding={0}>
+                <ChessBoard
+                  {...boardProps}
+                  size={BOARD_SIZE}
+                  squareSize={BOARD_SIZE / 8}
+                />
+              </Card>
+            </Animated.View>
 
-        {/* Player Card */}
-        <Box style={{ paddingHorizontal: spacingTokens[4], paddingTop: spacingTokens[2], paddingBottom: spacingTokens[2] }}>
-          <Animated.View entering={createAnimConfig(150)}>
-            <PlayerCard
-              color="w"
-              name="You"
-              rating={1450}
-              isSelf={true}
-              isActive={gameState.sideToMove === 'w'}
-              remainingMs={timerState.whiteTimeMs}
-              capturedPieces={gameState.capturedByBlack}
-              onTimeExpire={() => handleTimeExpire('w')}
-            />
-          </Animated.View>
-        </Box>
+            {/* Bottom Player Card (You) */}
+            <Animated.View entering={createAnimConfig(150)}>
+              <PlayerCard
+                color="w"
+                name="Player"
+                rating={1450}
+                isSelf={true}
+                isActive={gameState.sideToMove === 'w'}
+                remainingMs={timerState.whiteTimeMs}
+                capturedPieces={gameState.capturedByBlack}
+                onTimeExpire={() => handleTimeExpire('w')}
+              />
+            </Animated.View>
 
-        {/* Game Actions */}
-        <Box style={{ paddingHorizontal: spacingTokens[4], paddingBottom: spacingTokens[4] }}>
-          <Animated.View entering={createAnimConfig(200)}>
-            <Card variant="default" size="md" padding={8}>
+            {/* Game Actions */}
+            <Animated.View entering={createAnimConfig(200)}>
               <GameActions
                 status={gameState.status}
                 result={gameState.result}
@@ -189,6 +187,13 @@ export function PlayScreen(_props: PlayScreenProps = {}): React.ReactElement {
                 onResign={handleResign}
                 onOfferDraw={handleOfferDraw}
               />
+            </Animated.View>
+          </VStack>
+
+          {/* Right Column - 50% - Full Height Move List */}
+          <Animated.View entering={createAnimConfig(100)} style={{ flex: 1 }}>
+            <Card variant="default" size="md" padding={0} style={{ flex: 1 }}>
+              <MoveList moves={gameState.moves} />
             </Card>
           </Animated.View>
         </Box>
