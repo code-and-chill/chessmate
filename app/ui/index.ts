@@ -5,6 +5,7 @@ export { spacingTokens, spacingScale } from './tokens/spacing';
 export { radiusTokens, radiusScale } from './tokens/radii';
 export { shadowTokens } from './tokens/shadows';
 export { motionTokens, microInteractions } from './tokens/motion';
+export { boardThemes, defaultTheme, getBoardTheme, getAllThemes, getAllThemeIds, type BoardTheme, type BoardThemeId } from './tokens/board-themes';
 
 // Re-export all primitive components
 export { Box } from './primitives/Box';
@@ -17,6 +18,7 @@ export { Tag } from './primitives/Tag';
 export { Avatar } from './primitives/Avatar';
 export { Divider } from './primitives/Divider';
 export { Surface } from './primitives/Surface';
+export { Badge } from './primitives/Badge';
 
 // Re-export stack components
 export { VStack, HStack, Spacer } from './primitives/Stack';
@@ -39,6 +41,9 @@ export { PlayerRow } from './components/PlayerRow';
 export { TournamentHeader } from './components/TournamentHeader';
 export { RoundSelector } from './components/RoundSelector';
 export { ActionBar } from './components/ActionBar';
+export { StatusBadge } from './components/StatusBadge';
+export type { GameStatus } from './components/StatusBadge';
+export { BoardThemeSelector } from './components/BoardThemeSelector';
 
 // Re-export theme system
 export { ThemeProvider } from './theme/ThemeProvider';
@@ -55,6 +60,8 @@ export type { ResponsiveGameLayoutProps } from './layouts/ResponsiveGameLayout';
 // Re-export navigation
 export { NavigationSidebar } from './navigation/NavigationSidebar';
 export type { NavigationSidebarProps } from './navigation/NavigationSidebar';
+export { BottomNav } from './navigation/BottomNav';
+export type { NavItem } from './navigation/BottomNav';
 
 // Re-export modals
 export { QuickStartModal } from './modals/QuickStartModal';

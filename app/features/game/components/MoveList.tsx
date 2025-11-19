@@ -1,5 +1,12 @@
-import React from 'react';
-import { ScrollView, StyleSheet, View, Text } from 'react-native';
+import React, { useState } from 'react';
+import { ScrollView, Pressable } from 'react-native';
+import { Surface } from '@/ui/primitives/Surface';
+import { Box } from '@/ui/primitives/Box';
+import { Text } from '@/ui/primitives/Text';
+import { useThemeTokens } from '@/ui/hooks/useThemeTokens';
+import { radiusTokens } from '@/ui/tokens/radii';
+import { spacingTokens } from '@/ui/tokens/spacing';
+import { shadowTokens } from '@/ui/tokens/shadows';
 
 export interface Move {
   moveNumber: number;
@@ -9,119 +16,184 @@ export interface Move {
 
 export interface MoveListProps {
   moves?: Move[];
+  onMoveSelect?: (moveIndex: number) => void;
 }
 
 /**
- * MoveList Component
- * Displays the move history of a chess game in Standard Algebraic Notation
+ * MoveList Component - Table Format
+ * Displays moves as: 1  d2d4  c7c5
  */
-export const MoveList = React.forwardRef<ScrollView, MoveListProps>(
-  ({ moves = [] }, ref) => {
-    const moveGroups: Array<{ number: number; white?: Move; black?: Move }> = [];
+export const MoveList = React.memo(
+  React.forwardRef<ScrollView, MoveListProps>(
+  ({ moves = [], onMoveSelect }, ref) => {
+    const { colors } = useThemeTokens();
+    const [selectedMoveIndex, setSelectedMoveIndex] = useState<number | null>(null);
+    
+    // Group moves by move number
+    const moveGroups: Array<{ 
+      number: number; 
+      white?: Move; 
+      black?: Move; 
+      whiteIndex?: number; 
+      blackIndex?: number;
+    }> = [];
 
-    for (const move of moves) {
+    for (let i = 0; i < moves.length; i++) {
+      const move = moves[i];
       const moveNumber = move.moveNumber;
       let group = moveGroups.find((g) => g.number === moveNumber);
-
       if (!group) {
         group = { number: moveNumber };
         moveGroups.push(group);
       }
-
       if (move.color === 'w') {
         group.white = move;
+        group.whiteIndex = i;
       } else {
         group.black = move;
+        group.blackIndex = i;
       }
     }
 
-    const lastMove = moves.length > 0 ? moves[moves.length - 1] : null;
+    const handleMovePress = (moveIndex: number) => {
+      setSelectedMoveIndex(moveIndex);
+      onMoveSelect?.(moveIndex);
+    };
 
     return (
-      <View style={styles.container}>
-        <Text style={styles.title}>Moves ({moves.length})</Text>
+      <Box style={{ flex: 1 }}>
+        {/* Table Header */}
+        <Box
+          style={{
+            flexDirection: 'row',
+            paddingHorizontal: 12,
+            paddingVertical: 8,
+            backgroundColor: colors.background.secondary,
+            borderBottomWidth: 1,
+            borderBottomColor: colors.background.tertiary,
+          }}
+        >
+          <Text variant="caption" weight="bold" color={colors.foreground.muted} style={{ fontSize: 12, width: 40 }}>
+            #
+          </Text>
+          <Text variant="caption" weight="bold" color={colors.foreground.muted} style={{ fontSize: 12, flex: 1 }}>
+            White
+          </Text>
+          <Text variant="caption" weight="bold" color={colors.foreground.muted} style={{ fontSize: 12, flex: 1 }}>
+            Black
+          </Text>
+        </Box>
 
+        {/* Table Body */}
         <ScrollView
           ref={ref}
-          style={styles.scrollView}
+          style={{ flex: 1 }}
+          contentContainerStyle={{ padding: 0 }}
           nestedScrollEnabled={true}
         >
           {moveGroups.length === 0 ? (
-            <Text style={styles.emptyText}>No moves yet</Text>
+            <Box padding={24} alignItems="center">
+              <Text style={{ fontSize: 48, marginBottom: 16, textAlign: 'center' }}>
+                ♔
+              </Text>
+              <Text variant="body" color={colors.foreground.muted} style={{ fontSize: 14, fontStyle: 'italic', textAlign: 'center' }}>
+                No moves yet
+              </Text>
+              <Text variant="caption" color={colors.foreground.muted} style={{ fontSize: 12, marginTop: 8, textAlign: 'center' }}>
+                Moves will appear here as the game progresses
+              </Text>
+            </Box>
           ) : (
-            moveGroups.map((group) => (
-              <View
-                key={group.number}
-                style={[
-                  styles.moveGroup,
-                  lastMove?.moveNumber === group.number && styles.lastMoveGroup,
-                ]}
-              >
-                <Text style={styles.moveNumber}>{group.number}.</Text>
+            moveGroups.map((group) => {
+              const isWhiteSelected = selectedMoveIndex === group.whiteIndex;
+              const isBlackSelected = selectedMoveIndex === group.blackIndex;
+              
+              return (
+                <Box
+                  key={group.number}
+                  style={{
+                    flexDirection: 'row',
+                    borderBottomWidth: 1,
+                    borderBottomColor: colors.background.tertiary,
+                  }}
+                >
+                  {/* Move Number */}
+                  <Box
+                    style={{
+                      width: 40,
+                      paddingVertical: 8,
+                      paddingHorizontal: 8,
+                      backgroundColor: colors.background.secondary,
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <Text variant="body" weight="bold" style={{ fontSize: 14, opacity: 0.6 }}>
+                      {group.number}
+                    </Text>
+                  </Box>
 
-                <Text style={styles.moveText}>
-                  {group.white?.san || '—'}
-                </Text>
+                  {/* White Move */}
+                  <Pressable
+                    onPress={() => group.whiteIndex !== undefined && handleMovePress(group.whiteIndex)}
+                    style={({ pressed }) => ({
+                      flex: 1,
+                      paddingVertical: 8,
+                      paddingHorizontal: 12,
+                      backgroundColor: isWhiteSelected
+                        ? colors.accent.primary
+                        : pressed
+                          ? colors.background.tertiary
+                          : colors.background.primary,
+                    })}
+                  >
+                    <Text 
+                      variant="body" 
+                      color={isWhiteSelected ? '#FFFFFF' : colors.foreground.primary} 
+                      weight="medium"
+                      style={{ fontFamily: 'monospace', fontSize: 14 }}
+                    >
+                      {group.white?.san || '...'}
+                    </Text>
+                  </Pressable>
 
-                <Text style={styles.moveText}>
-                  {group.black?.san || '—'}
-                </Text>
-              </View>
-            ))
+                  {/* Black Move */}
+                  <Pressable
+                    onPress={() => group.blackIndex !== undefined && handleMovePress(group.blackIndex)}
+                    style={({ pressed }) => ({
+                      flex: 1,
+                      paddingVertical: 8,
+                      paddingHorizontal: 12,
+                      backgroundColor: isBlackSelected
+                        ? colors.accent.primary
+                        : pressed
+                          ? colors.background.tertiary
+                          : colors.background.primary,
+                    })}
+                  >
+                    {group.black ? (
+                      <Text 
+                        variant="body" 
+                        color={isBlackSelected ? '#FFFFFF' : colors.foreground.primary} 
+                        weight="medium"
+                        style={{ fontFamily: 'monospace', fontSize: 14 }}
+                      >
+                        {group.black.san}
+                      </Text>
+                    ) : (
+                      <Text variant="body" style={{ fontSize: 14, opacity: 0 }}>
+                        ...
+                      </Text>
+                    )}
+                  </Pressable>
+                </Box>
+              );
+            })
           )}
         </ScrollView>
-      </View>
+      </Box>
     );
-  }
+  })
 );
 
 MoveList.displayName = 'MoveList';
-
-const styles = StyleSheet.create({
-  container: {
-    maxHeight: 300,
-    backgroundColor: '#f9f9f9',
-    borderRadius: 12,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: '#ddd',
-  },
-  title: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#007AFF',
-    marginBottom: 12,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  moveGroup: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 6,
-    paddingHorizontal: 8,
-    borderRadius: 4,
-    marginBottom: 4,
-  },
-  lastMoveGroup: {
-    backgroundColor: '#d4edda',
-  },
-  moveNumber: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#666',
-    width: 32,
-  },
-  moveText: {
-    fontSize: 12,
-    color: '#000',
-    fontWeight: '500',
-    flex: 1,
-    textAlign: 'left',
-  },
-  emptyText: {
-    fontSize: 12,
-    color: '#999',
-    fontStyle: 'italic',
-  },
-});

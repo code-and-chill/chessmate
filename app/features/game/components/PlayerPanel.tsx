@@ -1,5 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import Animated, { 
+  useAnimatedStyle, 
+  useSharedValue, 
+  withRepeat, 
+  withSequence, 
+  withTiming 
+} from 'react-native-reanimated';
+import { Box } from '@/ui/primitives/Box';
+import { Surface } from '@/ui/primitives/Surface';
+import { Text } from '@/ui/primitives/Text';
+import { Badge } from '@/ui/primitives/Badge';
+import { useThemeTokens } from '@/ui/hooks/useThemeTokens';
+import { radiusTokens } from '@/ui/tokens/radii';
+import { spacingTokens } from '@/ui/tokens/spacing';
+import { formatClock } from '@/util/time';
 
 export type Color = 'w' | 'b';
 
@@ -10,137 +24,138 @@ export interface PlayerPanelProps {
   remainingMs: number;
   accountId: string;
   isActive?: boolean; // Whether this player's timer is running
+  capturedPieces?: string[]; // Array of captured piece types: 'p', 'n', 'b', 'r', 'q'
+  onTimeExpire?: () => void; // Callback when time runs out
 }
-
-/**
- * Formats milliseconds into a chess clock display string
- * Examples: "5:30" (5 min 30 sec), "1:23:45" (1 hour 23 min 45 sec)
- */
-const formatClock = (ms: number): string => {
-  const totalSeconds = Math.max(0, Math.floor(ms / 1000));
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = totalSeconds % 60;
-
-  if (hours > 0) {
-    return `${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-  }
-  return `${minutes}:${String(seconds).padStart(2, '0')}`;
-};
 
 /**
  * PlayerPanel Component
  * Displays player information including color, identity, and remaining time
  */
-export const PlayerPanel = React.forwardRef<View, PlayerPanelProps>(
-  ({ color, isSelf, remainingMs, accountId, isActive }, ref) => {
+// Unicode chess piece symbols
+const PIECE_SYMBOLS: Record<string, string> = {
+  'p': '♟', // pawn
+  'n': '♞', // knight
+  'b': '♝', // bishop
+  'r': '♜', // rook
+  'q': '♛', // queen
+};
+
+export const PlayerPanel = React.forwardRef<unknown, PlayerPanelProps>(
+  ({ color, isSelf, remainingMs, accountId, isActive, capturedPieces = [], onTimeExpire }) => {
     const [displayTime, setDisplayTime] = useState(remainingMs);
+    const { colors } = useThemeTokens();
+    const pulseScale = useSharedValue(1);
 
     useEffect(() => {
       setDisplayTime(remainingMs);
     }, [remainingMs]);
 
+    const colorName = color === 'w' ? 'White' : 'Black';
+    const isLowTime = displayTime < 60000; // Less than 1 minute
+
     useEffect(() => {
       if (!isActive || displayTime <= 0) {
+        if (displayTime === 0 && isActive && onTimeExpire) {
+          onTimeExpire();
+        }
+        pulseScale.value = 1; // Reset pulse
         return;
       }
-
       const interval = setInterval(() => {
         setDisplayTime(prev => Math.max(0, prev - 1000));
       }, 1000);
-
       return () => clearInterval(interval);
-    }, [isActive, displayTime]);
-    return (
-      <View
-        ref={ref}
-        style={[
-          styles.container,
-          isSelf ? styles.selfPanel : styles.opponentPanel,
-          isActive && styles.activePanel,
-        ]}
-      >
-        <View style={styles.playerInfo}>
-          <Text style={styles.playerLabel}>
-            {isSelf ? 'You' : 'Opponent'} ({color === 'w' ? 'White' : 'Black'})
-          </Text>
-          <Text style={styles.accountId}>Account: {accountId}</Text>
-        </View>
+    }, [isActive, displayTime, onTimeExpire, pulseScale]);
 
-        <View style={styles.clockContainer}>
-          <Text style={[styles.clock, isActive ? styles.activeClock : null].filter(Boolean)}>
-            {formatClock(displayTime)}
-          </Text>
-        </View>
-      </View>
+    // Pulse animation when time is low
+    useEffect(() => {
+      if (isLowTime && isActive) {
+        pulseScale.value = withRepeat(
+          withSequence(
+            withTiming(1.05, { duration: 300 }),
+            withTiming(1, { duration: 300 })
+          ),
+          -1,
+          false
+        );
+      } else {
+        pulseScale.value = withTiming(1, { duration: 200 });
+      }
+    }, [isLowTime, isActive, pulseScale]);
+
+    const clockAnimatedStyle = useAnimatedStyle(() => ({
+      transform: [{ scale: pulseScale.value }],
+    }));
+
+    return (
+      <Surface
+        variant="default"
+        style={{
+          borderRadius: radiusTokens.md,
+          padding: spacingTokens[4],
+          backgroundColor: colors.background.primary,
+        }}
+      >
+        <Box flexDirection="row" justifyContent="space-between" alignItems="center">
+          {/* Player Info */}
+          <Box flex={1}>
+            <Box flexDirection="row" alignItems="center" gap={spacingTokens[2]} style={{ marginBottom: spacingTokens[1] }}>
+              <Badge variant={color === 'w' ? 'neutral' : 'primary'} size="sm">
+                {colorName}
+              </Badge>
+              {isActive && (
+                <Badge variant="success" size="sm">
+                  Your Turn
+                </Badge>
+              )}
+            </Box>
+            <Text variant="title" color={colors.foreground.primary} weight="semibold" style={{ fontSize: 16 }}>
+              {isSelf ? 'You' : accountId}
+            </Text>
+            {/* Captured Pieces */}
+            {capturedPieces.length > 0 && (
+              <Box flexDirection="row" gap={spacingTokens[1]} style={{ marginTop: spacingTokens[1], flexWrap: 'wrap' }}>
+                {capturedPieces.map((piece, idx) => (
+                  <Text key={`captured-${piece}-${idx}-${Math.random()}`} style={{ fontSize: 18, opacity: 0.8 }}>
+                    {PIECE_SYMBOLS[piece.toLowerCase()]}
+                  </Text>
+                ))}
+              </Box>
+            )}
+          </Box>
+
+          {/* Clock */}
+          <Animated.View style={clockAnimatedStyle}>
+            <Box
+              backgroundColor={isLowTime ? colors.error : colors.background.tertiary}
+              radius="md"
+              padding={3}
+              style={{
+                minWidth: 80,
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
+            >
+              <Text
+                variant="title"
+                color={isLowTime ? colors.background.primary : colors.foreground.primary}
+                weight="bold"
+                style={{ 
+                  fontFamily: 'monospace', 
+                  fontSize: isActive ? 24 : 20, 
+                  textAlign: 'center', 
+                  letterSpacing: 1.5 
+                }}
+              >
+                {formatClock(displayTime)}
+              </Text>
+            </Box>
+          </Animated.View>
+        </Box>
+      </Surface>
     );
   }
 );
 
 PlayerPanel.displayName = 'PlayerPanel';
-
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    minHeight: 60,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 12,
-    marginVertical: 6,
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.08)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  selfPanel: {
-    borderColor: 'rgba(59, 130, 246, 0.2)',
-  },
-  opponentPanel: {
-    borderColor: 'rgba(0, 0, 0, 0.08)',
-  },
-  activePanel: {
-    borderWidth: 2,
-    borderColor: '#3B82F6',
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-  },
-  playerInfo: {
-    flex: 1,
-    gap: 4,
-  },
-  playerLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#1F2937',
-  },
-  accountId: {
-    fontSize: 12,
-    color: '#6B7280',
-  },
-  clockContainer: {
-    backgroundColor: '#F9FAFB',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    minWidth: 70,
-    borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.06)',
-  },
-  clock: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#3B82F6',
-    textAlign: 'center',
-    fontFamily: 'monospace',
-  },
-  activeClock: {
-    color: '#EF4444',
-    fontSize: 20,
-  },
-});

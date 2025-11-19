@@ -267,6 +267,7 @@ export const ChessBoard = React.forwardRef<View, ChessBoardProps>(
                   <Pressable
                     key={`${file}-${rank}`}
                     onPress={() => handleSquarePress(file, rank)}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                     style={[
                       styles.square,
                       {

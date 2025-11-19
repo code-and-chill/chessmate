@@ -1,5 +1,10 @@
 import React from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { Button } from '@/ui/primitives/Button';
+import { Text } from '@/ui/primitives/Text';
+import { Box } from '@/ui/primitives/Box';
+import { Badge } from '@/ui/primitives/Badge';
+import { useThemeTokens } from '@/ui/hooks/useThemeTokens';
+import { spacingTokens } from '@/ui/tokens/spacing';
 
 export type GameStatus = 'in_progress' | 'waiting_for_opponent' | 'ended' | 'preparing';
 
@@ -7,121 +12,135 @@ export interface GameActionsProps {
   status?: GameStatus;
   result?: '1-0' | '0-1' | '1/2-1/2' | null;
   endReason?: string | null;
+  sideToMove?: 'w' | 'b';
   onResign?: () => void;
+  onOfferDraw?: () => void;
 }
 
 /**
  * GameActions Component
  * Displays game control buttons and status based on game state
  */
-export const GameActions = React.forwardRef<View, GameActionsProps>(
-  ({ status = 'in_progress', result, endReason, onResign }, ref) => {
+
+export const GameActions = React.forwardRef<unknown, GameActionsProps>(
+  ({ status = 'in_progress', result, endReason, sideToMove = 'w', onResign, onOfferDraw }) => {
+    const { colors } = useThemeTokens();
     const isGameActive = status === 'in_progress';
     const isGameEnded = status === 'ended';
 
     const getResultDisplay = () => {
-      if (result === '1-0') return '1 - 0 (White Wins)';
-      if (result === '0-1') return '0 - 1 (Black Wins)';
-      if (result === '1/2-1/2') return '½ - ½ (Draw)';
-      return 'Game Over';
+      if (result === '1-0') return { text: '1 - 0', winner: 'White Wins' };
+      if (result === '0-1') return { text: '0 - 1', winner: 'Black Wins' };
+      if (result === '1/2-1/2') return { text: '½ - ½', winner: 'Draw' };
+      return { text: 'Game Over', winner: '' };
+    };
+
+    const getStatusBadge = () => {
+      switch (status) {
+        case 'in_progress':
+          return <Badge variant="success" size="lg">Live</Badge>;
+        case 'ended':
+          return <Badge variant="neutral" size="lg">Finished</Badge>;
+        case 'waiting_for_opponent':
+          return <Badge variant="warning" size="lg">Waiting</Badge>;
+        case 'preparing':
+          return <Badge variant="info" size="lg">Preparing</Badge>;
+        default:
+          return null;
+      }
     };
 
     const getStatusMessage = () => {
       switch (status) {
         case 'waiting_for_opponent':
-          return 'Waiting for opponent...';
+          return 'Waiting for opponent to join...';
         case 'preparing':
-          return 'Game preparing...';
+          return 'Game is being prepared...';
         default:
           return '';
       }
     };
 
+    const resultData = getResultDisplay();
+
     return (
-      <View ref={ref} style={styles.container}>
+      <Box
+        style={{
+          flexDirection: 'row',
+          justifyContent: 'center',
+          alignItems: 'center',
+          padding: spacingTokens[2],
+          gap: spacingTokens[3],
+        }}
+      >
+        {/* Game Status */}
         {isGameActive && (
-          <Pressable
-            onPress={onResign}
-            style={[styles.button, styles.resignButton]}
-          >
-            <Text style={styles.resignButtonText}>Resign</Text>
-          </Pressable>
+          <>
+            <Box flexDirection="row" gap={spacingTokens[3]} justifyContent="center" alignItems="center">
+              <Button
+                variant="outline"
+                size="sm"
+                onPress={onOfferDraw || (() => console.log('Draw offered'))}
+                accessibilityLabel="Offer draw"
+                style={{ minWidth: 100 }}
+              >
+                🤝 Draw
+              </Button>
+              <Button
+                variant="solid"
+                color="#DC2626"
+                size="sm"
+                onPress={onResign}
+                accessibilityLabel="Resign from game"
+                style={{ minWidth: 100 }}
+              >
+                🏳️ Resign
+              </Button>
+            </Box>
+          </>
         )}
 
         {isGameEnded && (
-          <View style={styles.resultContainer}>
+          <Box alignItems="center" gap={spacingTokens[3]}>
             {endReason && (
-              <Text style={styles.endReason}>{endReason}</Text>
+              <Text variant="body" color={colors.foreground.secondary} style={{ textAlign: 'center', marginBottom: spacingTokens[2] }}>
+                {endReason}
+              </Text>
             )}
             {result && (
-              <Text style={styles.resultTitle}>{getResultDisplay()}</Text>
+              <>
+                <Text variant="heading" color={colors.foreground.primary} weight="bold" style={{ fontSize: 32, textAlign: 'center' }}>
+                  {resultData.text}
+                </Text>
+                {resultData.winner && (
+                  <Badge 
+                    variant={result === '1/2-1/2' ? 'neutral' : 'primary'} 
+                    size="lg"
+                  >
+                    {resultData.winner}
+                  </Badge>
+                )}
+              </>
             )}
             {!result && !endReason && (
-              <Text style={styles.resultTitle}>Game Over</Text>
+              <Text variant="heading" color={colors.foreground.primary} weight="bold" style={{ fontSize: 28 }}>
+                Game Over
+              </Text>
             )}
-          </View>
+          </Box>
         )}
 
         {!isGameActive && !isGameEnded && (
-          <Text style={styles.statusMessage}>
-            {getStatusMessage()}
-          </Text>
+          <Box alignItems="center" gap={spacingTokens[3]}>
+            <Text variant="body" color={colors.foreground.muted} style={{ fontStyle: 'italic', textAlign: 'center', fontSize: 16 }}>
+              {getStatusMessage()}
+            </Text>
+          </Box>
         )}
-      </View>
+      </Box>
     );
   }
 );
 
 GameActions.displayName = 'GameActions';
 
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    gap: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 12,
-    backgroundColor: '#f9f9f9',
-    borderRadius: 8,
-  },
-  button: {
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 6,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  resignButton: {
-    backgroundColor: '#d32f2f',
-  },
-  resignButtonText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  resultContainer: {
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    backgroundColor: '#fff',
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    minWidth: 150,
-    alignItems: 'center',
-  },
-  resultTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#000',
-  },
-  endReason: {
-    fontSize: 12,
-    color: '#666',
-    marginTop: 4,
-  },
-  statusMessage: {
-    fontSize: 14,
-    color: '#999',
-    fontStyle: 'italic',
-  },
-});

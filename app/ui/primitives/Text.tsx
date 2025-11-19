@@ -1,43 +1,50 @@
-/**
- * Text Primitive Component
- * app/ui/primitives/Text.tsx
- */
-
 import React from 'react';
-import { Text as RNText } from 'react-native';
-import type { TextStyle } from 'react-native';
+import { Text as RNText, TextStyle } from 'react-native';
 import { typographyTokens, textVariants } from '../tokens/typography';
 
 type TextVariant = keyof typeof textVariants;
 
-type TextProps = {
+type Props = {
   children?: React.ReactNode;
   variant?: TextVariant;
   color?: string;
+  mono?: boolean;
   weight?: keyof typeof typographyTokens.fontWeight;
   size?: keyof typeof typographyTokens.fontSize;
   style?: TextStyle;
 } & React.ComponentProps<typeof RNText>;
 
-export const Text = React.forwardRef<RNText, TextProps>(
-  (
-    {
-      children,
-      variant = 'body',
-      color,
-      weight,
-      size,
-      style,
-      ...rest
-    },
-    ref
-  ) => {
-    const variantStyle = textVariants[variant];
+const interFontMap = {
+  '100': 'Inter-Thin',
+  '200': 'Inter-ExtraLight',
+  '300': 'Inter-Light',
+  '400': 'Inter-Regular',
+  '500': 'Inter-Medium',
+  '600': 'Inter-SemiBold',
+  '700': 'Inter-Bold',
+  '800': 'Inter-ExtraBold',
+  '900': 'Inter-Black',
+};
+
+export const Text = React.forwardRef<RNText, Props>(
+  ({ children, variant = 'body', color, mono, weight, size, style, ...rest }, ref) => {
+    const v = textVariants[variant];
+
+    const finalFontSize = size
+      ? typographyTokens.fontSize[size]
+      : v.fontSize;
+
+    const finalFontWeight = weight ?? (v.fontWeight as keyof typeof interFontMap);
+    const fontFamily = mono
+      ? typographyTokens.fontFamily.mono
+      : interFontMap[finalFontWeight];
+
     const textStyle: TextStyle = {
-      fontFamily: typographyTokens.fontFamily.primary,
-      ...variantStyle,
-      ...(weight && { fontWeight: typographyTokens.fontWeight[weight] }),
-      ...(size && { fontSize: typographyTokens.fontSize[size] }),
+      fontFamily,
+      fontSize: finalFontSize,
+      fontWeight: finalFontWeight,
+      lineHeight: finalFontSize * v.lineHeight,  // FIXED
+      letterSpacing: typographyTokens.letterSpacing.normal,
       color: color || '#000',
     };
 
