@@ -1,10 +1,5 @@
-/**
- * Settings Drawer Route
- * app/(drawer)/settings.tsx
- */
+import { Redirect } from 'expo-router';
 
-import { SettingsScreen } from '@/features/settings';
-
-export default function SettingsDrawer() {
-  return <SettingsScreen />;
+export default function SettingsRedirect() {
+  return <Redirect href="/(tabs)/settings" />;
 }

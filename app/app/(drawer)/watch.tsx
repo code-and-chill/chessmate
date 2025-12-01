@@ -1,10 +1,5 @@
-/**
- * Watch Drawer Route
- * app/(drawer)/watch.tsx
- */
+import { Redirect } from 'expo-router';
 
-import { WatchScreen } from '@/features/watch';
-
-export default function WatchDrawer() {
-  return <WatchScreen />;
+export default function WatchRedirect() {
+  return <Redirect href="/(tabs)/watch" />;
 }

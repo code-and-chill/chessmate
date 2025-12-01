@@ -1,8 +1,25 @@
-import { Tabs } from 'expo-router';
-import { useColorScheme } from 'react-native';
+import { Tabs, useRouter } from 'expo-router';
+import { TouchableOpacity, View, useColorScheme } from 'react-native';
 
 import { IconSymbol } from '@/ui';
 import { Colors } from '@/core/constants';
+import { useThemeTokens } from '@/ui';
+
+function HeaderActions() {
+  const router = useRouter();
+  const { mode, setMode } = useThemeTokens();
+  const toggle = () => setMode(mode === 'dark' ? 'light' : 'dark');
+  return (
+    <View style={{ flexDirection: 'row', gap: 12, paddingRight: 12 }}>
+      <TouchableOpacity onPress={() => router.push('/search')} accessibilityLabel="Search">
+        <IconSymbol size={22} name="magnifyingglass" color={Colors.light.tint} />
+      </TouchableOpacity>
+      <TouchableOpacity onPress={toggle} accessibilityLabel="Toggle Theme">
+        <IconSymbol size={22} name={mode === 'dark' ? 'sun.max.fill' : 'moon.fill'} color={Colors.light.tint} />
+      </TouchableOpacity>
+    </View>
+  );
+}
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
@@ -12,6 +29,7 @@ export default function TabLayout() {
       screenOptions={{
         tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
         headerShown: true,
+        headerRight: () => <HeaderActions />,
       }}>
       <Tabs.Screen
         name="index"

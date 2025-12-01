@@ -1,10 +1,5 @@
-/**
- * Puzzle Drawer Route
- * app/(drawer)/puzzle.tsx
- */
+import { Redirect } from 'expo-router';
 
-import { PuzzleScreen } from '@/features/puzzle';
-
-export default function PuzzleDrawer() {
-  return <PuzzleScreen />;
+export default function PuzzleRedirect() {
+  return <Redirect href="/(tabs)/explore" />;
 }

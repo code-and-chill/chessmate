@@ -1,29 +1,20 @@
 import { Drawer } from 'expo-router/drawer';
-import { Platform, Dimensions } from 'react-native';
-import { IconSymbol } from '@/ui';
+import { useColorScheme } from 'react-native';
 import { Colors } from '@/core/constants';
-
-const { width } = Dimensions.get('window');
-const isLargeScreen = Platform.OS === 'web' || width >= 768;
+import { IconSymbol } from '@/ui';
 
 export default function DrawerLayout() {
+  const colorScheme = useColorScheme();
+  const tint = Colors[colorScheme ?? 'light'].tint;
+
   return (
     <Drawer
       screenOptions={{
         headerShown: true,
-        drawerActiveTintColor: Colors.light.tint,
-        drawerType: isLargeScreen ? 'permanent' : 'front',
-        drawerStyle: {
-          width: 280,
-        },
+        drawerActiveTintColor: tint,
+        drawerType: 'permanent',
       }}
     >
-      <Drawer.Screen
-        name="index"
-        options={{
-          drawerItemStyle: { display: 'none' },
-        }}
-      />
       <Drawer.Screen
         name="play"
         options={{

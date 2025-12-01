@@ -6,6 +6,8 @@ import { createPlayScreenConfig, getHydratedBoardProps, type PlayScreenConfig } 
 import { isCheckmate, isStalemate, parseFENToBoard, applyMoveToFENSimple, type Board } from '@/core/utils';
 import { Box, VStack, HStack, Text, Button, useColors } from '@/ui';
 
+// Move application now handled by engine util: applyMoveToFENSimple
+
 interface PuzzlePlayScreenProps {
   puzzleId: string;
   onComplete?: (data: Record<string, unknown>) => void;

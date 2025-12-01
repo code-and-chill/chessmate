@@ -7,7 +7,7 @@ import 'react-native-reanimated';
 import { ThemeProvider } from '@/ui';
 
 export const unstable_settings = {
-  anchor: '(drawer)',
+  anchor: '(tabs)',
 };
 
 export default function RootLayout() {
@@ -17,6 +17,7 @@ export default function RootLayout() {
     <ThemeProvider defaultMode={colorScheme === 'dark' ? 'dark' : 'light'}>
       <RNThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
         <Stack>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="(drawer)" options={{ headerShown: false }} />
           <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
           <Stack.Screen name="search" options={{ presentation: 'modal', title: 'Search' }} />

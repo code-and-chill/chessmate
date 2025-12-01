@@ -1,10 +1,5 @@
-/**
- * Learn Drawer Route
- * app/(drawer)/learn.tsx
- */
+import { Redirect } from 'expo-router';
 
-import { LearnScreen } from '@/features/learn';
-
-export default function LearnDrawer() {
-  return <LearnScreen />;
+export default function LearnRedirect() {
+  return <Redirect href="/(tabs)/learn" />;
 }
