@@ -7,16 +7,18 @@ import {
   MOCK_FRIENDS,
   MOCK_STATS,
   MOCK_ACHIEVEMENTS,
+  MOCK_PREFERENCES,
   MOCK_LEADERBOARD_GLOBAL,
   MOCK_LEADERBOARD_FRIENDS,
   MOCK_LEADERBOARD_CLUB,
   MOCK_RATING_HISTORY,
   delay,
-} from './mockData';
+} from './mock-data';
 
-import type { UserProfile, Friend, FriendRequest } from './accountApi';
-import type { RatingHistory, GameStats, LeaderboardEntry, Achievement } from './ratingApi';
-import type { MatchmakingRequest, MatchFound, QueueStatus } from './matchmakingApi';
+import type { UserProfile, Friend, FriendRequest } from './account.api';
+import type { UserPreferences } from '@/features/settings/types';
+import type { RatingHistory, GameStats, LeaderboardEntry, Achievement } from './rating.api';
+import type { MatchmakingRequest, MatchFound, QueueStatus } from './matchmaking.api';
 
 /**
  * Mock Account API Client
@@ -67,6 +69,21 @@ export class MockAccountApiClient {
         classical: f.rating + 70,
       },
     }));
+  }
+
+  async getPreferences(userId: string): Promise<UserPreferences> {
+    await delay();
+    return MOCK_PREFERENCES;
+  }
+
+  async updatePreferences(userId: string, updates: Partial<UserPreferences>): Promise<UserPreferences> {
+    await delay();
+    // In a real implementation, this would persist to the backend
+    // For now, just merge the updates with existing preferences (flat structure)
+    return {
+      ...MOCK_PREFERENCES,
+      ...updates,
+    };
   }
 
   setAuthToken(token: string) {

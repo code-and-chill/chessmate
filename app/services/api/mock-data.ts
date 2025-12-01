@@ -2,6 +2,8 @@
  * Mock data for testing without backend integration.
  */
 
+import type { UserPreferences } from '@/features/settings/types';
+
 export const MOCK_USER = {
   id: '550e8400-e29b-41d4-a716-446655440000',
   username: 'ChessPlayer2025',
@@ -27,9 +29,51 @@ export const MOCK_FRIENDS = [
 ];
 
 export const MOCK_STATS = {
-  blitz: { rating: 1650, peak: 1720, games: 245, wins: 138, losses: 87, draws: 20, winRate: 56.3 },
-  rapid: { rating: 1580, peak: 1640, games: 156, wins: 82, losses: 64, draws: 10, winRate: 52.6 },
-  classical: { rating: 1720, peak: 1780, games: 55, wins: 32, losses: 18, draws: 5, winRate: 58.2 },
+  blitz: { 
+    rating: 1650, 
+    peak: 1720, 
+    games: 245, 
+    wins: 138, 
+    losses: 87, 
+    draws: 20, 
+    winRate: 56.3,
+    insights: {
+      bestOpening: 'Italian Game (62% win rate)',
+      avgMoveTime: '8.5 seconds',
+      currentStreak: '3 wins',
+      ratingTrend: '+45 this month',
+    },
+  },
+  rapid: { 
+    rating: 1580, 
+    peak: 1640, 
+    games: 156, 
+    wins: 82, 
+    losses: 64, 
+    draws: 10, 
+    winRate: 52.6,
+    insights: {
+      bestOpening: 'Queen\'s Gambit (58% win rate)',
+      avgMoveTime: '15.2 seconds',
+      currentStreak: '2 wins',
+      ratingTrend: '+20 this month',
+    },
+  },
+  classical: { 
+    rating: 1720, 
+    peak: 1780, 
+    games: 55, 
+    wins: 32, 
+    losses: 18, 
+    draws: 5, 
+    winRate: 58.2,
+    insights: {
+      bestOpening: 'Ruy Lopez (65% win rate)',
+      avgMoveTime: '45.8 seconds',
+      currentStreak: '1 win',
+      ratingTrend: '+60 this month',
+    },
+  },
 };
 
 export const MOCK_ACHIEVEMENTS = [
@@ -42,6 +86,29 @@ export const MOCK_ACHIEVEMENTS = [
   { id: '7', title: 'Checkmate Master', description: 'Deliver 100 checkmates', unlocked: false, icon: '♔', progress: { current: 67, total: 100 } },
   { id: '8', title: 'Tournament Winner', description: 'Win a tournament', unlocked: false, icon: '🏆', progress: { current: 0, total: 1 } },
 ];
+
+export const MOCK_PREFERENCES: UserPreferences = {
+  // Backend fields (matches account-api structure)
+  board_theme: 'brown',
+  piece_set: 'classic',
+  sound_enabled: true,
+  animation_level: 'full',
+  highlight_legal_moves: true,
+  show_coordinates: true,
+  confirm_moves: false,
+  default_time_control: 'blitz',
+  auto_queen_promotion: false,
+  
+  // Frontend-only fields (not yet in backend)
+  vibration: true,
+  piece_animation: true,
+  
+  // Analysis preferences (TODO: Add to backend)
+  post_game_analysis: 'automatic',
+  show_engine_lines: true,
+  evaluation_bar: true,
+  best_move_hints: 'after_game',
+};
 
 export const MOCK_LEADERBOARD_GLOBAL = [
   { rank: 1, userId: '1', username: 'MagnusCarlsen', rating: 2850, games: 15240, winRate: 68.5, avatar: '👑' },

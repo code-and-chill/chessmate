@@ -29,6 +29,11 @@ export {
   MockMatchmakingApiClient 
 } from './mock-clients';
 
+// API Client instances (using mock for development)
+import { MockAccountApiClient, MockRatingApiClient } from './mock-clients';
+export const accountApi = new MockAccountApiClient();
+export const ratingApi = new MockRatingApiClient();
+
 // TODO: Migrate to this structure:
 // export * from './client';
 // export * from './game.api';
