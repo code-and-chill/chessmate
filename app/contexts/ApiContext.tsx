@@ -5,24 +5,33 @@
 
 import React, { createContext, useContext, ReactNode, useMemo } from 'react';
 import { 
+  AuthApiClient,
   AccountApiClient,
   RatingApiClient,
   MatchmakingApiClient,
+  LearningApiClient,
+  SocialApiClient,
+  MockAuthApiClient,
   MockAccountApiClient,
   MockRatingApiClient,
   MockMatchmakingApiClient,
+  MockLearningApiClient,
+  MockSocialApiClient,
+  MockLiveGameApiClient,
   PuzzleApiClient,
   LiveGameApiClient,
   GameApiClient as PlayApiClient
 } from '@/services/api';
-import { useAuth } from './AuthContext';
 
 interface ApiContextType {
+  authApi: AuthApiClient | MockAuthApiClient;
   accountApi: AccountApiClient | MockAccountApiClient;
   ratingApi: RatingApiClient | MockRatingApiClient;
   matchmakingApi: MatchmakingApiClient | MockMatchmakingApiClient;
+  learningApi: LearningApiClient | MockLearningApiClient;
+  socialApi: SocialApiClient | MockSocialApiClient;
   puzzleApi: PuzzleApiClient;
-  liveGameApi: LiveGameApiClient;
+  liveGameApi: LiveGameApiClient | MockLiveGameApiClient;
   playApi: PlayApiClient;
   useMockApi: boolean;
 }
@@ -41,52 +50,58 @@ const API_BASE_URLS = {
   puzzle: process.env.EXPO_PUBLIC_PUZZLE_API_URL || 'http://localhost:8000',
   liveGame: process.env.EXPO_PUBLIC_LIVE_GAME_API_URL || 'http://localhost:8001',
   play: process.env.EXPO_PUBLIC_PLAY_API_URL || 'http://localhost:8001',
+  learning: process.env.EXPO_PUBLIC_LEARNING_API_URL || 'http://localhost:8005',
 };
 
 export function ApiProvider({ children }: { children: ReactNode }) {
-  const { token } = useAuth();
-
   const clients = useMemo(() => {
+    let authApi: AuthApiClient | MockAuthApiClient;
     let accountApi: AccountApiClient | MockAccountApiClient;
     let ratingApi: RatingApiClient | MockRatingApiClient;
     let matchmakingApi: MatchmakingApiClient | MockMatchmakingApiClient;
+    let learningApi: LearningApiClient | MockLearningApiClient;
+    let socialApi: SocialApiClient | MockSocialApiClient;
+    let liveGameApi: LiveGameApiClient | MockLiveGameApiClient;
 
     if (USE_MOCK_API) {
       // Use mock implementations for testing
       console.log('🎭 Using MOCK API clients');
+      authApi = new MockAuthApiClient();
       accountApi = new MockAccountApiClient();
       ratingApi = new MockRatingApiClient();
       matchmakingApi = new MockMatchmakingApiClient();
+      learningApi = new MockLearningApiClient();
+      socialApi = new MockSocialApiClient();
+      liveGameApi = new MockLiveGameApiClient();
     } else {
       // Use real API implementations
       console.log('🌐 Using REAL API clients');
-      accountApi = new AccountApiClient(API_BASE_URLS.account, token || undefined);
-      ratingApi = new RatingApiClient(API_BASE_URLS.rating, token || undefined);
-      matchmakingApi = new MatchmakingApiClient(API_BASE_URLS.matchmaking, token || undefined);
-
-      // Update auth tokens when they change
-      if (token) {
-        accountApi.setAuthToken(token);
-        ratingApi.setAuthToken(token);
-        matchmakingApi.setAuthToken(token);
-      }
+      authApi = new AuthApiClient(API_BASE_URLS.account);
+      accountApi = new AccountApiClient(API_BASE_URLS.account);
+      ratingApi = new RatingApiClient(API_BASE_URLS.rating);
+      matchmakingApi = new MatchmakingApiClient(API_BASE_URLS.matchmaking);
+      learningApi = new LearningApiClient(API_BASE_URLS.learning);
+      socialApi = new SocialApiClient(API_BASE_URLS.account);
+      liveGameApi = new LiveGameApiClient(API_BASE_URLS.liveGame, "");
     }
 
     // These always use real implementations (or can be mocked later if needed)
     const puzzleApi = new PuzzleApiClient(API_BASE_URLS.puzzle);
-    const liveGameApi = new LiveGameApiClient(API_BASE_URLS.liveGame, token || "");
-    const playApi = new PlayApiClient(API_BASE_URLS.play, token || "");
+    const playApi = new PlayApiClient(API_BASE_URLS.play, "");
     
     return {
+      authApi,
       accountApi,
       ratingApi,
       matchmakingApi,
+      learningApi,
+      socialApi,
       puzzleApi,
       liveGameApi,
       playApi,
       useMockApi: USE_MOCK_API,
     };
-  }, [token]);
+  }, []);
 
   return <ApiContext.Provider value={clients}>{children}</ApiContext.Provider>;
 }

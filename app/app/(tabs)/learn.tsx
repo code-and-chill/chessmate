@@ -1,6 +1,8 @@
 import { useState } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, SafeAreaView } from 'react-native';
 import { useRouter } from 'expo-router';
+import { FeatureScreenLayout, FeatureCard, StatCard } from '@/ui/components';
+import { HStack } from '@/ui';
 
 type LearnMode = 'hub' | 'lessons' | 'tactics' | 'review' | 'openings';
 type LessonCategory = 'beginner' | 'intermediate' | 'advanced';
@@ -15,80 +17,60 @@ export default function LearnTab() {
   // Learn Hub
   if (mode === 'hub') {
     return (
-      <ScrollView style={styles.container}>
-        <View style={styles.content}>
-          <Text style={styles.title}>Learn & Improve</Text>
-          <Text style={styles.subtitle}>Master chess through structured learning</Text>
-
-          {/* Stats Row */}
-          <View style={styles.statsRow}>
-            <View style={styles.statCard}>
-              <Text style={styles.statValue}>🔥 {streak}</Text>
-              <Text style={styles.statLabel}>Day Streak</Text>
-            </View>
-            <View style={styles.statCard}>
-              <Text style={styles.statValue}>⚡ {tacticsRating}</Text>
-              <Text style={styles.statLabel}>Tactics Rating</Text>
-            </View>
-          </View>
-
-          {/* Lessons */}
-          <TouchableOpacity style={styles.card} onPress={() => setMode('lessons')}>
-            <View style={styles.cardHeader}>
-              <Text style={styles.cardIcon}>📚</Text>
-              <View style={styles.cardTextContainer}>
-                <Text style={styles.cardTitle}>Interactive Lessons</Text>
-                <Text style={styles.cardDescription}>Structured courses from basics to advanced</Text>
-              </View>
-            </View>
-            <Text style={styles.cardProgress}>12 of 48 lessons completed</Text>
-          </TouchableOpacity>
-
-          {/* Tactics Trainer */}
-          <TouchableOpacity style={styles.card} onPress={() => setMode('tactics')}>
-            <View style={styles.cardHeader}>
-              <Text style={styles.cardIcon}>🎯</Text>
-              <View style={styles.cardTextContainer}>
-                <Text style={styles.cardTitle}>Tactics Trainer</Text>
-                <Text style={styles.cardDescription}>Solve puzzles, improve pattern recognition</Text>
-              </View>
-            </View>
-            <Text style={styles.cardProgress}>Rating: {tacticsRating} • 234 solved</Text>
-          </TouchableOpacity>
-
-          {/* Game Review */}
-          <TouchableOpacity style={styles.card} onPress={() => setMode('review')}>
-            <View style={styles.cardHeader}>
-              <Text style={styles.cardIcon}>🔍</Text>
-              <View style={styles.cardTextContainer}>
-                <Text style={styles.cardTitle}>Game Review</Text>
-                <Text style={styles.cardDescription}>Analyze your games, find improvements</Text>
-              </View>
-            </View>
-            <Text style={styles.cardProgress}>3 games pending review</Text>
-          </TouchableOpacity>
-
-          {/* Openings Explorer */}
-          <TouchableOpacity style={styles.card} onPress={() => setMode('openings')}>
-            <View style={styles.cardHeader}>
-              <Text style={styles.cardIcon}>📖</Text>
-              <View style={styles.cardTextContainer}>
-                <Text style={styles.cardTitle}>Openings Explorer</Text>
-                <Text style={styles.cardDescription}>Study openings with statistics</Text>
-              </View>
-            </View>
-            <Text style={styles.cardProgress}>5 openings in repertoire</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
+      <FeatureScreenLayout
+        title="Learn & Improve"
+        subtitle="Master chess through structured learning"
+        statsRow={
+          <HStack gap={3}>
+            <StatCard value={`🔥 ${streak}`} label="Day Streak" />
+            <StatCard value={`⚡ ${tacticsRating}`} label="Tactics Rating" />
+          </HStack>
+        }
+      >
+        <FeatureCard
+          icon="📚"
+          title="Interactive Lessons"
+          description="Structured courses from basics to advanced"
+          progress="12 of 48 lessons completed"
+          onPress={() => setMode('lessons')}
+          delay={200}
+        />
+        
+        <FeatureCard
+          icon="🎯"
+          title="Tactics Trainer"
+          description="Solve puzzles, improve pattern recognition"
+          progress={`Rating: ${tacticsRating} • 234 solved`}
+          onPress={() => setMode('tactics')}
+          delay={300}
+        />
+        
+        <FeatureCard
+          icon="🔍"
+          title="Game Review"
+          description="Analyze your games, find improvements"
+          progress="3 games pending review"
+          onPress={() => setMode('review')}
+          delay={400}
+        />
+        
+        <FeatureCard
+          icon="📖"
+          title="Openings Explorer"
+          description="Study openings with statistics"
+          progress="5 openings in repertoire"
+          onPress={() => setMode('openings')}
+          delay={500}
+        />
+      </FeatureScreenLayout>
     );
   }
 
   // Lessons Module
   if (mode === 'lessons') {
     return (
-      <ScrollView style={styles.container}>
-        <View style={styles.content}>
+      <SafeAreaView style={styles.container}>
+        <View style={styles.detailContent}>
           <TouchableOpacity style={styles.backButton} onPress={() => setMode('hub')}>
             <Text style={styles.backButtonText}>← Back</Text>
           </TouchableOpacity>
@@ -135,15 +117,15 @@ export default function LearnTab() {
             </>
           )}
         </View>
-      </ScrollView>
+      </SafeAreaView>
     );
   }
 
   // Tactics Trainer
   if (mode === 'tactics') {
     return (
-      <ScrollView style={styles.container}>
-        <View style={styles.content}>
+      <SafeAreaView style={styles.container}>
+        <View style={styles.detailContent}>
           <TouchableOpacity style={styles.backButton} onPress={() => setMode('hub')}>
             <Text style={styles.backButtonText}>← Back</Text>
           </TouchableOpacity>
@@ -170,15 +152,15 @@ export default function LearnTab() {
             <CategoryButton icon="⚔️" title="Deflection" count={18} />
           </View>
         </View>
-      </ScrollView>
+      </SafeAreaView>
     );
   }
 
   // Game Review
   if (mode === 'review') {
     return (
-      <ScrollView style={styles.container}>
-        <View style={styles.content}>
+      <SafeAreaView style={styles.container}>
+        <View style={styles.detailContent}>
           <TouchableOpacity style={styles.backButton} onPress={() => setMode('hub')}>
             <Text style={styles.backButtonText}>← Back</Text>
           </TouchableOpacity>
@@ -208,15 +190,15 @@ export default function LearnTab() {
             mistakes={3}
           />
         </View>
-      </ScrollView>
+      </SafeAreaView>
     );
   }
 
   // Openings Explorer
   if (mode === 'openings') {
     return (
-      <ScrollView style={styles.container}>
-        <View style={styles.content}>
+      <SafeAreaView style={styles.container}>
+        <View style={styles.detailContent}>
           <TouchableOpacity style={styles.backButton} onPress={() => setMode('hub')}>
             <Text style={styles.backButtonText}>← Back</Text>
           </TouchableOpacity>
@@ -250,7 +232,7 @@ export default function LearnTab() {
             <Text style={styles.buttonText}>+ Add Opening</Text>
           </TouchableOpacity>
         </View>
-      </ScrollView>
+      </SafeAreaView>
     );
   }
 
@@ -350,85 +332,24 @@ function OpeningCard({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9f9f9',
-  },
-  content: {
-    padding: 20,
+    backgroundColor: '#F8F9FA',
   },
   title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    marginBottom: 8,
-    color: '#000',
+    fontSize: 36,
+    fontWeight: '800',
+    color: '#667EEA',
+    textAlign: 'center',
+    letterSpacing: -0.5,
   },
   subtitle: {
-    fontSize: 16,
-    color: '#666',
-    marginBottom: 24,
-  },
-  statsRow: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 24,
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  statValue: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 4,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: '#666',
-  },
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  cardIcon: {
-    fontSize: 36,
-    marginRight: 12,
-  },
-  cardTextContainer: {
-    flex: 1,
-  },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#000',
-    marginBottom: 4,
-  },
-  cardDescription: {
-    fontSize: 14,
-    color: '#666',
-  },
-  cardProgress: {
-    fontSize: 13,
-    color: '#007AFF',
+    fontSize: 17,
+    color: '#6B7280',
+    textAlign: 'center',
+    lineHeight: 24,
     fontWeight: '500',
+  },
+  detailContent: {
+    padding: 20,
   },
   backButton: {
     alignSelf: 'flex-start',
@@ -438,7 +359,8 @@ const styles = StyleSheet.create({
   },
   backButtonText: {
     fontSize: 16,
-    color: '#007AFF',
+    color: '#667EEA',
+    fontWeight: '600',
   },
   categoryTabs: {
     flexDirection: 'row',

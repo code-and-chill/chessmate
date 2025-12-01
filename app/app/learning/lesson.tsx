@@ -1,0 +1,583 @@
+import { useState, useEffect } from 'react';
+import { StyleSheet, View, Text, TouchableOpacity, SafeAreaView, ScrollView, Alert } from 'react-native';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
+import { Card } from '@/ui/primitives/Card';
+import { VStack } from '@/ui';
+import { useLearning } from '@/contexts/LearningContext';
+import type { Lesson, Quiz } from '@/contexts/LearningContext';
+
+export default function LessonViewerScreen() {
+  const router = useRouter();
+  const { lessonId } = useLocalSearchParams<{ lessonId: string }>();
+  const { startLesson, completeLesson, getQuiz, submitQuiz, isLoading } = useLearning();
+  
+  const [lesson, setLesson] = useState<Lesson | null>(null);
+  const [currentSection, setCurrentSection] = useState(0);
+  const [showQuiz, setShowQuiz] = useState(false);
+  const [quiz, setQuiz] = useState<Quiz | null>(null);
+  const [selectedAnswers, setSelectedAnswers] = useState<Record<string, number>>({});
+  const [quizSubmitted, setQuizSubmitted] = useState(false);
+  const [quizScore, setQuizScore] = useState(0);
+
+  useEffect(() => {
+    if (lessonId) {
+      loadLesson();
+    }
+  }, [lessonId]);
+
+  const loadLesson = async () => {
+    if (!lessonId) return;
+    const data = await startLesson(lessonId);
+    setLesson(data);
+  };
+
+  const handleNext = () => {
+    if (!lesson) return;
+
+    if (currentSection < lesson.content.length - 1) {
+      setCurrentSection(prev => prev + 1);
+    } else {
+      // Lesson complete, show quiz if available
+      loadQuiz();
+    }
+  };
+
+  const handlePrevious = () => {
+    if (currentSection > 0) {
+      setCurrentSection(prev => prev - 1);
+    }
+  };
+
+  const loadQuiz = async () => {
+    if (!lessonId) return;
+    const quizData = await getQuiz(lessonId);
+    if (quizData) {
+      setQuiz(quizData);
+      setShowQuiz(true);
+    } else {
+      // No quiz, mark as complete
+      await completeLesson(lessonId);
+      Alert.alert('Lesson Complete! 🎉', 'You\'ve finished this lesson.', [
+        { text: 'Continue', onPress: () => router.back() },
+      ]);
+    }
+  };
+
+  const handleAnswerSelect = (questionId: string, answerIndex: number) => {
+    if (quizSubmitted) return;
+    setSelectedAnswers(prev => ({ ...prev, [questionId]: answerIndex }));
+  };
+
+  const handleQuizSubmit = async () => {
+    if (!quiz || !lessonId) return;
+
+    // Calculate score
+    let correct = 0;
+    quiz.questions.forEach((q) => {
+      if (selectedAnswers[q.id] === q.correctAnswerIndex) {
+        correct++;
+      }
+    });
+
+    const score = Math.round((correct / quiz.questions.length) * 100);
+    setQuizScore(score);
+    setQuizSubmitted(true);
+
+    // Submit to backend
+    await submitQuiz(quiz.id, selectedAnswers, score);
+
+    // Mark lesson as complete if passed
+    if (score >= quiz.passingScore) {
+      await completeLesson(lessonId);
+    }
+  };
+
+  const handleQuizRetry = () => {
+    setSelectedAnswers({});
+    setQuizSubmitted(false);
+    setQuizScore(0);
+  };
+
+  if (isLoading || !lesson) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loader}>
+          <Text style={styles.loaderText}>Loading lesson...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  const currentContent = lesson.content[currentSection];
+  const progress = ((currentSection + 1) / lesson.content.length) * 100;
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <VStack style={styles.content} gap={6}>
+          {/* Header */}
+          <Animated.View entering={FadeIn.duration(500)}>
+            <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+              <Text style={styles.backText}>← Back</Text>
+            </TouchableOpacity>
+            
+            <Text style={styles.title}>{lesson.title}</Text>
+            
+            {/* Progress Bar */}
+            {!showQuiz && (
+              <View style={styles.progressContainer}>
+                <View style={styles.progressBarContainer}>
+                  <View style={[styles.progressBar, { width: `${progress}%` }]} />
+                </View>
+                <Text style={styles.progressText}>
+                  Section {currentSection + 1} of {lesson.content.length}
+                </Text>
+              </View>
+            )}
+          </Animated.View>
+
+          {/* Content */}
+          {!showQuiz ? (
+            <Animated.View entering={FadeInDown.duration(500)} key={currentSection}>
+              <Card variant="default" size="lg">
+                <VStack gap={4} style={{ padding: 20 }}>
+                  {currentContent.type === 'text' && (
+                    <View>
+                      <Text style={styles.contentTitle}>{currentContent.title}</Text>
+                      <Text style={styles.contentText}>{currentContent.content}</Text>
+                    </View>
+                  )}
+
+                  {currentContent.type === 'video' && (
+                    <View>
+                      <Text style={styles.contentTitle}>{currentContent.title}</Text>
+                      <View style={styles.videoPlaceholder}>
+                        <Text style={styles.videoText}>📹 Video Player</Text>
+                        <Text style={styles.videoUrl}>{currentContent.content}</Text>
+                      </View>
+                    </View>
+                  )}
+
+                  {currentContent.type === 'diagram' && (
+                    <View>
+                      <Text style={styles.contentTitle}>{currentContent.title}</Text>
+                      <View style={styles.diagramPlaceholder}>
+                        <Text style={styles.diagramText}>♟️ Chess Diagram</Text>
+                        <Text style={styles.fenText}>{currentContent.content}</Text>
+                      </View>
+                    </View>
+                  )}
+
+                  {currentContent.type === 'interactive' && (
+                    <View>
+                      <Text style={styles.contentTitle}>{currentContent.title}</Text>
+                      <View style={styles.interactivePlaceholder}>
+                        <Text style={styles.interactiveText}>🎮 Interactive Exercise</Text>
+                        <Text style={styles.instructionText}>{currentContent.content}</Text>
+                      </View>
+                    </View>
+                  )}
+                </VStack>
+              </Card>
+            </Animated.View>
+          ) : (
+            // Quiz Section
+            <Animated.View entering={FadeInDown.duration(500)}>
+              <VStack gap={4}>
+                <Card variant="gradient" size="md">
+                  <View style={{ padding: 16 }}>
+                    <Text style={styles.quizTitle}>📝 Quiz Time!</Text>
+                    <Text style={styles.quizSubtitle}>
+                      {quiz?.questions.length} questions • Passing score: {quiz?.passingScore}%
+                    </Text>
+                  </View>
+                </Card>
+
+                {quiz?.questions.map((question, qIndex) => (
+                  <Card key={question.id} variant="default" size="md">
+                    <VStack gap={3} style={{ padding: 16 }}>
+                      <Text style={styles.questionNumber}>Question {qIndex + 1}</Text>
+                      <Text style={styles.questionText}>{question.question}</Text>
+                      
+                      {question.options.map((option, optIndex) => {
+                        const isSelected = selectedAnswers[question.id] === optIndex;
+                        const isCorrect = optIndex === question.correctAnswerIndex;
+                        const showResult = quizSubmitted;
+
+                        return (
+                          <TouchableOpacity
+                            key={optIndex}
+                            style={[
+                              styles.optionButton,
+                              isSelected && styles.optionButtonSelected,
+                              showResult && isCorrect && styles.optionButtonCorrect,
+                              showResult && isSelected && !isCorrect && styles.optionButtonWrong,
+                            ]}
+                            onPress={() => handleAnswerSelect(question.id, optIndex)}
+                            disabled={quizSubmitted}
+                          >
+                            <Text
+                              style={[
+                                styles.optionText,
+                                isSelected && styles.optionTextSelected,
+                              ]}
+                            >
+                              {option}
+                            </Text>
+                            {showResult && isCorrect && <Text style={styles.checkmark}>✓</Text>}
+                            {showResult && isSelected && !isCorrect && <Text style={styles.cross}>✗</Text>}
+                          </TouchableOpacity>
+                        );
+                      })}
+
+                      {quizSubmitted && (
+                        <View style={styles.explanationBox}>
+                          <Text style={styles.explanationText}>{question.explanation}</Text>
+                        </View>
+                      )}
+                    </VStack>
+                  </Card>
+                ))}
+
+                {quizSubmitted && (
+                  <Card variant="gradient" size="md">
+                    <VStack gap={3} style={{ padding: 20, alignItems: 'center' }}>
+                      <Text style={styles.scoreTitle}>
+                        {quizScore >= (quiz?.passingScore || 70) ? '🎉 Passed!' : '📚 Try Again'}
+                      </Text>
+                      <Text style={styles.scoreValue}>{quizScore}%</Text>
+                      <Text style={styles.scoreText}>
+                        {quizScore >= (quiz?.passingScore || 70)
+                          ? 'Congratulations! You\'ve completed this lesson.'
+                          : 'Review the material and try again.'}
+                      </Text>
+                    </VStack>
+                  </Card>
+                )}
+              </VStack>
+            </Animated.View>
+          )}
+
+          {/* Navigation Buttons */}
+          {!showQuiz && (
+            <Animated.View entering={FadeInDown.delay(200).duration(500)}>
+              <View style={styles.navigationButtons}>
+                <TouchableOpacity
+                  style={[styles.navButton, currentSection === 0 && styles.navButtonDisabled]}
+                  onPress={handlePrevious}
+                  disabled={currentSection === 0}
+                >
+                  <Text style={styles.navButtonText}>← Previous</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity style={styles.navButton} onPress={handleNext}>
+                  <Text style={styles.navButtonText}>
+                    {currentSection < lesson.content.length - 1 ? 'Next →' : 'Finish →'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </Animated.View>
+          )}
+
+          {/* Quiz Buttons */}
+          {showQuiz && (
+            <Animated.View entering={FadeInDown.delay(200).duration(500)}>
+              {!quizSubmitted ? (
+                <TouchableOpacity
+                  style={[
+                    styles.submitButton,
+                    Object.keys(selectedAnswers).length !== quiz?.questions.length &&
+                      styles.submitButtonDisabled,
+                  ]}
+                  onPress={handleQuizSubmit}
+                  disabled={Object.keys(selectedAnswers).length !== quiz?.questions.length}
+                >
+                  <Text style={styles.submitButtonText}>Submit Quiz</Text>
+                </TouchableOpacity>
+              ) : (
+                <VStack gap={2}>
+                  {quizScore < (quiz?.passingScore || 70) && (
+                    <TouchableOpacity style={styles.retryButton} onPress={handleQuizRetry}>
+                      <Text style={styles.retryButtonText}>🔄 Retry Quiz</Text>
+                    </TouchableOpacity>
+                  )}
+                  <TouchableOpacity style={styles.continueButton} onPress={() => router.back()}>
+                    <Text style={styles.continueButtonText}>Continue</Text>
+                  </TouchableOpacity>
+                </VStack>
+              )}
+            </Animated.View>
+          )}
+        </VStack>
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#0F172A',
+  },
+  scrollContent: {
+    paddingBottom: 40,
+  },
+  content: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
+  },
+  backButton: {
+    marginBottom: 12,
+  },
+  backText: {
+    fontSize: 16,
+    color: '#667EEA',
+    fontWeight: '600',
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  progressContainer: {
+    marginTop: 8,
+  },
+  progressBarContainer: {
+    height: 8,
+    backgroundColor: '#1E293B',
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  progressBar: {
+    height: '100%',
+    backgroundColor: '#667EEA',
+  },
+  progressText: {
+    fontSize: 12,
+    color: '#94A3B8',
+    textAlign: 'center',
+    marginTop: 8,
+  },
+  contentTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    marginBottom: 12,
+  },
+  contentText: {
+    fontSize: 16,
+    color: '#CBD5E1',
+    lineHeight: 24,
+  },
+  videoPlaceholder: {
+    height: 200,
+    backgroundColor: '#1E293B',
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  videoText: {
+    fontSize: 24,
+    color: '#94A3B8',
+    marginBottom: 8,
+  },
+  videoUrl: {
+    fontSize: 12,
+    color: '#64748B',
+    fontFamily: 'monospace',
+  },
+  diagramPlaceholder: {
+    height: 240,
+    backgroundColor: '#1E293B',
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  diagramText: {
+    fontSize: 24,
+    color: '#94A3B8',
+    marginBottom: 8,
+  },
+  fenText: {
+    fontSize: 10,
+    color: '#64748B',
+    fontFamily: 'monospace',
+  },
+  interactivePlaceholder: {
+    minHeight: 200,
+    backgroundColor: '#1E293B',
+    borderRadius: 12,
+    padding: 20,
+  },
+  interactiveText: {
+    fontSize: 20,
+    color: '#94A3B8',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  instructionText: {
+    fontSize: 14,
+    color: '#CBD5E1',
+    lineHeight: 20,
+  },
+  navigationButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  navButton: {
+    flex: 1,
+    backgroundColor: '#667EEA',
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  navButtonDisabled: {
+    backgroundColor: '#1E293B',
+    opacity: 0.5,
+  },
+  navButtonText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+  },
+  quizTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+  },
+  quizSubtitle: {
+    fontSize: 14,
+    color: '#94A3B8',
+    marginTop: 4,
+  },
+  questionNumber: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#667EEA',
+    textTransform: 'uppercase',
+  },
+  questionText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    lineHeight: 22,
+  },
+  optionButton: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 14,
+    backgroundColor: '#1E293B',
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: '#334155',
+  },
+  optionButtonSelected: {
+    borderColor: '#667EEA',
+    backgroundColor: '#334155',
+  },
+  optionButtonCorrect: {
+    borderColor: '#10B981',
+    backgroundColor: '#065F46',
+  },
+  optionButtonWrong: {
+    borderColor: '#EF4444',
+    backgroundColor: '#7F1D1D',
+  },
+  optionText: {
+    fontSize: 14,
+    color: '#94A3B8',
+    flex: 1,
+  },
+  optionTextSelected: {
+    color: '#FFFFFF',
+    fontWeight: '600',
+  },
+  checkmark: {
+    fontSize: 20,
+    color: '#10B981',
+  },
+  cross: {
+    fontSize: 20,
+    color: '#EF4444',
+  },
+  explanationBox: {
+    padding: 12,
+    backgroundColor: '#1E293B',
+    borderRadius: 8,
+    borderLeftWidth: 3,
+    borderLeftColor: '#667EEA',
+  },
+  explanationText: {
+    fontSize: 14,
+    color: '#CBD5E1',
+    lineHeight: 20,
+  },
+  scoreTitle: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+  },
+  scoreValue: {
+    fontSize: 48,
+    fontWeight: 'bold',
+    color: '#667EEA',
+  },
+  scoreText: {
+    fontSize: 16,
+    color: '#94A3B8',
+    textAlign: 'center',
+  },
+  submitButton: {
+    backgroundColor: '#667EEA',
+    padding: 18,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  submitButtonDisabled: {
+    opacity: 0.5,
+  },
+  submitButtonText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+  },
+  retryButton: {
+    backgroundColor: '#F59E0B',
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  retryButtonText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+  },
+  continueButton: {
+    backgroundColor: 'transparent',
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#667EEA',
+  },
+  continueButtonText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#667EEA',
+  },
+  loader: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loaderText: {
+    fontSize: 16,
+    color: '#94A3B8',
+  },
+});

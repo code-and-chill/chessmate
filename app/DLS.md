@@ -1376,6 +1376,457 @@ export const UpdateScoresForm = () => {
 
 ---
 
+## Feature Screen Layout Pattern (Standardized)
+
+### Overview
+
+A consistent, modern pattern for all feature screens in the app. This pattern provides a unified UX across Play, Puzzle, Learn, Social, and Settings tabs. Uses theme system for dynamic colors that adapt to light/dark mode.
+
+### Core Pattern Elements
+
+#### 1. Hub View Structure
+
+```typescript
+// Pattern: Hub view with interactive cards
+
+export default function TabScreen() {
+  const [mode, setMode] = useState<Mode>('hub');
+  
+  if (mode === 'hub') {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.gradientBg} />
+        <VStack gap={8} style={styles.content}>
+          {/* Header */}
+          <Animated.View entering={FadeInUp.duration(400).delay(100)}>
+            <VStack gap={3} style={styles.headerSection}>
+              <Text style={styles.title}>Screen Title</Text>
+              <Text style={styles.subtitle}>Descriptive subtitle</Text>
+            </VStack>
+          </Animated.View>
+
+          {/* Optional Stats Row */}
+          <Animated.View entering={FadeInDown.duration(400).delay(150)}>
+            <HStack gap={3} style={styles.statsRow}>
+              <Card variant="elevated" size="sm" style={styles.statCard}>
+                <Text style={styles.statValue}>🔥 7</Text>
+                <Text style={styles.statLabel}>Streak</Text>
+              </Card>
+            </HStack>
+          </Animated.View>
+
+          {/* Main Cards */}
+          <VStack gap={4} style={styles.cardsContainer}>
+            <Animated.View entering={FadeInDown.duration(500).delay(200)}>
+              <Card variant="elevated" size="lg" hoverable pressable>
+                <TouchableOpacity
+                  style={styles.modeCardInner}
+                  onPress={() => setMode('detail')}
+                  activeOpacity={0.9}
+                >
+                  <Text style={styles.modeIcon}>🎯</Text>
+                  <VStack gap={1} style={{ flex: 1 }}>
+                    <Text style={styles.modeTitle}>Feature Title</Text>
+                    <Text style={styles.modeDescription}>Description text</Text>
+                    <Text style={styles.cardProgress}>Progress info</Text>
+                  </VStack>
+                </TouchableOpacity>
+              </Card>
+            </Animated.View>
+          </VStack>
+        </VStack>
+      </SafeAreaView>
+    );
+  }
+  
+  // Detail views...
+}
+```
+
+#### 2. Standardized Styles
+
+```typescript
+const styles = StyleSheet.create({
+  // Container
+  container: {
+    flex: 1,
+    backgroundColor: '#F8F9FA',
+    position: 'relative',
+  },
+  gradientBg: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: '#F8F9FA',
+  },
+  
+  // Content Layout
+  content: {
+    flex: 1,
+    padding: 24,
+    justifyContent: 'center',
+    maxWidth: 600,
+    alignSelf: 'center',
+    width: '100%',
+  },
+  
+  // Header Section
+  headerSection: {
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  title: {
+    fontSize: 36,
+    fontWeight: '800',
+    color: '#667EEA',
+    textAlign: 'center',
+    letterSpacing: -0.5,
+  },
+  subtitle: {
+    fontSize: 17,
+    color: '#6B7280',
+    textAlign: 'center',
+    lineHeight: 24,
+    fontWeight: '500',
+  },
+  
+  // Stats Row (Optional)
+  statsRow: {
+    width: '100%',
+  },
+  statCard: {
+    flex: 1,
+    alignItems: 'center',
+    padding: 16,
+  },
+  statValue: {
+    fontSize: 24,
+    fontWeight: '700',
+    marginBottom: 4,
+    color: '#667EEA',
+  },
+  statLabel: {
+    fontSize: 13,
+    color: '#6B7280',
+    fontWeight: '500',
+  },
+  
+  // Cards Container
+  cardsContainer: {
+    width: '100%',
+  },
+  modeCard: {
+    width: '100%',
+  },
+  modeCardInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 20,
+    padding: 4,
+  },
+  modeIcon: {
+    fontSize: 48,
+  },
+  modeTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1F2937',
+    marginBottom: 4,
+  },
+  modeDescription: {
+    fontSize: 15,
+    color: '#6B7280',
+    lineHeight: 20,
+  },
+  cardProgress: {
+    fontSize: 13,
+    color: '#667EEA',
+    fontWeight: '600',
+    marginTop: 4,
+  },
+  
+  // Detail Views
+  detailContent: {
+    padding: 20,
+  },
+  backButton: {
+    alignSelf: 'flex-start',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    marginBottom: 16,
+  },
+  backButtonText: {
+    fontSize: 16,
+    color: '#667EEA',
+    fontWeight: '600',
+  },
+  
+  // Loading State
+  loader: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F8F9FA',
+  },
+  loaderText: {
+    marginTop: 20,
+    fontSize: 17,
+    color: '#6B7280',
+    fontWeight: '500',
+  },
+});
+```
+
+#### 3. Animation Patterns
+
+```typescript
+// Staggered entrance animations
+<Animated.View entering={FadeInUp.duration(400).delay(100)}>
+  {/* Header */}
+</Animated.View>
+
+<Animated.View entering={FadeInDown.duration(400).delay(150)}>
+  {/* Stats */}
+</Animated.View>
+
+<Animated.View entering={FadeInDown.duration(500).delay(200)}>
+  {/* First Card */}
+</Animated.View>
+
+<Animated.View entering={FadeInDown.duration(500).delay(300)}>
+  {/* Second Card */}
+</Animated.View>
+
+// Pattern: Increment delay by 100ms for each subsequent card
+```
+
+#### 4. Required Imports
+
+```typescript
+import { useState } from 'react';
+import { StyleSheet, View, TouchableOpacity, Text, SafeAreaView, ActivityIndicator } from 'react-native';
+import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
+import { Card } from '@/ui/primitives/Card';
+import { VStack, HStack } from '@/ui';
+```
+
+### Design Specifications
+
+#### Color Palette
+- **Primary Accent**: `#667EEA` (Blue-Purple)
+- **Background**: `#F8F9FA` (Light Gray)
+- **Text Primary**: `#1F2937` (Dark Gray)
+- **Text Secondary**: `#6B7280` (Medium Gray)
+
+#### Typography Scale
+- **Title**: 36px, Weight 800, Letter-spacing -0.5
+- **Subtitle**: 17px, Weight 500, Line-height 24
+- **Card Title**: 20px, Weight 700
+- **Card Description**: 15px, Line-height 20
+- **Progress Text**: 13px, Weight 600
+
+#### Spacing
+- **Content Padding**: 24px
+- **Card Gap**: 16px (spacingTokens[4])
+- **Section Gap**: 32px (spacingTokens[8])
+- **Max Width**: 600px (centered)
+
+#### Card Specifications
+- **Variant**: `elevated` (default), `gradient` (for selected states)
+- **Size**: `lg` for main cards, `sm` for stat cards
+- **Props**: `hoverable`, `pressable`, `animated`
+- **Inner Padding**: 4px (allows content to breathe)
+
+### Usage Guidelines
+
+#### ✅ DO:
+- Use SafeAreaView for all tab screens
+- Center content with max-width 600px
+- Animate entries with staggered delays
+- Use Card components with proper variants
+- Include loading states with descriptive text
+- Follow the exact color palette
+- Maintain consistent spacing
+
+#### ❌ DON'T:
+- Hard-code colors (use theme tokens)
+- Skip animations on hub views
+- Use ScrollView on hub views (use SafeAreaView)
+- Create custom card styles (use Card component)
+- Forget to add activeOpacity={0.9} on TouchableOpacity
+- Use inline styles for layout (use StyleSheet)
+
+### Implementation Checklist
+
+- [ ] Import required components (SafeAreaView, Animated, Card, VStack)
+- [ ] Set up mode state management
+- [ ] Create hub view with centered content
+- [ ] Add header with title and subtitle
+- [ ] Add optional stats row with Card components
+- [ ] Create 3-4 main feature cards
+- [ ] Add staggered FadeIn animations (100ms increments)
+- [ ] Implement detail views with back button
+- [ ] Add loading state with spinner and text
+- [ ] Use standardized styles from pattern
+- [ ] Test on both iOS and Android
+- [ ] Verify responsive behavior
+
+### Reusable Components
+
+To reduce boilerplate and enforce consistency, use these components from `@/ui/components`:
+
+#### FeatureScreenLayout
+Container component with standardized layout, header, and animations. **Theme-aware** - automatically adapts colors to light/dark mode.
+
+```typescript
+import { FeatureScreenLayout, FeatureCard, StatCard } from '@/ui/components';
+
+<FeatureScreenLayout
+  title="Play Chess"
+  subtitle="Choose your game mode to get started"
+  statsRow={
+    <HStack gap={3}>
+      <StatCard value="🔥 7" label="Day Streak" />
+      <StatCard value="⚡ 1450" label="Rating" />
+    </HStack>
+  }
+>
+  <FeatureCard
+    icon="🌐"
+    title="Online Play"
+    description="Find opponents worldwide"
+    progress="1245 rating • 34 games"
+    onPress={() => setMode('online')}
+    delay={200}
+  />
+  {/* More cards... */}
+</FeatureScreenLayout>
+```
+
+#### FeatureCard
+Interactive card with icon, title, description, and optional progress text. **Theme-aware** - colors adapt automatically.
+
+**Props:**
+- `icon`: Emoji string (e.g., "🌐")
+- `title`: Card title
+- `description`: Descriptive text
+- `progress?`: Optional progress/info text
+- `onPress`: Press handler
+- `delay?`: Animation delay (stagger by 100ms)
+- `variant?`: "elevated" (default) or "gradient"
+
+#### StatCard
+Stat display card for metrics row. **Theme-aware** - uses accent color from theme.
+
+**Props:**
+- `value`: Display value (can include emoji)
+- `label`: Label text below value
+
+### Before/After Comparison
+
+**Before (Manual Implementation - 150+ lines):**
+```typescript
+export default function PlayTab() {
+  const [mode, setMode] = useState<PlayMode>('hub');
+
+  if (mode === 'hub') {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.gradientBg} />
+        <VStack gap={8} style={styles.content}>
+          <Animated.View entering={FadeInUp.duration(400).delay(100)}>
+            <VStack gap={3} style={styles.headerSection}>
+              <Text style={styles.title}>Play Chess</Text>
+              <Text style={styles.subtitle}>Choose your game mode</Text>
+            </VStack>
+          </Animated.View>
+          
+          <VStack gap={4} style={styles.cardsContainer}>
+            <Animated.View entering={FadeInDown.duration(500).delay(200)}>
+              <Card variant="elevated" size="lg" hoverable pressable>
+                <TouchableOpacity style={styles.modeCardInner} onPress={() => setMode('online')}>
+                  <Text style={styles.modeIcon}>🌐</Text>
+                  <VStack gap={1}>
+                    <Text style={styles.modeTitle}>Online Play</Text>
+                    <Text style={styles.modeDescription}>Find opponents worldwide</Text>
+                  </VStack>
+                </TouchableOpacity>
+              </Card>
+            </Animated.View>
+            {/* Repeat for each card... */}
+          </VStack>
+        </VStack>
+      </SafeAreaView>
+    );
+  }
+  // ... rest of component
+}
+
+// 90+ lines of StyleSheet definitions...
+```
+
+**After (Component-Based - 30 lines):**
+```typescript
+import { TabHubScreen, TabHubCard } from '@/ui/components';
+
+export default function PlayTab() {
+  const [mode, setMode] = useState<PlayMode>('hub');
+
+  if (mode === 'hub') {
+    return (
+      <TabHubScreen
+        title="Play Chess"
+        subtitle="Choose your game mode to get started"
+      >
+        <TabHubCard
+          icon="🌐"
+          title="Online Play"
+          description="Find opponents worldwide"
+          onPress={() => setMode('online')}
+          delay={200}
+        />
+        <TabHubCard
+          icon="🤖"
+          title="Play vs Bot"
+          description="Practice with AI opponents"
+          onPress={() => setMode('bot')}
+          delay={300}
+        />
+        <TabHubCard
+          icon="👥"
+          title="Play with Friend"
+          description="Challenge your friends"
+          onPress={() => setMode('friend')}
+          delay={400}
+        />
+      </TabHubScreen>
+    );
+  }
+  // ... rest of component
+}
+
+// No StyleSheet needed! ✨
+```
+
+**Benefits:**
+- ✅ **80% less boilerplate** (150 lines → 30 lines)
+- ✅ **100% consistent** (enforces DLS standards)
+- ✅ **Type-safe** (TypeScript props validation)
+- ✅ **Easy to maintain** (change once, apply everywhere)
+- ✅ **Self-documenting** (clear prop names)
+
+### Examples in Codebase
+
+Reference implementations:
+- **Play Tab**: `app/(tabs)/index.tsx` - Full pattern with time controls
+- **Puzzle Tab**: `app/(tabs)/explore.tsx` - Simple 3-card layout
+- **Learn Tab**: `app/(tabs)/learn.tsx` - With stats row
+
+**Component Source:**
+- `ui/components/FeatureScreenLayout.tsx` - Container component (theme-aware)
+- `ui/components/FeatureCard.tsx` - Card component (theme-aware)
+- `ui/components/StatCard.tsx` - Stat card component (theme-aware)
+
+---
+
 ## Key Design Principles
 
 1. **Minimal & Elegant**: ShadCN-style neutral palette with strategic accent colors
@@ -1385,6 +1836,7 @@ export const UpdateScoresForm = () => {
 5. **Mobile-First**: Optimized for touch interactions and screen sizes
 6. **Accessible**: Semantic HTML-like structure, readable typography
 7. **Performant**: React.forwardRef, memoization, minimal re-renders
+8. **Consistent**: Tab Screen Pattern ensures unified UX across all screens
 
 ---
 

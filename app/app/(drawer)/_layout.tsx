@@ -40,14 +40,6 @@ export default function DrawerLayout() {
         }}
       />
       <Drawer.Screen
-        name="watch"
-        options={{
-          title: 'Watch',
-          drawerIcon: ({ color, size }) => <IconSymbol size={size} name="play.rectangle.fill" color={color} />,
-          headerTitle: 'Watch & Streams',
-        }}
-      />
-      <Drawer.Screen
         name="social"
         options={{
           title: 'Social',

@@ -1,10 +1,23 @@
-import React, { useState } from 'react';
-import { ScrollView } from 'react-native';
+import { useState, useCallback } from 'react';
+import { Dimensions } from 'react-native';
+import Animated, { FadeInUp } from 'react-native-reanimated';
 import { ChessBoard } from '@/features/board';
-import { MoveList, PlayerPanel, GameActions } from '@/features/game';
+import { 
+  MoveList, 
+  PlayerCard, 
+  GameActions, 
+  GameHeaderCard,
+  PawnPromotionModal,
+  type PieceType 
+} from '@/features/game';
 import { createPlayScreenConfig, getHydratedBoardProps, type PlayScreenConfig } from '@/features/board/config';
 import { isCheckmate, isStalemate, parseFENToBoard, applyMoveToFENSimple, type Board } from '@/core/utils';
-import { Box, VStack, HStack, Text, Button, useColors } from '@/ui';
+import { useReducedMotion } from '@/features/board/hooks/useReducedMotion';
+import { Box } from '@/ui/primitives/Box';
+import { VStack } from '@/ui/primitives/Stack';
+import { Card } from '@/ui/primitives/Card';
+import { useThemeTokens } from '@/ui/hooks/useThemeTokens';
+import { spacingTokens } from '@/ui/tokens/spacing';
 
 // Move application now handled by engine util: applyMoveToFENSimple
 
@@ -21,12 +34,14 @@ interface PuzzlePlayScreenProps {
  * Currently a placeholder showing puzzle information.
  */
 export const PuzzlePlayScreen = ({
-  puzzleId,
-  onComplete,
+  puzzleId: _puzzleId,
+  onComplete: _onComplete,
   screenConfig,
 }: PuzzlePlayScreenProps) => {
+  const { colors } = useThemeTokens();
   const screenConfigObj = createPlayScreenConfig(screenConfig);
-  const [status, setStatus] = useState('');
+  const reduceMotion = useReducedMotion();
+  
   const [error] = useState<string | null>(null);
   const [puzzleState, setPuzzleState] = useState({
     status: 'in_progress' as 'in_progress' | 'ended',
@@ -36,14 +51,47 @@ export const PuzzlePlayScreen = ({
     endReason: '',
   });
 
-  const handleMove = (from: string, to: string) => {
+  // Promotion modal state
+  const [promotionState, setPromotionState] = useState({
+    isVisible: false,
+    move: null as { from: string; to: string } | null,
+  });
+
+  // Calculate board size (screen width - padding, max 420px)
+  const BOARD_SIZE = Math.min(Dimensions.get('window').width - 48, 420);
+
+  /**
+   * Check if a move requires pawn promotion
+   */
+  const checkPromotion = useCallback((from: string, to: string, fen: string, sideToMove: 'w' | 'b'): boolean => {
+    const board = parseFENToBoard(fen);
+    const fromSquare = board.find(p => p.square === from);
+    
+    if (!fromSquare || fromSquare.type !== 'p') return false;
+    
+    const toRank = to[1];
+    const isPromotion = (sideToMove === 'w' && toRank === '8') || (sideToMove === 'b' && toRank === '1');
+    
+    return isPromotion;
+  }, []);
+
+  /**
+   * Handle move from the chess board
+   * Checks for pawn promotion before making the move
+   */
+  const handleMove = useCallback((from: string, to: string, promotion?: PieceType) => {
+    const needsPromotion = checkPromotion(from, to, puzzleState.fen, puzzleState.sideToMove);
+
+    if (needsPromotion && !promotion) {
+      setPromotionState({ isVisible: true, move: { from, to } });
+      return;
+    }
+
     const newMoveNumber = puzzleState.moves.length + 1;
     const playerColor = puzzleState.sideToMove === 'w' ? 'White' : 'Black';
-    const moveAlgebraic = `${from}${to}`;
+    const moveAlgebraic = `${from}${to}${promotion || ''}`;
     
-    console.log(`
-[PUZZLE_SCREEN] Move #${newMoveNumber}: ${playerColor} moves ${from} → ${to}`);
-    console.log(`[PUZZLE_SCREEN] Side to move BEFORE: ${puzzleState.sideToMove}`);
+    console.log(`[PUZZLE_SCREEN] Move #${newMoveNumber}: ${playerColor} moves ${from} → ${to}`);
     
     // Determine the next side to move
     const nextSideToMove = puzzleState.sideToMove === 'w' ? 'b' : 'w';
@@ -90,158 +138,131 @@ export const PuzzlePlayScreen = ({
 
     console.log(`[PUZZLE_SCREEN] Side to move AFTER: ${nextSideToMove}`);
     console.log(`[PUZZLE_SCREEN] Total moves: ${updatedMoves.length}`);
-  };
+  }, [puzzleState, checkPromotion]);
 
-  const handleSubmit = () => {
-    setStatus('Puzzle submitted!');
-    if (onComplete) {
-      onComplete({
-        puzzleId,
-        status: 'success',
-        timestamp: new Date().toISOString(),
-      });
-    }
-  };
+  /**
+   * Handle pawn promotion selection
+   */
+  const handlePawnPromotion = useCallback((piece: PieceType) => {
+    if (!promotionState.move) return;
 
-  const colors = useColors();
+    const { from, to } = promotionState.move;
+    handleMove(from, to, piece);
+    setPromotionState({ isVisible: false, move: null });
+  }, [promotionState.move, handleMove]);
+
+  /**
+   * Create animation configuration based on accessibility
+   */
+  const createAnimConfig = useCallback(
+    (delay: number) => (reduceMotion ? undefined : FadeInUp.duration(250).delay(delay)),
+    [reduceMotion]
+  );
+
+  // Board props matching PlayScreen structure
+  const boardProps = {
+    ...getHydratedBoardProps(screenConfigObj),
+    fen: puzzleState.fen,
+    sideToMove: puzzleState.sideToMove,
+    myColor: puzzleState.sideToMove,
+    orientation: (puzzleState.sideToMove === 'w' ? 'white' : 'black') as 'white' | 'black',
+    isInteractive: puzzleState.status === 'in_progress',
+    onMove: handleMove,
+  };
 
   if (error) {
     return (
-      <Box flex={1} backgroundColor={colors.background.primary} style={{ justifyContent: 'center', alignItems: 'center', padding: 20 }}>
-        <Text variant="body" color={colors.error} style={{ textAlign: 'center' }}>
-          {error}
-        </Text>
+      <Box flex={1} style={{ backgroundColor: colors.background.primary, justifyContent: 'center', alignItems: 'center', padding: spacingTokens[5] }}>
+        <Card variant="elevated" size="md">
+          <VStack gap={spacingTokens[3]} style={{ alignItems: 'center' }}>
+            <Text variant="body" style={{ color: colors.status.error, textAlign: 'center' }}>
+              {error}
+            </Text>
+          </VStack>
+        </Card>
       </Box>
     );
   }
 
   return (
-    <Box flex={1} backgroundColor={colors.background.primary}>
-      <ScrollView
-        style={{ flex: 1 }}
-        contentContainerStyle={{ padding: 16, paddingBottom: 20 }}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Header */}
-        <VStack gap={2} style={{ marginBottom: 24 }}>
-          <Text variant="heading" color={colors.foreground.primary}>
-            Daily Puzzle
-          </Text>
-          <Text
-            variant="caption"
-            color={colors.foreground.tertiary}
-            style={{ fontFamily: 'monospace' }}
-          >
-            Puzzle ID: {puzzleId}
-          </Text>
-        </VStack>
-
-        {/* Puzzle Author Panel */}
-        <PlayerPanel
-          position="top"
-          color="b"
-          isSelf={false}
-          isActive={puzzleState.sideToMove === 'b'}
-          remainingMs={0}
-          accountId="puzzle_author"
+    <Box flex={1} style={{ backgroundColor: colors.background.primary, padding: spacingTokens[4] }}>
+      <VStack flex={1} gap={spacingTokens[4]}>
+        {/* Game Header */}
+        <GameHeaderCard
+          status={puzzleState.status === 'in_progress' ? 'live' : 'ended'}
+          gameMode="Puzzle"
+          timeControl={`Rating: 1200`}
+          isRated={false}
         />
 
-        {/* Chess Board */}
-        <Box
-          padding={3}
-          backgroundColor={colors.background.secondary}
-          radius="md"
-          style={{ alignItems: 'center', marginBottom: 20 }}
-        >
-          <ChessBoard
-            {...getHydratedBoardProps(screenConfigObj)}
-            fen={puzzleState.fen}
-            sideToMove={puzzleState.sideToMove}
-            myColor={puzzleState.sideToMove}
-            isInteractive={puzzleState.status === 'in_progress'}
-            onMove={handleMove}
-          />
-        </Box>
+        {/* Main Game Area: Left Column (Players + Board + Actions) + Right Column (Move List) */}
+        <Box style={{ flexDirection: 'row', flex: 1, gap: spacingTokens[4] }}>
+          {/* Left Column - 50% */}
+          <VStack flex={1} gap={spacingTokens[4]}>
+            {/* Top Player Card (Puzzle Author/Opponent) */}
+            <Animated.View entering={createAnimConfig(0)}>
+              <PlayerCard
+                color="b"
+                name="Puzzle"
+                rating={1200}
+                isSelf={false}
+                isActive={puzzleState.sideToMove === 'b'}
+                remainingMs={0}
+                capturedPieces={[]}
+              />
+            </Animated.View>
 
-        {/* Self Panel */}
-        <PlayerPanel
-          position="bottom"
-          color="w"
-          isSelf={true}
-          isActive={puzzleState.sideToMove === 'w'}
-          remainingMs={0}
-          accountId="you123"
-        />
+            {/* Chess Board */}
+            <Animated.View entering={createAnimConfig(50)} style={{ alignItems: 'center' }}>
+              <Card variant="elevated" size="md" padding={0}>
+                <ChessBoard
+                  {...boardProps}
+                  size={BOARD_SIZE}
+                  squareSize={BOARD_SIZE / 8}
+                />
+              </Card>
+            </Animated.View>
 
-        {/* Game Actions */}
-        <GameActions
-          status={puzzleState.status}
-          endReason={puzzleState.endReason}
-        />
+            {/* Bottom Player Card (You) */}
+            <Animated.View entering={createAnimConfig(150)}>
+              <PlayerCard
+                color="w"
+                name="You"
+                rating={0}
+                isSelf={true}
+                isActive={puzzleState.sideToMove === 'w'}
+                remainingMs={0}
+                capturedPieces={[]}
+              />
+            </Animated.View>
 
-        {/* Move List */}
-        <Box style={{ marginBottom: 16 }}>
-          <MoveList moves={puzzleState.moves} />
-        </Box>
-
-        {/* Puzzle Info */}
-        <Box
-          padding={3}
-          backgroundColor={colors.background.secondary}
-          radius="md"
-          style={{ marginBottom: 16 }}
-        >
-          <VStack gap={2}>
-            <HStack justifyContent="space-between">
-              <Text variant="body" color={colors.foreground.primary}>
-                Difficulty:
-              </Text>
-              <Text variant="body" color={colors.accent.primary} weight="600">
-                Medium
-              </Text>
-            </HStack>
-            <HStack justifyContent="space-between">
-              <Text variant="body" color={colors.foreground.primary}>
-                Rating:
-              </Text>
-              <Text variant="body" color={colors.accent.primary} weight="600">
-                1200
-              </Text>
-            </HStack>
-            <Text variant="caption" color={colors.foreground.tertiary}>
-              Board Theme: {screenConfigObj.theme.boardTheme}
-            </Text>
-            <Text variant="caption" color={colors.foreground.tertiary}>
-              API Base: {screenConfigObj.apiBaseUrl}
-            </Text>
+            {/* Game Actions */}
+            <Animated.View entering={createAnimConfig(200)}>
+              <GameActions
+                status={puzzleState.status}
+                result={puzzleState.status === 'ended' ? '1-0' : undefined}
+                endReason={puzzleState.endReason}
+                sideToMove={puzzleState.sideToMove}
+              />
+            </Animated.View>
           </VStack>
-        </Box>
 
-        {/* Status Message */}
-        {status && (
-          <Box style={{ marginBottom: 16 }}>
-            <Text
-              variant="body"
-              color={colors.info}
-              style={{ textAlign: 'center' }}
-            >
-              {status}
-            </Text>
-          </Box>
-        )}
-
-        {/* Submit Button */}
-        <Box style={{ marginTop: 20, marginBottom: 20 }}>
-          <Button
-            variant="solid"
-            color="blue"
-            size="lg"
-            onPress={handleSubmit}
-          >
-            ✓ Submit Solution
-          </Button>
+          {/* Right Column - 50% - Full Height Move List */}
+          <Animated.View entering={createAnimConfig(100)} style={{ flex: 1 }}>
+            <Card variant="default" size="md" padding={0} style={{ flex: 1 }}>
+              <MoveList moves={puzzleState.moves} />
+            </Card>
+          </Animated.View>
         </Box>
-      </ScrollView>
+      </VStack>
+
+      {/* Pawn Promotion Modal */}
+      <PawnPromotionModal
+        visible={promotionState.isVisible}
+        color={puzzleState.sideToMove}
+        onSelect={handlePawnPromotion}
+        onCancel={() => setPromotionState({ isVisible: false, move: null })}
+      />
     </Box>
   );
 };

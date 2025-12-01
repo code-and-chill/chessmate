@@ -4,6 +4,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useApiClients } from './ApiContext';
 
 interface User {
   id: string;
@@ -17,6 +18,7 @@ interface AuthContextType {
   isLoading: boolean;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
+  register: (username: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshToken: () => Promise<void>;
 }
@@ -27,6 +29,7 @@ const AUTH_TOKEN_KEY = '@chess_auth_token';
 const AUTH_USER_KEY = '@chess_auth_user';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const { authApi } = useApiClients();
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -34,6 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Load saved auth state on mount
   useEffect(() => {
     loadAuthState();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadAuthState = async () => {
@@ -56,29 +60,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, password: string) => {
     try {
-      // TODO: Replace with actual API call
-      const mockResponse = {
-        token: 'mock_token_' + Date.now(),
-        user: {
-          id: '550e8400-e29b-41d4-a716-446655440000',
-          username: 'ChessPlayer2025',
-          email,
-        },
-      };
+      const response = await authApi.login(email, password);
 
-      await AsyncStorage.setItem(AUTH_TOKEN_KEY, mockResponse.token);
-      await AsyncStorage.setItem(AUTH_USER_KEY, JSON.stringify(mockResponse.user));
+      await AsyncStorage.setItem(AUTH_TOKEN_KEY, response.token);
+      await AsyncStorage.setItem(AUTH_USER_KEY, JSON.stringify(response.user));
 
-      setToken(mockResponse.token);
-      setUser(mockResponse.user);
+      setToken(response.token);
+      setUser(response.user);
     } catch (error) {
       console.error('Login failed:', error);
       throw error;
     }
   };
 
+  const register = async (username: string, email: string, password: string) => {
+    try {
+      const response = await authApi.register(username, email, password);
+
+      await AsyncStorage.setItem(AUTH_TOKEN_KEY, response.token);
+      await AsyncStorage.setItem(AUTH_USER_KEY, JSON.stringify(response.user));
+
+      setToken(response.token);
+      setUser(response.user);
+    } catch (error) {
+      console.error('Registration failed:', error);
+      throw error;
+    }
+  };
+
   const logout = async () => {
     try {
+      if (token) {
+        await authApi.logout(token);
+      }
       await AsyncStorage.multiRemove([AUTH_TOKEN_KEY, AUTH_USER_KEY]);
       setToken(null);
       setUser(null);
@@ -89,8 +103,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const refreshToken = async () => {
-    // TODO: Implement token refresh logic
-    console.log('Refreshing token...');
+    try {
+      if (!token) return;
+      
+      const response = await authApi.refreshToken(token);
+      await AsyncStorage.setItem(AUTH_TOKEN_KEY, response.token);
+      setToken(response.token);
+    } catch (error) {
+      console.error('Token refresh failed:', error);
+      // On refresh failure, logout
+      await logout();
+    }
   };
 
   const value: AuthContextType = {
@@ -99,6 +122,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isLoading,
     isAuthenticated: !!token && !!user,
     login,
+    register,
     logout,
     refreshToken,
   };

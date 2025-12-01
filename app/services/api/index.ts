@@ -11,22 +11,39 @@
  */
 
 // API Clients
+export { AuthApiClient } from './auth.api';
 export { PlayApiClient as GameApiClient } from './game.api';
 export { LiveGameApiClient } from './live-game.api';
 export { PuzzleApiClient } from './puzzle.api';
 export { AccountApiClient } from './account.api';
 export { MatchmakingApiClient } from './matchmaking.api';
 export { RatingApiClient } from './rating.api';
+export { LearningApiClient } from './learning.api';
+export { SocialApiClient } from './social.api';
 
 // Types (re-export from API clients)
+export type { AuthResponse, LoginRequest, RegisterRequest } from './auth.api';
 export type { CreateGameRequest, JoinGameRequest } from './game.api';
 export type { PuzzleAttempt, PuzzleAttemptResponse } from './puzzle.api';
+export type { 
+  Lesson, 
+  LessonContent, 
+  Quiz, 
+  QuizQuestion, 
+  LessonProgress, 
+  LearningStats, 
+  QuizSubmission 
+} from './learning.api';
 
 // Mock clients for testing
 export { 
+  MockAuthApiClient,
   MockAccountApiClient, 
   MockRatingApiClient, 
-  MockMatchmakingApiClient 
+  MockMatchmakingApiClient,
+  MockLearningApiClient,
+  MockSocialApiClient,
+  MockLiveGameApiClient
 } from './mock-clients';
 
 // API Client instances (using mock for development)

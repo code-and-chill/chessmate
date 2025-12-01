@@ -74,4 +74,44 @@ export class LiveGameApiClient {
   async resign(gameId: string): Promise<GameState> {
     return this.request<GameState>('POST', `/v1/games/${gameId}/resign`, {});
   }
+
+  /**
+   * Create a bot game
+   */
+  async createBotGame(
+    userId: string,
+    difficulty: string,
+    playerColor: 'white' | 'black'
+  ): Promise<{ gameId: string }> {
+    return this.request<{ gameId: string }>('POST', '/v1/games/bot', {
+      userId,
+      difficulty,
+      playerColor,
+    });
+  }
+
+  /**
+   * Create a friend game
+   */
+  async createFriendGame(
+    creatorId: string,
+    timeControl: string,
+    playerColor: 'white' | 'black'
+  ): Promise<{ gameId: string; inviteCode: string }> {
+    return this.request<{ gameId: string; inviteCode: string }>('POST', '/v1/games/friend', {
+      creatorId,
+      timeControl,
+      playerColor,
+    });
+  }
+
+  /**
+   * Join a friend game via invite code
+   */
+  async joinFriendGame(userId: string, inviteCode: string): Promise<{ gameId: string }> {
+    return this.request<{ gameId: string }>('POST', '/v1/games/friend/join', {
+      userId,
+      inviteCode,
+    });
+  }
 }

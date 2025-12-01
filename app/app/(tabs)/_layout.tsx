@@ -29,13 +29,6 @@ const sidebarItems: SidebarItem[] = [
     headerTitle: 'Lessons & Tactics',
   },
   {
-    id: 'watch',
-    title: 'Watch',
-    icon: 'play.rectangle.fill',
-    route: '/watch',
-    headerTitle: 'Watch & Streams',
-  },
-  {
     id: 'social',
     title: 'Social',
     icon: 'person.2.fill',
@@ -116,7 +109,6 @@ export default function TabLayout() {
           <Stack.Screen name="index" options={{ title: 'Live Chess' }} />
           <Stack.Screen name="explore" options={{ title: 'Daily Puzzle' }} />
           <Stack.Screen name="learn" options={{ title: 'Lessons & Tactics' }} />
-          <Stack.Screen name="watch" options={{ title: 'Watch & Streams' }} />
           <Stack.Screen name="social" options={{ title: 'Friends & Clubs' }} />
           <Stack.Screen name="settings" options={{ title: 'Settings' }} />
         </Stack>
