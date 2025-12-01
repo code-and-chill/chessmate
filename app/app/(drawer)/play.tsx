@@ -1,5 +1,10 @@
-import { Redirect } from 'expo-router';
+/**
+ * Play Drawer Route
+ * app/(drawer)/play.tsx
+ */
 
-export default function PlayRedirect() {
-  return <Redirect href="/(tabs)/index" />;
+import { PlayScreen } from '@/features/play';
+
+export default function PlayDrawer() {
+  return <PlayScreen />;
 }

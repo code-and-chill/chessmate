@@ -1,5 +1,10 @@
-import { Redirect } from 'expo-router';
+/**
+ * Social Drawer Route
+ * app/(drawer)/social.tsx
+ */
 
-export default function SocialRedirect() {
-  return <Redirect href="/(tabs)/social" />;
+import { SocialScreen } from '@/features/social';
+
+export default function SocialDrawer() {
+  return <SocialScreen />;
 }
