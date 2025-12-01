@@ -62,6 +62,8 @@ export { NavigationSidebar } from './navigation/NavigationSidebar';
 export type { NavigationSidebarProps } from './navigation/NavigationSidebar';
 export { BottomNav } from './navigation/BottomNav';
 export type { NavItem } from './navigation/BottomNav';
+export { Sidebar } from './components/Sidebar';
+export type { SidebarProps, SidebarItem } from './components/Sidebar';
 
 // Re-export modals
 export { QuickStartModal } from './modals/QuickStartModal';
