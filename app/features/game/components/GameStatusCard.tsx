@@ -29,7 +29,7 @@ export const GameStatusCard: React.FC<GameStatusCardProps> = ({
   return (
     <Card variant="default" size="md" padding={16}>
       <VStack gap={spacingTokens[2]}>
-        <Text variant="subheading" weight="semibold" style={{ fontSize: 16 }}>
+        <Text variant="titleSmall" weight="semibold" style={{ fontSize: 16 }}>
           Game Status
         </Text>
         

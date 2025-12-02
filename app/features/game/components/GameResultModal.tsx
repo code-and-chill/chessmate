@@ -78,7 +78,7 @@ export const GameResultModal = ({
               </Badge>
 
               <Text
-                variant="heading"
+                variant="title"
                 weight="bold"
                 color={colors.foreground.primary}
                 style={{ fontSize: 32, textAlign: 'center' }}

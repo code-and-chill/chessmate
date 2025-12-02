@@ -6,6 +6,19 @@ export { radiusTokens, radiusScale } from './tokens/radii';
 export { shadowTokens } from './tokens/shadows';
 export { motionTokens, microInteractions } from './tokens/motion';
 export { boardThemes, defaultTheme, getBoardTheme, getAllThemes, getAllThemeIds, type BoardTheme, type BoardThemeId } from './tokens/board-themes';
+export {
+  breakpointValues,
+  getCurrentBreakpoint,
+  isBreakpoint,
+  deviceType,
+  responsive,
+  gridColumns,
+  getGridColumns,
+  containerMaxWidth,
+  getContainerMaxWidth,
+  getSpacingMultiplier,
+  type Breakpoint,
+} from './tokens/breakpoints';
 
 // Re-export all primitive components
 export { Box } from './primitives/Box';
@@ -34,6 +47,31 @@ export type { ToastType, ToastProps } from './primitives/Toast';
 export { LoadingOverlay } from './primitives/LoadingOverlay';
 export type { LoadingOverlayProps } from './primitives/LoadingOverlay';
 
+// Re-export new primitive components (DLS)
+export { Modal } from './primitives/Modal';
+export type { ModalProps, ModalSize, ModalPlacement } from './primitives/Modal';
+export { List, ListItem, ListSection } from './primitives/List';
+export type { ListItemProps, ListProps, ListSectionProps } from './primitives/List';
+export { Container } from './primitives/Container';
+export { Grid } from './primitives/Grid';
+
+// Re-export component state system (DLS)
+export {
+  EmptyState,
+  LoadingState,
+  ErrorState,
+  SkeletonLoader,
+  SkeletonCard,
+  ComponentStateManager,
+} from './primitives/ComponentStates';
+export type {
+  ComponentState,
+  EmptyStateProps,
+  LoadingStateProps,
+  ErrorStateProps,
+  ComponentStateManagerProps,
+} from './primitives/ComponentStates';
+
 // Re-export chess-specific components
 export { MatchCard } from './components/MatchCard';
 export { ScoreInput } from './components/ScoreInput';
@@ -45,9 +83,32 @@ export { StatusBadge } from './components/StatusBadge';
 export type { GameStatus } from './components/StatusBadge';
 export { BoardThemeSelector } from './components/BoardThemeSelector';
 
+// Re-export new chess components (DLS)
+export { GameCard } from './components/chess/GameCard';
+export type { GameCardProps, Player, GameResult } from './components/chess/GameCard';
+export { EvaluationBar } from './components/chess/EvaluationBar';
+export type { EvaluationBarProps } from './components/chess/EvaluationBar';
+export { MoveList } from './components/chess/MoveList';
+export type { Move } from './components/chess/MoveList';
+export { GameClock } from './components/chess/GameClock';
+export { ResultDialog } from './components/chess/ResultDialog';
+export type { GameResult as ResultType, ResultReason } from './components/chess/ResultDialog';
+
 // Re-export theme system
 export { ThemeProvider } from './theme/ThemeProvider';
 export { useThemeTokens, useColors, useIsDark, ThemeContext } from './hooks/useThemeTokens';
+
+// Re-export responsive hooks
+export {
+  useBreakpoint,
+  useMediaQuery,
+  useDeviceType,
+  useResponsive,
+  useGridColumns,
+  useContainerMaxWidth,
+  useSpacingMultiplier,
+  useScreenDimensions,
+} from './hooks/useResponsive';
 
 // Re-export animation utilities
 export { animations } from './utilities/animations';

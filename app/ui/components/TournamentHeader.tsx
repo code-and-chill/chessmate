@@ -26,7 +26,7 @@ export const TournamentHeader: React.FC<TournamentHeaderProps> = ({
     >
       <Box gap={2}>
         <Box flexDirection="row" alignItems="center" gap={3}>
-          <Text variant="heading" weight="bold" color="#171717">
+          <Text variant="title" weight="bold" color="#171717">
             {title}
           </Text>
           {badge && (

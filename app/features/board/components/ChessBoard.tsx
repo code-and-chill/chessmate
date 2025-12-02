@@ -58,6 +58,7 @@ export interface ChessBoardProps {
   showLegalMoves?: boolean;
   showCoordinates?: boolean;
   animateMovements?: boolean;
+  isLocalGame?: boolean; // For pass-and-play: allow both sides to move
   onMove?: (from: string, to: string, promotion?: string) => void | Promise<void>;
 }
 
@@ -106,6 +107,7 @@ export const ChessBoard = React.forwardRef<View, ChessBoardProps>(
     myColor = 'w',
     lastMove = null,
     fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+    isLocalGame = false,
     onMove,
   }, ref) => {
     const [selectedSquare, setSelectedSquare] = useState<Square | null>(null);
@@ -128,11 +130,13 @@ export const ChessBoard = React.forwardRef<View, ChessBoardProps>(
     };
 
     /**
-     * Check if a square has a piece of our color
+     * Check if a square has a piece of the current side to move
+     * For local games, check against sideToMove instead of myColor
      */
     const hasOwnPiece = (file: number, rank: number): boolean => {
       const piece = board[rank][file];
-      return !!piece && piece.color === myColor;
+      const colorToCheck = isLocalGame ? sideToMove : myColor;
+      return !!piece && piece.color === colorToCheck;
     };
 
     /**
@@ -151,7 +155,9 @@ export const ChessBoard = React.forwardRef<View, ChessBoardProps>(
         return;
       }
       
-      if (sideToMove !== myColor) {
+      // For online games, only allow moves when it's your turn
+      // For local pass-and-play games, allow both sides to move
+      if (!isLocalGame && sideToMove !== myColor) {
         return;
       }
 

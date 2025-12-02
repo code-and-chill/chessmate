@@ -109,7 +109,7 @@ export const GameActions = React.forwardRef<unknown, GameActionsProps>(
             )}
             {result && (
               <>
-                <Text variant="heading" color={colors.foreground.primary} weight="bold" style={{ fontSize: 32, textAlign: 'center' }}>
+                <Text variant="title" color={colors.foreground.primary} weight="bold" style={{ fontSize: 32, textAlign: 'center' }}>
                   {resultData.text}
                 </Text>
                 {resultData.winner && (
@@ -123,7 +123,7 @@ export const GameActions = React.forwardRef<unknown, GameActionsProps>(
               </>
             )}
             {!result && !endReason && (
-              <Text variant="heading" color={colors.foreground.primary} weight="bold" style={{ fontSize: 28 }}>
+              <Text variant="title" color={colors.foreground.primary} weight="bold" style={{ fontSize: 28 }}>
                 Game Over
               </Text>
             )}

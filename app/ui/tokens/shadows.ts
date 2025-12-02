@@ -1,6 +1,8 @@
 /**
  * Shadow Tokens (AI-Aesthetic: Soft & Diffused)
  * app/ui/tokens/shadows.ts
+ * 
+ * Semantic shadows: card | panel | floating | hover | modal
  */
 
 import type { ViewStyle } from 'react-native';
@@ -9,6 +11,8 @@ type ShadowStyle = Pick<ViewStyle, 'shadowColor' | 'shadowOffset' | 'shadowOpaci
 
 export const shadowTokens: Record<string, ShadowStyle> = {
   none: {},
+  
+  // Size-based shadows
   xs: {
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
@@ -19,7 +23,7 @@ export const shadowTokens: Record<string, ShadowStyle> = {
   sm: {
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.08,
     shadowRadius: 2,
     elevation: 2,
   },
@@ -40,13 +44,14 @@ export const shadowTokens: Record<string, ShadowStyle> = {
   xl: {
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 20 },
-    shadowOpacity: 0.15,
+    shadowOpacity: 0.12,
     shadowRadius: 25,
     elevation: 10,
   },
+  // Semantic shadows
   card: {
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 12,
     elevation: 4,
@@ -63,6 +68,20 @@ export const shadowTokens: Record<string, ShadowStyle> = {
     shadowOffset: { width: 0, height: 16 },
     shadowOpacity: 0.15,
     shadowRadius: 40,
+    elevation: 12,
+  },
+  hover: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.12,
+    shadowRadius: 16,
+    elevation: 6,
+  },
+  modal: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 24 },
+    shadowOpacity: 0.2,
+    shadowRadius: 48,
     elevation: 12,
   },
 };

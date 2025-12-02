@@ -1,9 +1,18 @@
 import { useState, useEffect } from 'react';
-import { StyleSheet, View, TouchableOpacity, Text, SafeAreaView, ActivityIndicator } from 'react-native';
+import { StyleSheet, View, SafeAreaView } from 'react-native';
 import { useRouter } from 'expo-router';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
-import { Card } from '@/ui/primitives/Card';
-import { VStack } from '@/ui';
+import {
+  Card,
+  Button,
+  Text,
+  LoadingState,
+  VStack,
+  spacingScale,
+  spacingTokens,
+  textVariants,
+  radiusTokens,
+} from '@/ui';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMatchmaking } from '@/contexts/MatchmakingContext';
 import { useThemeTokens } from '@/ui';
@@ -68,20 +77,40 @@ export default function OnlinePlayScreen() {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background.primary }]}>
         <View style={styles.searchingContainer}>
-          <ActivityIndicator size="large" color={colors.accent.primary} />
-          <Text style={[styles.searchingTitle, { color: colors.foreground.primary }]}>{t('game_modes.finding_opponent')}</Text>
-          <Text style={[styles.searchingSubtitle, { color: colors.foreground.secondary }]}>
+          <LoadingState size="large" />
+          
+          <Text
+            {...textVariants.title}
+            color={colors.foreground.primary}
+            style={{ marginTop: spacingScale.lg }}
+          >
+            {t('game_modes.finding_opponent')}
+          </Text>
+          
+          <Text
+            {...textVariants.body}
+            color={colors.foreground.secondary}
+            style={{ marginTop: spacingTokens[2] }}
+          >
             {ti('game_modes.players_online', { count: queueStatus?.playersInQueue || 0 })}
           </Text>
-          <Text style={[styles.searchingTime, { color: colors.foreground.muted }]}>
+          
+          <Text
+            {...textVariants.caption}
+            color={colors.foreground.muted}
+            style={{ marginTop: spacingTokens[1] }}
+          >
             {ti('game_modes.searching_for', { seconds: queueStatus?.waitTime || 0 })}
           </Text>
-          <TouchableOpacity
-            style={[styles.button, styles.cancelButton, { backgroundColor: colors.error }]}
+          
+          <Button
+            variant="destructive"
+            size="lg"
             onPress={handleCancelSearch}
+            style={{ marginTop: spacingScale.xxl, minWidth: 200 }}
           >
-            <Text style={[styles.buttonText, { color: colors.accentForeground.primary }]}>{t('game_modes.cancel_search')}</Text>
-          </TouchableOpacity>
+            {t('game_modes.cancel_search')}
+          </Button>
         </View>
       </SafeAreaView>
     );
@@ -89,51 +118,58 @@ export default function OnlinePlayScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background.primary }]}>
-      <VStack style={styles.content} gap={6}>
-        <VStack gap={2} style={{ alignItems: 'center' }}>
-          <Text style={[styles.title, { color: colors.foreground.primary }]}>{t('game_modes.online_play')}</Text>
-          <Text style={[styles.subtitle, { color: colors.foreground.secondary }]}>{t('game_modes.choose_game_speed')}</Text>
+      <VStack style={styles.content} gap={spacingScale.lg}>
+        <VStack gap={spacingTokens[2]} style={{ alignItems: 'center' }}>
+          <Text
+            {...textVariants.display}
+            color={colors.foreground.primary}
+          >
+            {t('game_modes.online_play')}
+          </Text>
+          <Text
+            {...textVariants.body}
+            color={colors.foreground.secondary}
+          >
+            {t('game_modes.choose_game_speed')}
+          </Text>
         </VStack>
 
-        <VStack gap={3} style={{ marginTop: 8 }}>
+        <VStack gap={spacingTokens[3]} style={{ marginTop: spacingTokens[2] }}>
           {TIME_CONTROLS.map((tc, idx) => (
             <Animated.View
               key={tc.id}
               entering={FadeInDown.delay(idx * 100).duration(400).springify()}
             >
               <Card
-                variant={timeControl === tc.id ? 'gradient' : 'default'}
+                variant={timeControl === tc.id ? 'elevated' : 'default'}
                 size="md"
                 hoverable
                 pressable
                 animated
+                style={timeControl === tc.id ? styles.selectedCard : undefined}
+                onPress={() => setTimeControl(tc.id)}
               >
-                <TouchableOpacity
-                  style={[
-                    styles.timeControlButton,
-                    timeControl === tc.id ? styles.timeControlSelected : null,
-                  ]}
-                  onPress={() => setTimeControl(tc.id)}
-                  activeOpacity={0.9}
+                <Text
+                  {...textVariants.titleSmall}
+                  color={colors.foreground.primary}
+                  style={{ textAlign: 'center' }}
                 >
-                  <Text
-                    style={[
-                      styles.timeControlText,
-                      { color: colors.foreground.primary },
-                    ]}
-                  >
-                    {tc.label}
-                  </Text>
-                </TouchableOpacity>
+                  {tc.label}
+                </Text>
               </Card>
             </Animated.View>
           ))}
         </VStack>
 
         <Animated.View entering={FadeInUp.delay(500).duration(400).springify()}>
-          <TouchableOpacity style={[styles.button, { backgroundColor: colors.accent.primary }]} onPress={handleFindMatch}>
-            <Text style={[styles.buttonText, { color: colors.accentForeground.primary }]}>{t('game_modes.find_match')}</Text>
-          </TouchableOpacity>
+          <Button
+            variant="primary"
+            size="lg"
+            onPress={handleFindMatch}
+            animated
+          >
+            {t('game_modes.find_match')}
+          </Button>
         </Animated.View>
       </VStack>
     </SafeAreaView>
@@ -146,63 +182,17 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 20,
+    paddingHorizontal: spacingScale.gutter,
+    paddingTop: spacingScale.gutter,
   },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    textAlign: 'center',
-  },
-  subtitle: {
-    fontSize: 16,
-    textAlign: 'center',
-  },
-  timeControlButton: {
-    padding: 16,
-  },
-  timeControlSelected: {
-    // Additional styling when selected
-  },
-  timeControlText: {
-    fontSize: 18,
-    textAlign: 'center',
-    fontWeight: '600',
-  },
-  timeControlTextSelected: {
-    // Additional styling when selected
-  },
-  button: {
-    padding: 18,
-    borderRadius: 12,
-    alignItems: 'center',
-    marginTop: 16,
-  },
-  buttonText: {
-    fontSize: 18,
-    fontWeight: 'bold',
+  selectedCard: {
+    borderWidth: 2,
+    borderColor: '#3B82F6',
   },
   searchingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
-  },
-  searchingTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginTop: 20,
-  },
-  searchingSubtitle: {
-    fontSize: 16,
-    marginTop: 8,
-  },
-  searchingTime: {
-    fontSize: 14,
-    marginTop: 4,
-  },
-  cancelButton: {
-    marginTop: 32,
-    minWidth: 200,
+    padding: spacingScale.gutter,
   },
 });

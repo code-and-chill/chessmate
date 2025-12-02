@@ -59,7 +59,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ items, onItemPress }) => {
           borderBottomColor: colors.background.tertiary,
         }}
       >
-        <Text variant="heading" weight="bold" size="xl">
+        <Text variant="title" weight="bold" size="xl">
           ChessMate
         </Text>
       </Box>

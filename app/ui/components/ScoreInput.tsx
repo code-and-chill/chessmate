@@ -47,7 +47,7 @@ export const ScoreInput: React.FC<ScoreInputProps> = ({
         </Button>
 
         <Text
-          variant="heading"
+          variant="title"
           weight="bold"
           color="#3B82F6"
           style={{ minWidth: 50, textAlign: 'center' }}

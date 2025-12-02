@@ -55,7 +55,7 @@ export const PawnPromotionModal: React.FC<PawnPromotionModalProps> = ({
             <Box gap={spacingTokens[4]}>
               {/* Header */}
               <Box alignItems="center" gap={spacingTokens[2]}>
-                <Text variant="heading" weight="bold" color={colors.foreground.primary} style={{ fontSize: 24 }}>
+                <Text variant="title" weight="bold" color={colors.foreground.primary} style={{ fontSize: 24 }}>
                   Promote Pawn
                 </Text>
                 <Text variant="body" color={colors.foreground.muted} style={{ fontSize: 14, textAlign: 'center' }}>

@@ -28,7 +28,8 @@ const interFontMap = {
 
 export const Text = React.forwardRef<RNText, Props>(
   ({ children, variant = 'body', color, mono, weight, size, style, ...rest }, ref) => {
-    const v = textVariants[variant];
+    // Defensive check: fallback to 'body' if invalid variant
+    const v = textVariants[variant] ?? textVariants.body;
 
     const finalFontSize = size
       ? typographyTokens.fontSize[size]

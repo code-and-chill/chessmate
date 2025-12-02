@@ -182,7 +182,7 @@ export const PlayerCard = React.memo<PlayerCardProps>(({
 
           <VStack flex={1} gap={2}>
             <HStack alignItems="center" gap={6}>
-              <Text variant="subheading" weight="semibold" style={{ fontSize: 14 }}>
+              <Text variant="titleSmall" weight="semibold" style={{ fontSize: 14 }}>
                 {name}
               </Text>
               {isSelf && (

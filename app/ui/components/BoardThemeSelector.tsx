@@ -89,7 +89,7 @@ export const BoardThemeSelector: React.FC = () => {
       <VStack gap={spacingTokens[6]}>
         {/* Header */}
         <VStack gap={spacingTokens[2]}>
-          <Text variant="heading" color={colors.foreground.primary}>
+          <Text variant="title" color={colors.foreground.primary}>
             Board Theme
           </Text>
           <Text variant="body" color={colors.foreground.secondary} style={{ fontSize: 14 }}>

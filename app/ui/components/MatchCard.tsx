@@ -56,7 +56,7 @@ export const MatchCard: React.FC<MatchCardProps> = ({
             </Box>
 
             <Box alignItems="center">
-              <Text variant="heading" weight="bold" color="#3B82F6">
+              <Text variant="title" weight="bold" color="#3B82F6">
                 {score1} - {score2}
               </Text>
             </Box>
