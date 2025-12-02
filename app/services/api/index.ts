@@ -44,7 +44,8 @@ export {
   MockLearningApiClient,
   MockSocialApiClient,
   MockLiveGameApiClient,
-  MockPuzzleApiClient
+  MockPuzzleApiClient,
+  MockPlayApiClient
 } from './mock-clients';
 
 // API Client instances (using mock for development)

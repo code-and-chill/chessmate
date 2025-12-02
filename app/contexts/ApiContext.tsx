@@ -19,6 +19,7 @@ import {
   MockSocialApiClient,
   MockLiveGameApiClient,
   MockPuzzleApiClient,
+  MockPlayApiClient,
   PuzzleApiClient,
   LiveGameApiClient,
   GameApiClient as PlayApiClient
@@ -33,7 +34,7 @@ interface ApiContextType {
   socialApi: SocialApiClient | MockSocialApiClient;
   puzzleApi: PuzzleApiClient | MockPuzzleApiClient;
   liveGameApi: LiveGameApiClient | MockLiveGameApiClient;
-  playApi: PlayApiClient;
+  playApi: PlayApiClient | MockPlayApiClient;
   useMockApi: boolean;
 }
 
@@ -64,6 +65,7 @@ export function ApiProvider({ children }: { children: ReactNode }) {
     let socialApi: SocialApiClient | MockSocialApiClient;
     let liveGameApi: LiveGameApiClient | MockLiveGameApiClient;
     let puzzleApi: PuzzleApiClient | MockPuzzleApiClient;
+    let playApi: PlayApiClient | MockPlayApiClient;
 
     if (USE_MOCK_API) {
       // Use mock implementations for testing
@@ -76,6 +78,7 @@ export function ApiProvider({ children }: { children: ReactNode }) {
       socialApi = new MockSocialApiClient();
       liveGameApi = new MockLiveGameApiClient();
       puzzleApi = new MockPuzzleApiClient();
+      playApi = new MockPlayApiClient();
     } else {
       // Use real API implementations
       console.log('🌐 Using REAL API clients');
@@ -87,10 +90,8 @@ export function ApiProvider({ children }: { children: ReactNode }) {
       socialApi = new SocialApiClient(API_BASE_URLS.account);
       liveGameApi = new LiveGameApiClient(API_BASE_URLS.liveGame, "");
       puzzleApi = new PuzzleApiClient(API_BASE_URLS.puzzle);
+      playApi = new PlayApiClient(API_BASE_URLS.play, "");
     }
-
-    // This always uses real implementation (or can be mocked later if needed)
-    const playApi = new PlayApiClient(API_BASE_URLS.play, "");
     
     return {
       authApi,

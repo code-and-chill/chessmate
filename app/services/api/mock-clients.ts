@@ -955,3 +955,246 @@ export class MockPuzzleApiClient {
     ];
   }
 }
+
+/**
+ * Mock Play API Client (GameApiClient)
+ * Supports local offline play with friends on the same device
+ */
+export class MockPlayApiClient {
+  private games: Map<string, any> = new Map();
+  private gameCounter = 0;
+
+  private generateGameId(): string {
+    this.gameCounter++;
+    return `game-${this.gameCounter}-${Date.now()}`;
+  }
+
+  private createInitialGameState(gameId: string, timeControl: any, whitePlayerId: string, blackPlayerId?: string): any {
+    return {
+      gameId,
+      status: blackPlayerId ? 'in_progress' : 'waiting_for_opponent',
+      result: null,
+      endReason: null,
+      fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+      pgn: '',
+      moves: [],
+      sideToMove: 'w' as const,
+      isCheck: false,
+      isCheckmate: false,
+      isStalemate: false,
+      isDraw: false,
+      whitePlayer: {
+        id: whitePlayerId,
+        username: 'Player 1',
+        rating: 1500,
+        remainingMs: timeControl.initialMs,
+      },
+      blackPlayer: blackPlayerId ? {
+        id: blackPlayerId,
+        username: 'Player 2',
+        rating: 1500,
+        remainingMs: timeControl.initialMs,
+      } : null,
+      timeControl,
+      rated: false,
+      createdAt: new Date().toISOString(),
+      startedAt: blackPlayerId ? new Date().toISOString() : null,
+      lastMoveAt: null,
+      drawOffer: null,
+    };
+  }
+
+  /**
+   * Create a new game (local offline game)
+   */
+  async createGame(request: any): Promise<any> {
+    await delay(300);
+    
+    const gameId = this.generateGameId();
+    const whitePlayerId = 'local-player-1';
+    const blackPlayerId = request.opponentAccountId === 'local' ? 'local-player-2' : undefined;
+    
+    const gameState = this.createInitialGameState(
+      gameId,
+      request.timeControl,
+      whitePlayerId,
+      blackPlayerId
+    );
+
+    // Assign colors based on preference
+    if (request.colorPreference === 'black') {
+      // Swap players
+      const temp = gameState.whitePlayer;
+      gameState.whitePlayer = gameState.blackPlayer || {
+        id: 'local-player-2',
+        username: 'Player 2',
+        rating: 1500,
+        remainingMs: request.timeControl.initialMs,
+      };
+      gameState.blackPlayer = temp;
+    }
+
+    this.games.set(gameId, gameState);
+    console.log('🎮 Created local game:', gameId);
+    
+    return gameState;
+  }
+
+  /**
+   * Join an existing game
+   */
+  async joinGame(gameId: string, request: any = {}): Promise<any> {
+    await delay(300);
+    
+    const game = this.games.get(gameId);
+    if (!game) {
+      throw new Error('Game not found');
+    }
+
+    if (game.status !== 'waiting_for_opponent') {
+      throw new Error('Game already started');
+    }
+
+    // Add second player
+    game.blackPlayer = {
+      id: 'local-player-2',
+      username: 'Player 2',
+      rating: 1500,
+      remainingMs: game.timeControl.initialMs,
+    };
+    game.status = 'in_progress';
+    game.startedAt = new Date().toISOString();
+
+    console.log('🎮 Player 2 joined game:', gameId);
+    return game;
+  }
+
+  /**
+   * Get game by ID
+   */
+  async getGameById(gameId: string): Promise<any> {
+    await delay(100);
+    
+    const game = this.games.get(gameId);
+    if (!game) {
+      throw new Error('Game not found');
+    }
+    
+    return game;
+  }
+
+  /**
+   * Get recent games
+   */
+  async getRecentGames(_userId: string, limit: number = 10): Promise<any[]> {
+    await delay(200);
+    
+    const allGames = Array.from(this.games.values());
+    return allGames
+      .filter(g => g.status === 'ended')
+      .slice(0, limit);
+  }
+
+  /**
+   * Get active games
+   */
+  async getActiveGamesForUser(_userId: string): Promise<any[]> {
+    await delay(200);
+    
+    const allGames = Array.from(this.games.values());
+    return allGames.filter(g => g.status === 'in_progress' || g.status === 'waiting_for_opponent');
+  }
+
+  /**
+   * Make a move (uses chess.js for validation)
+   */
+  async makeMove(gameId: string, from: string, to: string, promotion?: string): Promise<any> {
+    await delay(100);
+    
+    const game = this.games.get(gameId);
+    if (!game) {
+      throw new Error('Game not found');
+    }
+
+    if (game.status !== 'in_progress') {
+      throw new Error('Game is not in progress');
+    }
+
+    // Import chess.js for move validation
+    const { Chess } = await import('chess.js');
+    const chess = new Chess(game.fen);
+
+    // Validate and make the move
+    try {
+      const move = chess.move({
+        from,
+        to,
+        promotion: promotion || 'q',
+      });
+
+      if (!move) {
+        throw new Error('Invalid move');
+      }
+
+      // Update game state
+      game.fen = chess.fen();
+      game.pgn = chess.pgn();
+      game.moves.push({
+        from,
+        to,
+        promotion,
+        san: move.san,
+        timestamp: new Date().toISOString(),
+      });
+      game.sideToMove = chess.turn() === 'w' ? 'w' : 'b';
+      game.lastMoveAt = new Date().toISOString();
+
+      // Check game status
+      if (chess.isCheckmate()) {
+        game.isCheckmate = true;
+        game.status = 'ended';
+        game.result = chess.turn() === 'w' ? '0-1' : '1-0';
+        game.endReason = 'checkmate';
+      } else if (chess.isStalemate()) {
+        game.isStalemate = true;
+        game.status = 'ended';
+        game.result = '1/2-1/2';
+        game.endReason = 'stalemate';
+      } else if (chess.isDraw()) {
+        game.isDraw = true;
+        game.status = 'ended';
+        game.result = '1/2-1/2';
+        game.endReason = 'draw';
+      } else if (chess.isCheck()) {
+        game.isCheck = true;
+      } else {
+        game.isCheck = false;
+      }
+
+      console.log('🎮 Move made:', from, '→', to, 'New FEN:', game.fen);
+      return game;
+    } catch (error) {
+      console.error('Invalid move:', error);
+      throw new Error('Invalid move');
+    }
+  }
+
+  /**
+   * Resign from game
+   */
+  async resign(gameId: string): Promise<any> {
+    await delay(200);
+    
+    const game = this.games.get(gameId);
+    if (!game) {
+      throw new Error('Game not found');
+    }
+
+    game.status = 'ended';
+    game.result = game.sideToMove === 'w' ? '0-1' : '1-0';
+    game.endReason = 'resignation';
+
+    console.log('🎮 Player resigned from game:', gameId);
+    return game;
+  }
+}

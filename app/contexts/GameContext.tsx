@@ -42,6 +42,15 @@ interface FriendChallenge {
   inviteCode: string;
 }
 
+interface LocalGameOptions {
+  timeControl: {
+    initialMs: number;
+    incrementMs: number;
+  };
+  colorPreference?: 'white' | 'black' | 'random';
+  opponentAccountId?: string;
+}
+
 interface GameContextType {
   activeGames: Map<string, GameState>;
   currentGameId: string | null;
@@ -50,6 +59,7 @@ interface GameContextType {
   // Game management
   createBotGame: (options: BotGameOptions) => Promise<string>;
   createFriendGame: (options: FriendGameOptions) => Promise<FriendChallenge>;
+  createLocalGame: (options: LocalGameOptions) => Promise<any>;
   joinFriendGame: (inviteCode: string) => Promise<string>;
   joinGame: (gameId: string) => Promise<void>;
   leaveGame: (gameId: string) => Promise<void>;
@@ -66,7 +76,7 @@ const GameContext = createContext<GameContextType | undefined>(undefined);
 
 export function GameProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
-  const { liveGameApi } = useApiClients();
+  const { liveGameApi, playApi } = useApiClients();
   const [activeGames, setActiveGames] = useState<Map<string, GameState>>(new Map());
   const [currentGameId, setCurrentGameId] = useState<string | null>(null);
   const [isCreatingGame, setIsCreatingGame] = useState(false);
@@ -97,6 +107,22 @@ export function GameProvider({ children }: { children: ReactNode }) {
       setIsCreatingGame(false);
     }
   }, [user, liveGameApi]);
+
+  const createLocalGame = useCallback(async (options: LocalGameOptions) => {
+    setIsCreatingGame(true);
+    try {
+      const gameState = await playApi.createGame({
+        timeControl: options.timeControl,
+        colorPreference: options.colorPreference,
+        rated: false,
+        opponentAccountId: options.opponentAccountId,
+      });
+      
+      return gameState;
+    } finally {
+      setIsCreatingGame(false);
+    }
+  }, [playApi]);
 
   const createFriendGame = useCallback(async (options: FriendGameOptions): Promise<FriendChallenge> => {
     if (!user) throw new Error('User not authenticated');
@@ -209,6 +235,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     isCreatingGame,
     createBotGame,
     createFriendGame,
+    createLocalGame,
     joinFriendGame,
     joinGame,
     leaveGame,
