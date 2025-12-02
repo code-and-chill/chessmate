@@ -396,15 +396,15 @@ make dev-down
 
 ```bash
 # Feature development
-git checkout -b feature/service-name-capability
+git checkout -b service-name/feature-or-changes
 # ... make changes ...
-git commit -m "feat(service-name): add capability description"
+git commit -m "[service-name] add capability description"
 
 # Update service glossary if new service
 # Update contracts if API changes
 # Ensure all tests pass
 
-git push origin feature/service-name-capability
+git push origin service-name/feature-or-changes
 # Create pull request
 ```
 
