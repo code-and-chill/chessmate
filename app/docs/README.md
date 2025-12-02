@@ -2,7 +2,7 @@
 title: App Documentation Index
 service: app
 status: active
-last_reviewed: 2025-11-18
+last_reviewed: 2025-12-02
 type: overview
 ---
 
@@ -47,15 +47,17 @@ Complete setup guide for new developers:
 
 ### Current State
 - [architecture.md](./architecture.md) — System design and technical patterns
-- [folder-structure.md](./folder-structure.md) — Current directory layout
+- [production-architecture.md](./production-architecture.md) — Production-grade architecture
+- [folder-structure-convention.md](./folder-structure-convention.md) — Directory structure rules
 
-### Target State (Production-Grade)
-- [folder-structure-convention.md](./folder-structure-convention.md) — Full specification
-- [folder-structure-visual.md](./folder-structure-visual.md) — Visual diagrams and flows
-- [decisions/adr-0001-folder-structure-convention.md](./decisions/adr-0001-folder-structure-convention.md) — Decision rationale
-
-### Migration
-- [how-to/migration-to-production-structure.md](./how-to/migration-to-production-structure.md) — Step-by-step migration guide
+### Migration History
+- [migrations/README.md](./migrations/README.md) — Phase-based development history
+  - Phase 0: Initial audit
+  - Phase 1: Folder structure migration
+  - Phase 2: Component refactoring
+  - Phase 3: Hooks implementation
+  - Phase 4: Design Language System
+  - Phase 5-7: UI/UX, API, Game logic
 
 ---
 
@@ -73,18 +75,30 @@ Quick decision tree for AI-assisted development:
 
 ## 🎨 Design & UI
 
+### [design-language-system.md](./design-language-system.md) ⭐
+**Complete Design Language System** (1850+ lines):
+- Design tokens (colors, spacing, typography, radius, shadows, motion)
+- Primitive components (17+ components)
+- Chess-specific components
+- State management components
+- Theme system
+- Responsive design
+- Accessibility (WCAG 2.1 AA)
+- Implementation guide
+
 ### [component-index.md](./component-index.md)
-Complete component catalog:
+Component catalog and reference:
 - Primitives (Box, Text, Button, etc.)
 - Compound components (ChessBoard, PlayerPanel, etc.)
 - Feature components
 - Usage examples
 
-### Design System
-Covered in [overview.md](./overview.md#design-system):
-- Design tokens (colors, spacing, typography)
-- Theme system (light/dark)
-- UI components
+### [hooks.md](./hooks.md)
+Custom hooks reference:
+- State management hooks
+- UI/responsive hooks
+- Game logic hooks
+- API integration hooks
 
 ---
 
@@ -111,16 +125,8 @@ API client documentation:
 ### [api-client-conventions.md](./api-client-conventions.md)
 API client patterns and best practices
 
----
-
-## 🪝 Hooks & Logic
-
-### [hooks.md](./hooks.md)
-Custom React hooks:
-- Data fetching hooks
-- State management hooks
-- Utility hooks
-- Usage examples
+### [api-layer.md](./api-layer.md)
+API layer architecture and implementation
 
 ---
 
@@ -144,12 +150,6 @@ Deployment and monitoring:
 - Deployment targets
 - Monitoring and logging
 
-### [runbook.md](./runbook.md)
-Operational procedures:
-- Incident response
-- Common issues
-- Troubleshooting
-
 ---
 
 ## 📚 How-To Guides
@@ -161,8 +161,11 @@ Local development workflow:
 - Debugging
 - Common tasks
 
-### [how-to/migration-to-production-structure.md](./how-to/migration-to-production-structure.md)
-Migration guide to production-grade structure
+### [how-to/troubleshooting.md](./how-to/troubleshooting.md)
+Common issues and solutions
+
+### [how-to/common-tasks.md](./how-to/common-tasks.md)
+Frequently performed operations
 
 ---
 
@@ -170,21 +173,25 @@ Migration guide to production-grade structure
 
 ### [decisions/](./decisions/)
 Architecture Decision Records (ADRs):
-- ADR-0001: Folder structure convention
-- Future ADRs as needed
+- Track significant architectural decisions
+- Document rationale and trade-offs
+- Follow ADR template
 
 ---
 
-## 📜 Historical Documents
+## 📜 Implementation History
 
-These documents capture past migration phases and are kept for reference:
-
-- [migration-summary.md](./migration-summary.md) — November 2025 restructuring
-- [migration-complete.md](./migration-complete.md) — Completion report
-- [hooks-completion-report.md](./hooks-completion-report.md) — Hooks migration
-- [ui-ux-improvements.md](./ui-ux-improvements.md) — UI/UX evolution
-- [ui-ux-quick-start.md](./ui-ux-quick-start.md) — UI/UX guide
-- [api-layer.md](./api-layer.md) — API layer documentation
+### [migrations/](./migrations/)
+Phase-based development history:
+- [migrations/README.md](./migrations/README.md) — Phase index
+- [migrations/phase-0-audit.md](./migrations/phase-0-audit.md) — Initial audit
+- [migrations/phase-1-folder-structure.md](./migrations/phase-1-folder-structure.md) — Structure migration
+- [migrations/phase-2-playscreen-refactor.md](./migrations/phase-2-playscreen-refactor.md) — PlayScreen refactor
+- [migrations/phase-3-hooks-complete.md](./migrations/phase-3-hooks-complete.md) — Hooks system
+- [migrations/phase-4-dls-complete.md](./migrations/phase-4-dls-complete.md) — Design Language System
+- [migrations/phase-5-ui-ux.md](./migrations/phase-5-ui-ux.md) — UI/UX enhancements
+- [migrations/phase-6-api-context.md](./migrations/phase-6-api-context.md) — API refactoring
+- [migrations/phase-7-checkmate.md](./migrations/phase-7-checkmate.md) — Game logic
 
 ---
 
@@ -227,28 +234,35 @@ Core Understanding
 
 Architecture
   ├─ architecture.md
-  ├─ folder-structure-convention.md
-  ├─ folder-structure-visual.md
-  └─ folder-structure.md (current)
+  ├─ production-architecture.md
+  └─ folder-structure-convention.md
+
+Design System
+  ├─ design-language-system.md ⭐ (PRIMARY)
+  ├─ component-index.md
+  └─ hooks.md
 
 Development
-  ├─ ai-agent-quick-reference.md
+  ├─ ai-agent-quick-reference.md (for AI agents)
   ├─ how-to/local-dev.md
-  ├─ how-to/migration-to-production-structure.md
+  ├─ how-to/troubleshooting.md
+  ├─ how-to/common-tasks.md
   └─ domain.md
 
-Components & APIs
-  ├─ component-index.md
-  ├─ hooks.md
+APIs & Integration
   ├─ api.md
+  ├─ api-layer.md
+  ├─ api-client-conventions.md
   └─ i18n.md
 
 Operations
-  ├─ operations.md
-  └─ runbook.md
+  └─ operations.md
+
+History
+  └─ migrations/ (phase-based development log)
 
 Decisions
-  └─ decisions/adr-0001-folder-structure-convention.md
+  └─ decisions/ (ADRs)
 ```
 
 ---

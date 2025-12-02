@@ -1,50 +1,160 @@
-# Welcome to your Expo app 👋
+# ChessMate Mobile/Web App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Cross-platform chess application for iOS, Android, and Web built with React Native and Expo.
 
-## Get started
+## 🚀 Quick Start
 
-1. Install dependencies
+### Prerequisites
+- Node.js 20+
+- pnpm
+- Expo CLI
+- iOS Simulator (macOS) or Android Emulator
 
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+### Installation
 
 ```bash
-npm run reset-project
+# Install dependencies
+pnpm install
+
+# Start development server
+pnpm start
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+### Run on Platform
 
-## Learn more
+```bash
+# iOS
+pnpm ios
 
-To learn more about developing your project with Expo, look at the following resources:
+# Android
+pnpm android
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+# Web
+pnpm web
+```
 
-## Join the community
+## 📚 Documentation
 
-Join our community of developers creating universal apps.
+**Complete documentation is in [`docs/`](./docs/)**
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+### Essential Reading
+- **[docs/overview.md](./docs/overview.md)** — Complete app overview (READ THIS FIRST)
+- **[docs/getting-started.md](./docs/getting-started.md)** — Developer setup guide
+- **[docs/ai-agent-quick-reference.md](./docs/ai-agent-quick-reference.md)** — For AI-assisted development
+
+### Architecture & Design
+- **[docs/design-language-system.md](./docs/design-language-system.md)** — Complete DLS (1850+ lines)
+- [docs/architecture.md](./docs/architecture.md) — System design
+- [docs/folder-structure-convention.md](./docs/folder-structure-convention.md) — Structure rules
+
+### Development
+- [docs/component-index.md](./docs/component-index.md) — Component catalog
+- [docs/hooks.md](./docs/hooks.md) — Custom hooks reference
+- [docs/api-layer.md](./docs/api-layer.md) — API integration
+- [docs/i18n.md](./docs/i18n.md) — Internationalization
+
+### Operations
+- [docs/operations.md](./docs/operations.md) — Deployment & monitoring
+- [docs/how-to/](./docs/how-to/) — Practical guides
+
+## 🏗️ Project Structure
+
+```
+app/
+├── app/              # Expo Router (file-based routing)
+├── features/         # Feature modules (vertical slices)
+├── ui/               # Design system
+│   ├── primitives/   # Base components
+│   ├── components/   # Compound components
+│   └── tokens/       # Design tokens
+├── services/         # External integrations (API, WebSocket)
+├── core/             # Core utilities
+├── platform/         # Platform-specific code
+└── docs/             # Documentation
+```
+
+## 🧪 Testing
+
+```bash
+# Run tests
+pnpm test
+
+# Run with coverage
+pnpm test:coverage
+
+# E2E tests
+pnpm test:e2e
+```
+
+## 🔧 Common Tasks
+
+```bash
+# Type checking
+pnpm typecheck
+
+# Linting
+pnpm lint
+
+# Format code
+pnpm format
+
+# Clear cache
+pnpm clear
+```
+
+## 📦 Build & Deploy
+
+```bash
+# Build for production
+pnpm build
+
+# iOS build
+pnpm build:ios
+
+# Android build
+pnpm build:android
+
+# Web build
+pnpm build:web
+```
+
+## 🌍 Supported Languages
+
+- English (en)
+- Spanish (es)
+- French (fr)
+- German (de)
+- Russian (ru)
+- Chinese (zh)
+- Japanese (ja)
+
+## 🤝 Contributing
+
+1. Read [AGENTS.md](../AGENTS.md) for repository conventions
+2. Check [docs/ai-agent-quick-reference.md](./docs/ai-agent-quick-reference.md) for file placement
+3. Follow [docs/folder-structure-convention.md](./docs/folder-structure-convention.md) strictly
+4. Review [docs/architecture.md](./docs/architecture.md) before making changes
+
+## 📝 Tech Stack
+
+- **Framework**: React Native (Expo)
+- **Routing**: Expo Router (file-based)
+- **State**: React Context + React Query
+- **UI**: Custom Design Language System
+- **Testing**: Jest + React Testing Library + Detox
+- **Languages**: TypeScript
+- **Build**: EAS Build
+
+## 🐛 Troubleshooting
+
+See [docs/how-to/troubleshooting.md](./docs/how-to/troubleshooting.md) for common issues.
+
+## 📖 Learn More
+
+- [Expo documentation](https://docs.expo.dev/)
+- [React Native docs](https://reactnative.dev/)
+- [Expo Router](https://docs.expo.dev/router/introduction/)
+
+---
+
+**For comprehensive documentation, see [`docs/README.md`](./docs/README.md)**
