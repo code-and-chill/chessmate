@@ -1,7 +1,9 @@
 /**
  * Demo Feature - DLS Demo Screens
- * TODO: Re-add demo screens when migrated
  */
+
+export { FontTestScreen } from './FontTestScreen';
+export { FontPreviewScreen } from './FontPreviewScreen';
 
 // Placeholder exports - these files don't exist yet
 export const MatchesScreen = () => null;

@@ -5,6 +5,7 @@
 
 import { createContext, useContext } from 'react';
 import type { semanticColors } from '../tokens/colors';
+import type { typographyTokens } from '../tokens/typography';
 
 export type ThemeMode = 'light' | 'dark' | 'auto';
 
@@ -13,6 +14,7 @@ export type ThemeContextType = {
   isDark: boolean;
   setMode: (mode: ThemeMode) => void;
   colors: ReturnType<typeof semanticColors>;
+  typography: typeof typographyTokens;
 };
 
 export const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -33,4 +35,14 @@ export const useColors = () => {
 export const useIsDark = () => {
   const { isDark } = useThemeTokens();
   return isDark;
+};
+
+export const useTypography = () => {
+  const { typography } = useThemeTokens();
+  return typography;
+};
+
+export const useFonts = () => {
+  const { typography } = useThemeTokens();
+  return typography.fontFamily;
 };

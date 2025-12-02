@@ -5,11 +5,34 @@
  * Hierarchy: Display → Title → Body → Caption
  */
 
+/**
+ * Premium Font Stack:
+ * - Outfit: Display/Titles (geometric, modern, excellent for headings)
+ * - Inter: Body text (perfect readability, OpenType features)
+ * - JetBrains Mono: Code/Notation (clear, readable monospace)
+ * 
+ * Fallback: System fonts ensure graceful degradation
+ */
 export const typographyTokens = {
   fontFamily: {
-    primary: 'Inter',
-    mono: 'Monaco',
-    display: 'Inter',
+    // Display & Headings - Geometric, modern aesthetic
+    display: 'Outfit_700Bold',
+    displayMedium: 'Outfit_600SemiBold',
+    displayLight: 'Outfit_500Medium',
+    
+    // Body & UI - Exceptional readability
+    primary: 'Inter_400Regular',
+    primaryMedium: 'Inter_500Medium',
+    primarySemiBold: 'Inter_600SemiBold',
+    primaryBold: 'Inter_700Bold',
+    
+    // Code & Notation - Chess moves, technical content
+    mono: 'JetBrainsMono_400Regular',
+    monoMedium: 'JetBrainsMono_500Medium',
+    monoBold: 'JetBrainsMono_700Bold',
+    
+    // Legacy/Fallback
+    system: 'System',
   },
   fontSize: {
     xs: 12,
@@ -51,56 +74,65 @@ export const typographyTokens = {
  * Display (700, 28-32px) → Title (600, 20-24px) → Body (400, 14-16px) → Caption (400, 12-13px)
  */
 export const textVariants = {
-  // Display level - Hero text, page headers
+  // Display level - Hero text, page headers (Outfit - geometric, modern)
   display: { 
+    fontFamily: 'Outfit_700Bold',
     fontSize: 32, 
     fontWeight: '700' as const, 
     lineHeight: 1.2,
     letterSpacing: -0.5,
   },
   displayLarge: { 
+    fontFamily: 'Outfit_700Bold',
     fontSize: 28, 
     fontWeight: '700' as const, 
     lineHeight: 1.2,
     letterSpacing: -0.5,
   },
   
-  // Title level - Section headers, card titles
+  // Title level - Section headers, card titles (Outfit - modern hierarchy)
   title: { 
+    fontFamily: 'Outfit_600SemiBold',
     fontSize: 24, 
     fontWeight: '600' as const, 
     lineHeight: 1.3 
   },
   titleMedium: { 
+    fontFamily: 'Outfit_600SemiBold',
     fontSize: 20, 
     fontWeight: '600' as const, 
     lineHeight: 1.3 
   },
   titleSmall: { 
+    fontFamily: 'Outfit_500Medium',
     fontSize: 18, 
-    fontWeight: '600' as const, 
+    fontWeight: '500' as const, 
     lineHeight: 1.4 
   },
   
-  // Body level - Primary content
+  // Body level - Primary content (Inter - optimal readability)
   body: { 
+    fontFamily: 'Inter_400Regular',
     fontSize: 16, 
     fontWeight: '400' as const, 
     lineHeight: 1.5 
   },
   bodyMedium: { 
+    fontFamily: 'Inter_400Regular',
     fontSize: 14, 
     fontWeight: '400' as const, 
     lineHeight: 1.5 
   },
   
-  // Caption level - Secondary content, metadata
+  // Caption level - Secondary content, metadata (Inter)
   caption: { 
+    fontFamily: 'Inter_400Regular',
     fontSize: 13, 
     fontWeight: '400' as const, 
     lineHeight: 1.4 
   },
   captionSmall: { 
+    fontFamily: 'Inter_400Regular',
     fontSize: 12, 
     fontWeight: '400' as const, 
     lineHeight: 1.4 
@@ -108,17 +140,20 @@ export const textVariants = {
   
   // Utility variants
   label: { 
+    fontFamily: 'Inter_600SemiBold',
     fontSize: 14, 
     fontWeight: '600' as const, 
     lineHeight: 1.4 
   },
   hint: { 
+    fontFamily: 'Inter_400Regular',
     fontSize: 12, 
     fontWeight: '400' as const, 
     lineHeight: 1.4,
     letterSpacing: 0.3,
   },
   button: {
+    fontFamily: 'Outfit_600SemiBold',
     fontSize: 16,
     fontWeight: '600' as const,
     lineHeight: 1.2,

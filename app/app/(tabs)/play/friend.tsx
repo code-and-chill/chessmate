@@ -6,7 +6,7 @@ import { Card } from '@/ui/primitives/Card';
 import { VStack } from '@/ui';
 import { useAuth } from '@/contexts/AuthContext';
 import { useGame } from '@/contexts/GameContext';
-import { useThemeTokens } from '@/ui';
+import { useThemeTokens, useFonts } from '@/ui';
 import { useI18n } from '@/i18n/I18nContext';
 
 type ChallengeMode = 'create' | 'join' | 'local';
@@ -14,6 +14,7 @@ type ChallengeMode = 'create' | 'join' | 'local';
 export default function FriendChallengeScreen() {
   const router = useRouter();
   const { colors } = useThemeTokens();
+  const fonts = useFonts();
   const { t } = useI18n();
   const { isAuthenticated, user } = useAuth();
   const { createFriendGame, joinFriendGame, isCreatingGame, createLocalGame } = useGame();
@@ -283,7 +284,7 @@ export default function FriendChallengeScreen() {
                 <Card variant="default" size="md">
                   <VStack gap={2} style={{ padding: 16 }}>
                     <Text style={[styles.label, { color: colors.foreground.primary }]}>{t('game_modes.challenge_link_created')}</Text>
-                    <Text style={[styles.linkText, { color: colors.accent.primary }]} numberOfLines={1}>
+                    <Text style={[styles.linkText, { fontFamily: fonts.mono, color: colors.accent.primary }]} numberOfLines={1}>
                       {gameLink}
                     </Text>
                     <Text style={[styles.hint, { color: colors.foreground.muted }]}>
@@ -428,6 +429,6 @@ const styles = StyleSheet.create({
   },
   linkText: {
     fontSize: 12,
-    fontFamily: 'monospace',
+    // fontFamily from theme
   },
 });

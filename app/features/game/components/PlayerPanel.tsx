@@ -10,7 +10,7 @@ import { Box } from '@/ui/primitives/Box';
 import { Surface } from '@/ui/primitives/Surface';
 import { Text } from '@/ui/primitives/Text';
 import { Badge } from '@/ui/primitives/Badge';
-import { useThemeTokens } from '@/ui/hooks/useThemeTokens';
+import { useThemeTokens, useFonts } from '@/ui/hooks/useThemeTokens';
 import { radiusTokens } from '@/ui/tokens/radii';
 import { spacingTokens } from '@/ui/tokens/spacing';
 import { formatClock } from '@/util/time';
@@ -142,7 +142,7 @@ export const PlayerPanel = React.forwardRef<unknown, PlayerPanelProps>(
                 color={isLowTime ? colors.background.primary : colors.foreground.primary}
                 weight="bold"
                 style={{ 
-                  fontFamily: 'monospace', 
+                  fontFamily: fonts.mono, 
                   fontSize: isActive ? 24 : 20, 
                   textAlign: 'center', 
                   letterSpacing: 1.5 

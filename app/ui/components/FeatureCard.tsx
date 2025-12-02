@@ -101,19 +101,19 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   title: {
+    fontFamily: typographyTokens.fontFamily.displayMedium,
     fontSize: typographyTokens.fontSize.xl,
     fontWeight: typographyTokens.fontWeight.bold,
-    // color set dynamically from theme
     marginBottom: 4,
   },
   description: {
+    fontFamily: typographyTokens.fontFamily.primary,
     fontSize: typographyTokens.fontSize.base,
-    // color set dynamically from theme
     lineHeight: 20,
   },
   progress: {
+    fontFamily: typographyTokens.fontFamily.primaryMedium,
     fontSize: typographyTokens.fontSize.sm,
-    // color set dynamically from theme
     fontWeight: typographyTokens.fontWeight.semibold,
     marginTop: 4,
   },

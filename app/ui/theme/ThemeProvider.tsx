@@ -8,6 +8,7 @@ import { useColorScheme } from 'react-native';
 import { ThemeContext } from '../hooks/useThemeTokens';
 import type { ThemeMode } from '../hooks/useThemeTokens';
 import { semanticColors } from '../tokens/colors';
+import { typographyTokens } from '../tokens/typography';
 
 type ThemeProviderProps = {
   children: React.ReactNode;
@@ -35,6 +36,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     isDark,
     setMode,
     colors,
+    typography: typographyTokens,
   };
 
   return (

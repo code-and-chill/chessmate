@@ -7,6 +7,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { View, Text } from 'react-native';
 import type { RuntimeConfig, ConfigChangeEvent, ConfigChangeListener } from './types';
 import { getConfigStore } from './store';
+import { useFonts } from '@/ui';
 
 /**
  * Configuration Context
@@ -256,7 +257,7 @@ export const ConfigDebug: React.FC<ConfigDebugProps> = ({
         style={{
           color: '#00ff00',
           fontSize: 10,
-          fontFamily: 'monospace',
+          fontFamily: fonts.mono,
           marginBottom: 8,
         }}
       >
@@ -266,7 +267,7 @@ export const ConfigDebug: React.FC<ConfigDebugProps> = ({
         style={{
           color: '#00ff00',
           fontSize: 10,
-          fontFamily: 'monospace',
+          fontFamily: fonts.mono,
           marginBottom: 4,
         }}
       >
@@ -276,7 +277,7 @@ export const ConfigDebug: React.FC<ConfigDebugProps> = ({
         style={{
           color: '#00ff00',
           fontSize: 10,
-          fontFamily: 'monospace',
+          fontFamily: fonts.mono,
           marginBottom: 4,
         }}
       >
@@ -286,7 +287,7 @@ export const ConfigDebug: React.FC<ConfigDebugProps> = ({
         style={{
           color: '#00ff00',
           fontSize: 10,
-          fontFamily: 'monospace',
+          fontFamily: fonts.mono,
         }}
       >
         {`Mock API: ${config.features.mockApi}`}
@@ -297,7 +298,7 @@ export const ConfigDebug: React.FC<ConfigDebugProps> = ({
             style={{
               color: '#ffff00',
               fontSize: 10,
-              fontFamily: 'monospace',
+              fontFamily: fonts.mono,
               marginTop: 8,
             }}
           >
@@ -307,7 +308,7 @@ export const ConfigDebug: React.FC<ConfigDebugProps> = ({
             style={{
               color: '#ffff00',
               fontSize: 10,
-              fontFamily: 'monospace',
+              fontFamily: fonts.mono,
             }}
           >
             {`Base URL: ${config.api.baseUrl}`}

@@ -5,12 +5,13 @@ import Animated, { FadeIn, SlideInDown } from 'react-native-reanimated';
 import { Card } from '@/ui/primitives/Card';
 import { VStack } from '@/ui';
 import { usePuzzle } from '@/contexts/PuzzleContext';
-import { useThemeTokens } from '@/ui';
+import { useThemeTokens, useFonts } from '@/ui';
 import { useI18n } from '@/i18n/I18nContext';
 
 export default function DailyPuzzleScreen() {
   const router = useRouter();
   const { colors } = useThemeTokens();
+  const fonts = useFonts();
   const { t, ti } = useI18n();
   const { dailyPuzzle, getDailyPuzzle, submitAttempt, isLoading } = usePuzzle();
   
@@ -114,7 +115,7 @@ export default function DailyPuzzleScreen() {
           <Card variant="default" size="lg">
             <View style={styles.boardPlaceholder}>
               <Text style={[styles.boardText, { color: colors.foreground.primary }]}>{t('puzzle.chess_board')}</Text>
-              <Text style={[styles.fenText, { color: colors.foreground.muted }]}>FEN: {dailyPuzzle.fen}</Text>
+              <Text style={[styles.fenText, { fontFamily: fonts.mono, color: colors.foreground.muted }]}>FEN: {dailyPuzzle.fen}</Text>
               <Text style={[styles.instructionText, { color: isCorrect === null ? colors.foreground.secondary : isCorrect ? colors.success : colors.error }]}>
                 {isCorrect === null
                   ? ti('puzzle.to_move', { color: dailyPuzzle.ply % 2 === 0 ? t('game.black') : t('game.white') })
@@ -252,8 +253,8 @@ const styles = StyleSheet.create({
   },
   fenText: {
     fontSize: 10,
-    fontFamily: 'monospace',
     marginBottom: 16,
+    // fontFamily from theme
   },
   instructionText: {
     fontSize: 16,

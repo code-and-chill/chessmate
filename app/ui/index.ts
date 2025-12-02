@@ -96,7 +96,7 @@ export type { GameResult as ResultType, ResultReason } from './components/chess/
 
 // Re-export theme system
 export { ThemeProvider } from './theme/ThemeProvider';
-export { useThemeTokens, useColors, useIsDark, ThemeContext } from './hooks/useThemeTokens';
+export { ThemeContext } from './hooks/useThemeTokens';
 
 // Re-export responsive hooks
 export {
@@ -137,4 +137,5 @@ export { IconSymbol } from './primitives/icon-symbol';
 export { safeStyles, safeStyleArray } from './utilities/safeStyles';
 
 export type { ThemeMode, ThemeContextType } from './hooks/useThemeTokens';
+export { useThemeTokens, useColors, useIsDark, useTypography, useFonts } from './hooks/useThemeTokens';
 

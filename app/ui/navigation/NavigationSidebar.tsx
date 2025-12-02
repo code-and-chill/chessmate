@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Pressable, Platfo
 import { useRouter } from 'expo-router';
 import { IconSymbol } from '@/ui/primitives/icon-symbol';
 import { Colors, Spacing, ZIndex } from '@/core/constants';
+import { useFonts } from '@/ui';
 
 export interface NavigationSidebarProps {
   currentRoute?: string;
@@ -33,6 +34,7 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({ currentRou
   const router = useRouter();
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
+  const fonts = useFonts();
 
   const navigationItems: NavItem[] = [
     { id: 'play', label: 'Play', icon: 'gamecontroller.fill', route: '/' },
@@ -71,7 +73,7 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({ currentRou
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Logo/Brand */}
       <View style={styles.header}>
-        <Text style={[styles.logo, { color: colors.tint }]}>♔ ChessMate</Text>
+        <Text style={[styles.logo, { fontFamily: fonts.display, color: colors.tint }]}>♔ ChessMate</Text>
       </View>
 
       {/* Navigation Items */}
@@ -99,13 +101,13 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({ currentRou
               />
               <Text style={[
                 styles.navLabel,
-                { color: active ? '#fff' : colors.text }
+                { fontFamily: fonts.medium, color: active ? '#fff' : colors.text }
               ]}>
                 {item.label}
               </Text>
               {item.badge !== undefined && item.badge > 0 && (
                 <View style={[styles.badge, { backgroundColor: '#FF3B30' }]}>
-                  <Text style={styles.badgeText}>{item.badge}</Text>
+                  <Text style={[styles.badgeText, { fontFamily: fonts.semibold }]}>{item.badge}</Text>
                 </View>
               )}
             </Pressable>
@@ -115,7 +117,7 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({ currentRou
 
       {/* Quick Actions */}
       <View style={styles.actionsSection}>
-        <Text style={[styles.sectionTitle, { color: colors.icon }]}>Quick Actions</Text>
+        <Text style={[styles.sectionTitle, { fontFamily: fonts.semibold, color: colors.icon }]}>Quick Actions</Text>
         {quickActions.map((action) => (
           <Pressable
             key={action.id}
@@ -142,6 +144,7 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({ currentRou
             />
             <Text style={[
               styles.actionLabel,
+              { fontFamily: fonts.semibold },
               action.variant === 'primary' && styles.actionLabelPrimary,
               action.variant === 'secondary' && [
                 styles.actionLabelSecondary,
@@ -196,6 +199,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '700',
     letterSpacing: 0.5,
+    // fontFamily from theme
   },
   navSection: {
     flex: 1,
@@ -220,6 +224,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '500',
     flex: 1,
+    // fontFamily from theme
   },
   badge: {
     minWidth: 20,
@@ -233,6 +238,7 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 12,
     fontWeight: '600',
+    // fontFamily from theme
   },
   actionsSection: {
     marginTop: Spacing.xl,
@@ -245,6 +251,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
     marginBottom: Spacing.sm,
     paddingHorizontal: Spacing.sm,
+    // fontFamily from theme
   },
   actionButton: {
     flexDirection: 'row',
@@ -268,6 +275,7 @@ const styles = StyleSheet.create({
   actionLabel: {
     fontSize: 14,
     fontWeight: '600',
+    // fontFamily from theme
   },
   actionLabelPrimary: {
     color: '#fff',

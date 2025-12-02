@@ -3,13 +3,14 @@ import { StyleSheet, View, Text, TouchableOpacity, SafeAreaView, ScrollView, Ale
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import { Card } from '@/ui/primitives/Card';
-import { VStack } from '@/ui';
+import { VStack, useFonts } from '@/ui';
 import { useLearning } from '@/contexts/LearningContext';
 import type { Lesson, Quiz } from '@/contexts/LearningContext';
 import { useI18n } from '@/i18n/I18nContext';
 
 export default function LessonViewerScreen() {
   const router = useRouter();
+  const fonts = useFonts();
   const { t, ti } = useI18n();
   const { lessonId } = useLocalSearchParams<{ lessonId: string }>();
   const { startLesson, completeLesson, getQuiz, submitQuiz, isLoading } = useLearning();
@@ -152,7 +153,7 @@ export default function LessonViewerScreen() {
                       <Text style={styles.contentTitle}>{currentContent.title}</Text>
                       <View style={styles.videoPlaceholder}>
                         <Text style={styles.videoText}>{t('learn.video_player')}</Text>
-                        <Text style={styles.videoUrl}>{currentContent.content}</Text>
+                        <Text style={[styles.videoUrl, { fontFamily: fonts.mono }]}>{currentContent.content}</Text>
                       </View>
                     </View>
                   )}
@@ -162,7 +163,7 @@ export default function LessonViewerScreen() {
                       <Text style={styles.contentTitle}>{currentContent.title}</Text>
                       <View style={styles.diagramPlaceholder}>
                         <Text style={styles.diagramText}>{t('learn.chess_diagram')}</Text>
-                        <Text style={styles.fenText}>{currentContent.content}</Text>
+                        <Text style={[styles.fenText, { fontFamily: fonts.mono }]}>{currentContent.content}</Text>
                       </View>
                     </View>
                   )}
@@ -378,7 +379,7 @@ const styles = StyleSheet.create({
   videoUrl: {
     fontSize: 12,
     color: '#64748B',
-    fontFamily: 'monospace',
+    // fontFamily from theme
   },
   diagramPlaceholder: {
     height: 240,
@@ -396,7 +397,7 @@ const styles = StyleSheet.create({
   fenText: {
     fontSize: 10,
     color: '#64748B',
-    fontFamily: 'monospace',
+    // fontFamily from theme
   },
   interactivePlaceholder: {
     minHeight: 200,

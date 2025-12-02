@@ -14,18 +14,6 @@ type Props = {
   style?: TextStyle;
 } & React.ComponentProps<typeof RNText>;
 
-const interFontMap = {
-  '100': 'Inter-Thin',
-  '200': 'Inter-ExtraLight',
-  '300': 'Inter-Light',
-  '400': 'Inter-Regular',
-  '500': 'Inter-Medium',
-  '600': 'Inter-SemiBold',
-  '700': 'Inter-Bold',
-  '800': 'Inter-ExtraBold',
-  '900': 'Inter-Black',
-};
-
 export const Text = React.forwardRef<RNText, Props>(
   ({ children, variant = 'body', color, mono, weight, size, style, ...rest }, ref) => {
     // Defensive check: fallback to 'body' if invalid variant
@@ -35,17 +23,39 @@ export const Text = React.forwardRef<RNText, Props>(
       ? typographyTokens.fontSize[size]
       : v.fontSize;
 
-    const finalFontWeight = weight ?? (v.fontWeight as keyof typeof interFontMap);
-    const fontFamily = mono
-      ? typographyTokens.fontFamily.mono
-      : interFontMap[finalFontWeight];
+    // Use font family from variant if available, otherwise fall back to primary
+    let fontFamily: string;
+    if (mono) {
+      fontFamily = typographyTokens.fontFamily.mono;
+    } else if ('fontFamily' in v && v.fontFamily) {
+      // Use variant's specified font family (Outfit for display/titles, Inter for body)
+      fontFamily = v.fontFamily as string;
+    } else {
+      // Fallback to Inter based on weight
+      const finalFontWeight = weight ?? v.fontWeight;
+      switch (finalFontWeight) {
+        case '400':
+          fontFamily = 'Inter_400Regular';
+          break;
+        case '500':
+          fontFamily = 'Inter_500Medium';
+          break;
+        case '600':
+          fontFamily = 'Inter_600SemiBold';
+          break;
+        case '700':
+          fontFamily = 'Inter_700Bold';
+          break;
+        default:
+          fontFamily = 'Inter_400Regular';
+      }
+    }
 
     const textStyle: TextStyle = {
       fontFamily,
       fontSize: finalFontSize,
-      fontWeight: finalFontWeight,
-      lineHeight: finalFontSize * v.lineHeight,  // FIXED
-      letterSpacing: typographyTokens.letterSpacing.normal,
+      lineHeight: finalFontSize * v.lineHeight,
+      letterSpacing: ('letterSpacing' in v && v.letterSpacing) || typographyTokens.letterSpacing.normal,
       color: color || '#000',
     };
 

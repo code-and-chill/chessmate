@@ -65,12 +65,8 @@ export default function GameScreen() {
     try {
       setLoading(true);
       setError(null);
-      console.log('📥 Loading game:', id);
-      const game = await playApi.getGameById(id!);
-      console.log('✅ Game loaded:', game.gameId, 'Status:', game.status, 'FEN:', game.fen);
       setGameState(game);
     } catch (err) {
-      console.error('❌ Failed to load game:', err);
       setError('Failed to load game');
     } finally {
       setLoading(false);
@@ -95,19 +91,13 @@ export default function GameScreen() {
     const currentState = gameStateRef.current;
     
     if (!currentState || currentState.status !== 'in_progress') {
-      console.log('🚫 Cannot make move - game state:', currentState?.status);
       return;
     }
-
-    console.log('♟️ Attempting move:', from, '→', to);
-    console.log('📊 Current FEN:', currentState.fen);
-    console.log('📊 Current side:', currentState.sideToMove);
 
     // Check if pawn promotion is needed
     const isPromotion = checkForPromotion(from, to, currentState.fen, currentState.sideToMove);
     
     if (isPromotion) {
-      console.log('👑 Pawn promotion detected');
       setPromotionState({
         isVisible: true,
         move: { from, to },
@@ -127,9 +117,6 @@ export default function GameScreen() {
       const moveStr = from + to;
       const newFen = applyMoveToFENSimple(currentState.fen, moveStr);
       
-      console.log('📊 Old FEN:', currentState.fen);
-      console.log('📊 New FEN:', newFen);
-      
       const newMove = {
         from,
         to,
@@ -143,21 +130,12 @@ export default function GameScreen() {
         moves: [...currentState.moves, newMove],
       };
       
-      console.log('✅ Setting new game state (synchronous)');
-      console.log('📊 updatedGame object:', JSON.stringify({
-        fen: updatedGame.fen,
-        sideToMove: updatedGame.sideToMove,
-        movesCount: updatedGame.moves.length
-      }));
-      
       // Force a new object reference
       const newState = JSON.parse(JSON.stringify(updatedGame));
       setGameState(newState);
       
       console.log('✅ State set complete');
     } else {
-      // For online games, make API call asynchronously
-      console.log('🌐 Online game - making API call');
       playApi.makeMove(id!, from, to)
         .then((updatedGame) => {
           console.log('✅ Move successful, new FEN:', updatedGame.fen);
@@ -173,7 +151,6 @@ export default function GameScreen() {
     if (!promotionState.move) return;
 
     const { from, to } = promotionState.move;
-    console.log('👑 Promoting pawn to:', piece);
     
     try {
       // For local/offline games (detected by mode, isLocal flag, or 'local-' prefix in ID)
@@ -182,7 +159,6 @@ export default function GameScreen() {
                           id?.startsWith('local-');
       
       if (isLocalGame && gameState) {
-        console.log('🏠 Local game - applying promotion locally');
         const { applyMoveToFENSimple } = await import('@/core/utils/chess/engine');
         const moveStr = from + to + piece.toLowerCase();
         const newFen = applyMoveToFENSimple(gameState.fen, moveStr);
@@ -201,13 +177,11 @@ export default function GameScreen() {
           moves: [...gameState.moves, newMove],
         };
         
-        console.log('✅ Local promotion successful');
         setPromotionState({ isVisible: false, move: null });
         setGameState(updatedGame);
       } else {
         // For online games, make API call
         const updatedGame = await playApi.makeMove(id!, from, to, piece.toLowerCase());
-        console.log('✅ Promotion successful');
         setPromotionState({ isVisible: false, move: null });
         setGameState(updatedGame);
       }
@@ -217,7 +191,6 @@ export default function GameScreen() {
   }, [promotionState, id, gameState]);
 
   const handleResign = useCallback(async () => {
-    console.log('🏳️ Resigning from game');
     try {
       const updatedGame = await playApi.resign(id!);
       setGameState(updatedGame);
