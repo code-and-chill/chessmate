@@ -1042,8 +1042,6 @@ export class MockPlayApiClient {
     };
     
     this.games.set(gameId, localGameState);
-    console.log('🎮 Created local game:', gameId, '(mode: local)');
-    
     return localGameState;
   }
 
