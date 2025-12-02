@@ -959,10 +959,57 @@ export class MockPuzzleApiClient {
 /**
  * Mock Play API Client (GameApiClient)
  * Supports local offline play with friends on the same device
+ * Uses AsyncStorage for persistence across sessions
  */
 export class MockPlayApiClient {
   private games: Map<string, any> = new Map();
   private gameCounter = 0;
+  private initialized = false;
+  private initPromise: Promise<void> | null = null;
+
+  private async initializeFromStorage(): Promise<void> {
+    if (this.initialized) return;
+    
+    // If already initializing, wait for that to complete
+    if (this.initPromise) {
+      return this.initPromise;
+    }
+
+    // Create initialization promise
+    this.initPromise = (async () => {
+      try {
+        const gamesJson = await AsyncStorage.getItem('@mock_play_games');
+        const counterJson = await AsyncStorage.getItem('@mock_play_counter');
+        
+        if (gamesJson) {
+          const gamesArray = JSON.parse(gamesJson);
+          this.games = new Map(gamesArray);
+          console.log(`💾 Loaded ${this.games.size} games from storage`);
+        }
+        
+        if (counterJson) {
+          this.gameCounter = JSON.parse(counterJson);
+        }
+        
+        this.initialized = true;
+      } catch (error) {
+        console.error('Failed to load games from storage:', error);
+        this.initialized = true; // Continue anyway
+      }
+    })();
+
+    return this.initPromise;
+  }
+
+  private async saveToStorage(): Promise<void> {
+    try {
+      const gamesArray = Array.from(this.games.entries());
+      await AsyncStorage.setItem('@mock_play_games', JSON.stringify(gamesArray));
+      await AsyncStorage.setItem('@mock_play_counter', JSON.stringify(this.gameCounter));
+    } catch (error) {
+      console.error('Failed to save games to storage:', error);
+    }
+  }
 
   private generateGameId(): string {
     this.gameCounter++;
@@ -1008,6 +1055,7 @@ export class MockPlayApiClient {
    * Create a new game (local offline game)
    */
   async createGame(request: any): Promise<any> {
+    await this.initializeFromStorage();
     await delay(300);
     
     const gameId = this.generateGameId();
@@ -1042,6 +1090,7 @@ export class MockPlayApiClient {
     };
     
     this.games.set(gameId, localGameState);
+    await this.saveToStorage();
     return localGameState;
   }
 
@@ -1049,6 +1098,7 @@ export class MockPlayApiClient {
    * Join an existing game
    */
   async joinGame(gameId: string, request: any = {}): Promise<any> {
+    await this.initializeFromStorage();
     await delay(300);
     
     const game = this.games.get(gameId);
@@ -1070,6 +1120,7 @@ export class MockPlayApiClient {
     game.status = 'in_progress';
     game.startedAt = new Date().toISOString();
 
+    await this.saveToStorage();
     console.log('🎮 Player 2 joined game:', gameId);
     return game;
   }
@@ -1078,10 +1129,12 @@ export class MockPlayApiClient {
    * Get game by ID
    */
   async getGameById(gameId: string): Promise<any> {
+    await this.initializeFromStorage();
     await delay(100);
     
     const game = this.games.get(gameId);
     if (!game) {
+      console.log(`❌ Game ${gameId} not found. Available games:`, Array.from(this.games.keys()));
       throw new Error('Game not found');
     }
     
@@ -1092,6 +1145,7 @@ export class MockPlayApiClient {
    * Get recent games
    */
   async getRecentGames(_userId: string, limit: number = 10): Promise<any[]> {
+    await this.initializeFromStorage();
     await delay(200);
     
     const allGames = Array.from(this.games.values());
@@ -1104,6 +1158,7 @@ export class MockPlayApiClient {
    * Get active games
    */
   async getActiveGamesForUser(_userId: string): Promise<any[]> {
+    await this.initializeFromStorage();
     await delay(200);
     
     const allGames = Array.from(this.games.values());
@@ -1114,6 +1169,7 @@ export class MockPlayApiClient {
    * Make a move (uses chess.js for validation)
    */
   async makeMove(gameId: string, from: string, to: string, promotion?: string): Promise<any> {
+    await this.initializeFromStorage();
     await delay(100);
     
     const game = this.games.get(gameId);
@@ -1176,6 +1232,7 @@ export class MockPlayApiClient {
         game.isCheck = false;
       }
 
+      await this.saveToStorage();
       console.log('🎮 Move made:', from, '→', to, 'New FEN:', game.fen);
       return game;
     } catch (error) {
@@ -1188,6 +1245,7 @@ export class MockPlayApiClient {
    * Resign from game
    */
   async resign(gameId: string): Promise<any> {
+    await this.initializeFromStorage();
     await delay(200);
     
     const game = this.games.get(gameId);
@@ -1199,6 +1257,7 @@ export class MockPlayApiClient {
     game.result = game.sideToMove === 'w' ? '0-1' : '1-0';
     game.endReason = 'resignation';
 
+    await this.saveToStorage();
     console.log('🎮 Player resigned from game:', gameId);
     return game;
   }
