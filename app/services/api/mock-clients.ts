@@ -1034,10 +1034,17 @@ export class MockPlayApiClient {
       gameState.blackPlayer = temp;
     }
 
-    this.games.set(gameId, gameState);
-    console.log('🎮 Created local game:', gameId);
+    // Mark game as local for proper detection in game screen
+    const localGameState = {
+      ...gameState,
+      mode: 'local',
+      isLocal: true,
+    };
     
-    return gameState;
+    this.games.set(gameId, localGameState);
+    console.log('🎮 Created local game:', gameId, '(mode: local)');
+    
+    return localGameState;
   }
 
   /**
