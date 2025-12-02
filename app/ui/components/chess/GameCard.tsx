@@ -253,7 +253,7 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#22C55E',
+    backgroundColor: '#22C55E', // Note: This should be dynamically set via props or styled-components for theme support
   },
   
   footer: {
@@ -263,6 +263,6 @@ const styles = StyleSheet.create({
     marginTop: spacingScale.md,
     paddingTop: spacingScale.md,
     borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
+    borderTopColor: '#E5E7EB', // Note: This should be dynamically set via props or styled-components for theme support
   },
 });

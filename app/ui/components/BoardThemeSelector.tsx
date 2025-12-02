@@ -14,6 +14,7 @@ import { Surface } from '../primitives/Surface';
 import { useThemeTokens } from '../hooks/useThemeTokens';
 import { spacingTokens } from '../tokens/spacing';
 import { radiusTokens } from '../tokens/radii';
+import { typographyTokens } from '../tokens/typography';
 import { useBoardTheme } from '@/contexts/BoardThemeContext';
 import { getAllThemes, type BoardTheme } from '@/ui/tokens/board-themes';
 
@@ -64,7 +65,7 @@ const ThemePreview: React.FC<ThemePreviewProps> = ({ theme, isSelected, onSelect
             <Text
               variant="caption"
               color={colors.accent.primary}
-              style={{ textAlign: 'center', fontSize: 12 }}
+              style={{ textAlign: 'center', fontSize: typographyTokens.fontSize.xs }}
             >
               ✓ Active
             </Text>
@@ -92,7 +93,7 @@ export const BoardThemeSelector: React.FC = () => {
           <Text variant="title" color={colors.foreground.primary}>
             Board Theme
           </Text>
-          <Text variant="body" color={colors.foreground.secondary} style={{ fontSize: 14 }}>
+          <Text variant="body" color={colors.foreground.secondary} style={{ fontSize: typographyTokens.fontSize.sm }}>
             Choose your preferred chess board appearance
           </Text>
         </VStack>

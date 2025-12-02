@@ -17,7 +17,7 @@
 
 import { StyleSheet, Text } from 'react-native';
 import { Card } from '@/ui/primitives/Card';
-import { useColors } from '@/ui';
+import { useColors, typographyTokens } from '@/ui';
 
 interface StatCardProps {
   /** Display value (can include emoji) */
@@ -48,14 +48,14 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   value: {
-    fontSize: 24,
-    fontWeight: '700',
+    fontSize: typographyTokens.fontSize['2xl'],
+    fontWeight: typographyTokens.fontWeight.bold,
     marginBottom: 4,
     // color set dynamically from theme
   },
   label: {
-    fontSize: 13,
+    fontSize: typographyTokens.fontSize.sm,
     // color set dynamically from theme
-    fontWeight: '500',
+    fontWeight: typographyTokens.fontWeight.medium,
   },
 });

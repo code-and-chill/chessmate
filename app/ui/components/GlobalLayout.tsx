@@ -1,6 +1,6 @@
-import { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { View, StyleSheet, Platform, TouchableOpacity } from 'react-native';
-import { useRouter, usePathname } from 'expo-router';
+import { usePathname } from 'expo-router';
 import { useState } from 'react';
 import { IconSymbol } from '@/ui';
 import { Sidebar, type SidebarItem } from './Sidebar';
@@ -84,7 +84,7 @@ export function GlobalLayout({ children }: GlobalLayoutProps) {
       {/* Overlay for mobile when sidebar is open */}
       {Platform.OS !== 'web' && sidebarVisible && (
         <TouchableOpacity
-          style={styles.overlay}
+          style={[styles.overlay, { backgroundColor: colors.overlay }]}
           activeOpacity={1}
           onPress={() => setSidebarVisible(false)}
           accessibilityLabel="Close Menu"
@@ -98,7 +98,7 @@ export function GlobalLayout({ children }: GlobalLayoutProps) {
           onPress={() => setSidebarVisible(true)}
           accessibilityLabel="Open Menu"
         >
-          <IconSymbol size={24} name="line.3.horizontal" color="#FFFFFF" />
+          <IconSymbol size={24} name="line.3.horizontal" color={colors.accentForeground.primary} />
         </TouchableOpacity>
       )}
     </View>
@@ -126,7 +126,6 @@ const styles = StyleSheet.create({
     bottom: 0,
     zIndex: 1000,
     width: 240,
-    shadowColor: '#000',
     shadowOffset: { width: 2, height: 0 },
     shadowOpacity: 0.25,
     shadowRadius: 8,
@@ -137,7 +136,6 @@ const styles = StyleSheet.create({
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     zIndex: 999,
   },
   hamburger: {
@@ -149,7 +147,6 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,

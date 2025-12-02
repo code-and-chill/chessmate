@@ -31,7 +31,7 @@
 import type { ReactNode } from 'react';
 import { StyleSheet, View, Text, SafeAreaView, Platform, Dimensions } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
-import { VStack, useColors } from '@/ui';
+import { VStack, useColors, typographyTokens } from '@/ui';
 
 const { width } = Dimensions.get('window');
 const isDesktop = Platform.OS === 'web' && width >= 1024;
@@ -124,18 +124,18 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   title: {
-    fontSize: 36,
-    fontWeight: '800',
+    fontSize: typographyTokens.fontSize['4xl'],
+    fontWeight: typographyTokens.fontWeight.extrabold,
     // color set dynamically from theme
     textAlign: 'center',
     letterSpacing: -0.5,
   },
   subtitle: {
-    fontSize: 17,
+    fontSize: typographyTokens.fontSize.lg,
     // color set dynamically from theme
     textAlign: 'center',
     lineHeight: 24,
-    fontWeight: '500',
+    fontWeight: typographyTokens.fontWeight.medium,
   },
   cardsContainer: {
     width: '100%',

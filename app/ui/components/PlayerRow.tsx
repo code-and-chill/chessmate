@@ -6,6 +6,8 @@
 import { Box } from '../primitives/Box';
 import { Text } from '../primitives/Text';
 import { Avatar } from '../primitives/Avatar';
+import { colorTokens, getColor } from '../tokens/colors';
+import { useIsDark } from '../hooks/useThemeTokens';
 
 type PerformanceType = 'win' | 'loss' | 'draw';
 
@@ -18,10 +20,13 @@ type PlayerRowProps = {
   draws?: number;
 };
 
-const performanceColors = {
-  win: '#16A34A',
-  loss: '#DC2626',
-  draw: '#F59E0B',
+const usePerformanceColors = () => {
+  const isDark = useIsDark();
+  return {
+    win: getColor(colorTokens.green[600], isDark),
+    loss: getColor(colorTokens.red[600], isDark),
+    draw: getColor(colorTokens.amber[500], isDark),
+  };
 };
 
 export const PlayerRow: React.FC<PlayerRowProps> = ({
@@ -32,6 +37,8 @@ export const PlayerRow: React.FC<PlayerRowProps> = ({
   losses,
   draws,
 }) => {
+  const isDark = useIsDark();
+  const performanceColors = usePerformanceColors();
   return (
     <Box
       flexDirection="row"
@@ -39,7 +46,7 @@ export const PlayerRow: React.FC<PlayerRowProps> = ({
       alignItems="center"
       padding={4}
       borderBottomWidth={1}
-      borderColor="#E8E8E8"
+      borderColor={getColor(colorTokens.neutral[200], isDark)}
     >
       <Box flexDirection="row" alignItems="center" gap={3}>
         <Avatar name={name} />
@@ -47,7 +54,7 @@ export const PlayerRow: React.FC<PlayerRowProps> = ({
           <Text variant="title" weight="semibold">
             {name}
           </Text>
-          <Text variant="caption" color="#737373">
+          <Text variant="caption" color={getColor(colorTokens.neutral[500], isDark)}>
             Rating: {rating}
           </Text>
         </Box>
@@ -72,17 +79,17 @@ export const PlayerRow: React.FC<PlayerRowProps> = ({
       {(wins !== undefined || losses !== undefined || draws !== undefined) && (
         <Box flexDirection="row" gap={3}>
           {wins !== undefined && (
-            <Text variant="caption" color="#16A34A" weight="semibold">
+            <Text variant="caption" color={getColor(colorTokens.green[600], isDark)} weight="semibold">
               W: {wins}
             </Text>
           )}
           {losses !== undefined && (
-            <Text variant="caption" color="#DC2626" weight="semibold">
+            <Text variant="caption" color={getColor(colorTokens.red[600], isDark)} weight="semibold">
               L: {losses}
             </Text>
           )}
           {draws !== undefined && (
-            <Text variant="caption" color="#F59E0B" weight="semibold">
+            <Text variant="caption" color={getColor(colorTokens.amber[500], isDark)} weight="semibold">
               D: {draws}
             </Text>
           )}

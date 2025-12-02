@@ -6,6 +6,8 @@
 import { Pressable, ScrollView } from 'react-native';
 import { Box } from '../primitives/Box';
 import { Text } from '../primitives/Text';
+import { colorTokens, getColor } from '../tokens/colors';
+import { useIsDark } from '../hooks/useThemeTokens';
 
 type RoundSelectorProps = {
   rounds: string[];
@@ -18,6 +20,8 @@ export const RoundSelector: React.FC<RoundSelectorProps> = ({
   selected,
   onSelect,
 }) => {
+  const isDark = useIsDark();
+
   return (
     <ScrollView horizontal showsHorizontalScrollIndicator={false}>
       <Box flexDirection="row" gap={2} padding={4}>
@@ -26,14 +30,22 @@ export const RoundSelector: React.FC<RoundSelectorProps> = ({
             <Box
               padding={3}
               radius="md"
-              backgroundColor={selected === round ? '#3B82F6' : '#F3F3F3'}
+              backgroundColor={
+                selected === round
+                  ? getColor(colorTokens.blue[600], isDark)
+                  : getColor(colorTokens.neutral[100], isDark)
+              }
               borderWidth={selected === round ? 0 : 1}
-              borderColor="#E8E8E8"
+              borderColor={getColor(colorTokens.neutral[200], isDark)}
             >
               <Text
                 variant="label"
                 weight="semibold"
-                color={selected === round ? '#FAFAFA' : '#171717'}
+                color={
+                  selected === round
+                    ? getColor(colorTokens.neutral[50], isDark)
+                    : getColor(colorTokens.neutral[900], isDark)
+                }
               >
                 {round}
               </Text>

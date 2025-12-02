@@ -6,7 +6,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { ViewStyle } from 'react-native';
+import type { ViewStyle } from 'react-native';
 import Animated, { 
   useAnimatedStyle, 
   useSharedValue, 
@@ -22,6 +22,8 @@ import { Badge } from '@/ui/primitives/Badge';
 import { Text } from '@/ui/primitives/Text';
 import { useThemeTokens } from '@/ui/hooks/useThemeTokens';
 import { spacingTokens } from '@/ui/tokens/spacing';
+import { colorTokens, getColor } from '@/ui/tokens/colors';
+import { typographyTokens } from '@/ui/tokens/typography';
 import { formatClock } from '@/util/time';
 
 export type Color = 'w' | 'b';
@@ -174,15 +176,15 @@ export const PlayerCard = React.memo<PlayerCardProps>(({
                 alignItems: 'center',
               }}
             >
-              <Text style={{ fontSize: 8 }}>
-                {color === 'w' ? '⚪' : '⚫'}
+              <Text style={{ fontSize: typographyTokens.fontSize.xs }}>
+                {color === 'w' ? '⭕' : '⚫'}
               </Text>
             </Box>
           </Box>
 
           <VStack flex={1} gap={2}>
             <HStack alignItems="center" gap={6}>
-              <Text variant="titleSmall" weight="semibold" style={{ fontSize: 14 }}>
+              <Text variant="titleSmall" weight="semibold" style={{ fontSize: typographyTokens.fontSize.sm }}>
                 {name}
               </Text>
               {isSelf && (
@@ -191,7 +193,7 @@ export const PlayerCard = React.memo<PlayerCardProps>(({
             </HStack>
             
             {rating && (
-              <Text variant="body" color={colors.foreground.muted} style={{ fontSize: 12 }}>
+              <Text variant="body" color={colors.foreground.muted} style={{ fontSize: typographyTokens.fontSize.xs }}>
                 {rating}
               </Text>
             )}
@@ -209,7 +211,7 @@ export const PlayerCard = React.memo<PlayerCardProps>(({
                 backgroundColor: colors.background.tertiary,
               }}
             >
-              <Text variant="caption" weight="semibold" style={{ fontSize: 12 }}>
+              <Text variant="caption" weight="semibold" style={{ fontSize: typographyTokens.fontSize.xs }}>
                 {colorName}
               </Text>
             </Box>
@@ -218,7 +220,7 @@ export const PlayerCard = React.memo<PlayerCardProps>(({
             {capturedPieces.length > 0 && (
               <HStack gap={4} alignItems="center">
                 {capturedPieces.slice(0, 5).map((piece, idx) => (
-                  <Text key={idx} style={{ fontSize: 12, opacity: 0.7 }}>
+                  <Text key={idx} style={{ fontSize: typographyTokens.fontSize.xs, opacity: 0.7 }}>
                     {PIECE_SYMBOLS[piece]}
                   </Text>
                 ))}
@@ -227,7 +229,7 @@ export const PlayerCard = React.memo<PlayerCardProps>(({
                     variant="caption" 
                     weight="bold"
                     color={colors.foreground.secondary}
-                    style={{ fontSize: 12, marginLeft: 4 }}
+                    style={{ fontSize: typographyTokens.fontSize.xs, marginLeft: 4 }}
                   >
                     +{materialValue}
                   </Text>
@@ -243,7 +245,7 @@ export const PlayerCard = React.memo<PlayerCardProps>(({
                 paddingVertical: 6,
                 borderRadius: 6,
                 backgroundColor: isLowTime 
-                  ? (isDark ? '#7F1D1D' : '#FEE2E2') 
+                  ? getColor(isDark ? colorTokens.red[900] : colorTokens.red[100], isDark) 
                   : colors.background.primary,
                 borderWidth: 1,
                 borderColor: isLowTime ? colors.error : colors.background.tertiary,
@@ -252,7 +254,7 @@ export const PlayerCard = React.memo<PlayerCardProps>(({
               <Text 
                 weight="bold"
                 color={isLowTime ? colors.error : colors.foreground.primary}
-                style={{ fontSize: 16, fontVariant: ['tabular-nums'] }}
+                style={{ fontSize: typographyTokens.fontSize.base, fontVariant: ['tabular-nums'] }}
               >
                 {formatClock(displayTime)}
               </Text>

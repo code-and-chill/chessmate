@@ -6,6 +6,8 @@
 import { Box } from '../primitives/Box';
 import { Text } from '../primitives/Text';
 import { Button } from '../primitives/Button';
+import { colorTokens, getColor } from '../tokens/colors';
+import { useIsDark } from '../hooks/useThemeTokens';
 
 type ScoreInputProps = {
   value: number;
@@ -22,6 +24,8 @@ export const ScoreInput: React.FC<ScoreInputProps> = ({
   min = 0,
   max = 100,
 }) => {
+  const isDark = useIsDark();
+
   const handleIncrement = () => {
     if (value < max) onChange(value + 1);
   };
@@ -30,9 +34,11 @@ export const ScoreInput: React.FC<ScoreInputProps> = ({
     if (value > min) onChange(value - 1);
   };
 
+  const blueColor = getColor(colorTokens.blue[600], isDark);
+
   return (
     <Box alignItems="center" gap={3}>
-      {label && <Text variant="label" color="#525252">{label}</Text>}
+      {label && <Text variant="label" color={getColor(colorTokens.neutral[600], isDark)}>{label}</Text>}
 
       <Box
         flexDirection="row"
@@ -40,7 +46,7 @@ export const ScoreInput: React.FC<ScoreInputProps> = ({
         gap={4}
         padding={3}
         radius="md"
-        backgroundColor="rgba(59, 130, 246, 0.1)"
+        backgroundColor={`${blueColor}1A`}
       >
         <Button variant="outline" size="sm" onPress={handleDecrement}>
           −
@@ -49,7 +55,7 @@ export const ScoreInput: React.FC<ScoreInputProps> = ({
         <Text
           variant="title"
           weight="bold"
-          color="#3B82F6"
+          color={blueColor}
           style={{ minWidth: 50, textAlign: 'center' }}
         >
           {value}

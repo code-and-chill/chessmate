@@ -82,7 +82,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
       
       {action && (
         <Button
-          variant="solid"
+          variant="primary"
           onPress={action.onPress}
           style={styles.action}
         >
@@ -174,7 +174,7 @@ export const ErrorState: React.FC<ErrorStateProps> = ({
       
       {retry && (
         <Button
-          variant="solid"
+          variant="primary"
           onPress={retry}
           style={styles.action}
         >

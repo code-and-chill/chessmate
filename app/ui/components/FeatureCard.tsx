@@ -22,7 +22,7 @@
 import { StyleSheet, TouchableOpacity, Text } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Card } from '@/ui/primitives/Card';
-import { VStack, useColors } from '@/ui';
+import { VStack, useColors, typographyTokens } from '@/ui';
 
 interface FeatureCardProps {
   /** Emoji icon (e.g., "🌐", "🤖", "📚") */
@@ -95,26 +95,26 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   icon: {
-    fontSize: 48,
+    fontSize: typographyTokens.fontSize['4xl'],
   },
   contentContainer: {
     flex: 1,
   },
   title: {
-    fontSize: 20,
-    fontWeight: '700',
+    fontSize: typographyTokens.fontSize.xl,
+    fontWeight: typographyTokens.fontWeight.bold,
     // color set dynamically from theme
     marginBottom: 4,
   },
   description: {
-    fontSize: 15,
+    fontSize: typographyTokens.fontSize.base,
     // color set dynamically from theme
     lineHeight: 20,
   },
   progress: {
-    fontSize: 13,
+    fontSize: typographyTokens.fontSize.sm,
     // color set dynamically from theme
-    fontWeight: '600',
+    fontWeight: typographyTokens.fontWeight.semibold,
     marginTop: 4,
   },
 });

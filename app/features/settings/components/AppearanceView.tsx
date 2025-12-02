@@ -3,7 +3,8 @@
  * features/settings/components/AppearanceView.tsx
  */
 
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, TouchableOpacity } from 'react-native';
+import { VStack, Card, Text, HStack, useColors, spacingTokens, typographyTokens } from '@/ui';
 
 export interface AppearanceViewProps {
   onBack: () => void;
@@ -11,151 +12,112 @@ export interface AppearanceViewProps {
 }
 
 export function AppearanceView({ onBack }: AppearanceViewProps) {
+  const colors = useColors();
+
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <TouchableOpacity style={styles.backButton} onPress={onBack}>
-        <Text style={styles.backButtonText}>← Back</Text>
-      </TouchableOpacity>
+    <ScrollView style={{ flex: 1, backgroundColor: colors.background.primary }}>
+      <VStack padding={spacingTokens[5]} gap={spacingTokens[4]}>
+        <TouchableOpacity 
+          style={{ alignSelf: 'flex-start', paddingVertical: spacingTokens[2], paddingHorizontal: spacingTokens[3] }}
+          onPress={onBack}
+        >
+          <Text variant="body" color={colors.accent.primary}>← Back</Text>
+        </TouchableOpacity>
 
-      <Text style={styles.title}>Appearance</Text>
-      <Text style={styles.subtitle}>Personalize your interface</Text>
+        <VStack gap={spacingTokens[2]}>
+          <Text variant="h2" color={colors.foreground.primary}>Appearance</Text>
+          <Text variant="body" color={colors.foreground.secondary}>Personalize your interface</Text>
+        </VStack>
 
-      {/* Theme */}
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Theme</Text>
-        <View style={styles.themeOptions}>
-          <TouchableOpacity style={[styles.themeOption, styles.themeOptionActive]}>
-            <Text style={styles.themeIcon}>☀️</Text>
-            <Text style={styles.themeLabel}>Light</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.themeOption}>
-            <Text style={styles.themeIcon}>🌙</Text>
-            <Text style={styles.themeLabel}>Dark</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.themeOption}>
-            <Text style={styles.themeIcon}>⚙️</Text>
-            <Text style={styles.themeLabel}>Auto</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
+        {/* Theme */}
+        <Card variant="default" size="md">
+          <VStack gap={spacingTokens[4]}>
+            <Text variant="h4" color={colors.foreground.primary}>Theme</Text>
+            <HStack gap={spacingTokens[3]}>
+              <TouchableOpacity 
+                style={{ 
+                  flex: 1, 
+                  alignItems: 'center', 
+                  padding: spacingTokens[4], 
+                  backgroundColor: `${colors.accent.primary}1A`, 
+                  borderRadius: 10, 
+                  borderWidth: 2, 
+                  borderColor: colors.accent.primary 
+                }}
+              >
+                <Text style={{ fontSize: typographyTokens.fontSize['3xl'], marginBottom: spacingTokens[2] }}>☀️</Text>
+                <Text variant="bodyMedium" weight="semibold" color={colors.foreground.primary}>Light</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={{ 
+                  flex: 1, 
+                  alignItems: 'center', 
+                  padding: spacingTokens[4], 
+                  backgroundColor: colors.background.tertiary, 
+                  borderRadius: 10, 
+                  borderWidth: 2, 
+                  borderColor: 'transparent' 
+                }}
+              >
+                <Text style={{ fontSize: typographyTokens.fontSize['3xl'], marginBottom: spacingTokens[2] }}>🌙</Text>
+                <Text variant="bodyMedium" weight="semibold" color={colors.foreground.primary}>Dark</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={{ 
+                  flex: 1, 
+                  alignItems: 'center', 
+                  padding: spacingTokens[4], 
+                  backgroundColor: colors.background.tertiary, 
+                  borderRadius: 10, 
+                  borderWidth: 2, 
+                  borderColor: 'transparent' 
+                }}
+              >
+                <Text style={{ fontSize: typographyTokens.fontSize['3xl'], marginBottom: spacingTokens[2] }}>⚙️</Text>
+                <Text variant="bodyMedium" weight="semibold" color={colors.foreground.primary}>Auto</Text>
+              </TouchableOpacity>
+            </HStack>
+          </VStack>
+        </Card>
 
-      {/* Display */}
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Display</Text>
-        <PreferenceRow label="Language" value="English" />
-        <PreferenceRow label="Time Format" value="12-hour" />
-        <PreferenceRow label="Notation Style" value="Algebraic" />
-        <PreferenceRow label="Font Size" value="Medium" />
-      </View>
+        {/* Display */}
+        <Card variant="default" size="md">
+          <VStack gap={spacingTokens[4]}>
+            <Text variant="h4" color={colors.foreground.primary}>Display</Text>
+            <PreferenceRow label="Language" value="English" />
+            <PreferenceRow label="Time Format" value="12-hour" />
+            <PreferenceRow label="Notation Style" value="Algebraic" />
+            <PreferenceRow label="Font Size" value="Medium" />
+          </VStack>
+        </Card>
 
-      {/* Accessibility */}
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Accessibility</Text>
-        <PreferenceRow label="High Contrast" value="Off" />
-        <PreferenceRow label="Reduce Motion" value="Off" />
-        <PreferenceRow label="Screen Reader" value="Off" />
-        <PreferenceRow label="Large Text" value="Off" />
-      </View>
+        {/* Accessibility */}
+        <Card variant="default" size="md">
+          <VStack gap={spacingTokens[4]}>
+            <Text variant="h4" color={colors.foreground.primary}>Accessibility</Text>
+            <PreferenceRow label="High Contrast" value="Off" />
+            <PreferenceRow label="Reduce Motion" value="Off" />
+            <PreferenceRow label="Screen Reader" value="Off" />
+            <PreferenceRow label="Large Text" value="Off" />
+          </VStack>
+        </Card>
+      </VStack>
     </ScrollView>
   );
 }
 
 function PreferenceRow({ label, value }: { label: string; value: string }) {
+  const colors = useColors();
+
   return (
-    <View style={styles.preferenceRow}>
-      <Text style={styles.preferenceLabel}>{label}</Text>
-      <Text style={styles.preferenceValue}>{value}</Text>
-    </View>
+    <HStack 
+      justifyContent="space-between" 
+      alignItems="center" 
+      paddingVertical={spacingTokens[3]}
+      style={{ borderBottomWidth: 1, borderBottomColor: colors.border }}
+    >
+      <Text variant="body" color={colors.foreground.primary}>{label}</Text>
+      <Text variant="bodyMedium" weight="semibold" color={colors.accent.primary}>{value}</Text>
+    </HStack>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f9f9f9',
-  },
-  content: {
-    padding: 20,
-  },
-  backButton: {
-    alignSelf: 'flex-start',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    marginBottom: 16,
-  },
-  backButtonText: {
-    fontSize: 16,
-    color: '#5856D6',
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    marginBottom: 8,
-    color: '#000',
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#666',
-    marginBottom: 24,
-  },
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#000',
-    marginBottom: 16,
-  },
-  themeOptions: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  themeOption: {
-    flex: 1,
-    alignItems: 'center',
-    padding: 16,
-    backgroundColor: '#f2f2f7',
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: 'transparent',
-  },
-  themeOptionActive: {
-    borderColor: '#5856D6',
-    backgroundColor: '#EAE9FF',
-  },
-  themeIcon: {
-    fontSize: 32,
-    marginBottom: 8,
-  },
-  themeLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#000',
-  },
-  preferenceRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f2f2f7',
-  },
-  preferenceLabel: {
-    fontSize: 15,
-    color: '#000',
-  },
-  preferenceValue: {
-    fontSize: 14,
-    color: '#5856D6',
-    fontWeight: '600',
-  },
-});

@@ -135,4 +135,6 @@ export const semanticColors = (isDark: boolean) => ({
     medium: isDark ? 'rgba(15, 15, 15, 0.5)' : 'rgba(255, 255, 255, 0.6)',
     dark: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
   },
+  overlay: isDark ? 'rgba(0, 0, 0, 0.8)' : 'rgba(0, 0, 0, 0.7)',
+  border: getColor(colorTokens.neutral[300], isDark),
 });

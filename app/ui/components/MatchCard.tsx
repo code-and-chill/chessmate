@@ -9,6 +9,8 @@ import { Text } from '../primitives/Text';
 import { Card } from '../primitives/Card';
 import { Avatar } from '../primitives/Avatar';
 import { Tag } from '../primitives/Tag';
+import { colorTokens, getColor } from '../tokens/colors';
+import { useIsDark } from '../hooks/useThemeTokens';
 
 type MatchStatus = 'active' | 'completed' | 'pending';
 
@@ -21,10 +23,13 @@ type MatchCardProps = {
   onPress?: () => void;
 };
 
-const statusColors = {
-  active: '#3B82F6',
-  completed: '#16A34A',
-  pending: '#F59E0B',
+const useStatusColors = () => {
+  const isDark = useIsDark();
+  return {
+    active: getColor(colorTokens.blue[600], isDark),
+    completed: getColor(colorTokens.green[600], isDark),
+    pending: getColor(colorTokens.amber[500], isDark),
+  };
 };
 
 export const MatchCard: React.FC<MatchCardProps> = ({
@@ -35,6 +40,8 @@ export const MatchCard: React.FC<MatchCardProps> = ({
   status,
   onPress,
 }) => {
+  const isDark = useIsDark();
+  const statusColors = useStatusColors();
   return (
     <Pressable onPress={onPress}>
       <Card
@@ -49,14 +56,14 @@ export const MatchCard: React.FC<MatchCardProps> = ({
                 <Text variant="title" weight="semibold">
                   {player1.name}
                 </Text>
-                <Text variant="caption" color="#737373">
+                <Text variant="caption" color={getColor(colorTokens.neutral[500], isDark)}>
                   Rating: {player1.rating}
                 </Text>
               </Box>
             </Box>
 
             <Box alignItems="center">
-              <Text variant="title" weight="bold" color="#3B82F6">
+              <Text variant="title" weight="bold" color={getColor(colorTokens.blue[600], isDark)}>
                 {score1} - {score2}
               </Text>
             </Box>
@@ -66,7 +73,7 @@ export const MatchCard: React.FC<MatchCardProps> = ({
                 <Text variant="title" weight="semibold">
                   {player2.name}
                 </Text>
-                <Text variant="caption" color="#737373">
+                <Text variant="caption" color={getColor(colorTokens.neutral[500], isDark)}>
                   Rating: {player2.rating}
                 </Text>
               </Box>

@@ -86,7 +86,7 @@ interface SidebarItemProps {
 }
 
 const SidebarItem: React.FC<SidebarItemProps> = ({ item, isActive, onPress }) => {
-  const { colors, mode } = useThemeTokens();
+  const { colors } = useThemeTokens();
   const scale = useSharedValue(1);
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -121,9 +121,7 @@ const SidebarItem: React.FC<SidebarItemProps> = ({ item, isActive, onPress }) =>
           style={{
             ...styles.item,
             backgroundColor: isActive
-              ? mode === 'dark'
-                ? 'rgba(255, 255, 255, 0.05)'
-                : 'rgba(0, 0, 0, 0.03)'
+              ? colors.translucent.dark
               : 'transparent',
             borderLeftWidth: isActive ? 3 : 0,
             borderLeftColor: isActive ? colors.accent.primary : 'transparent',

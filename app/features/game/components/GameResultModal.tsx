@@ -4,7 +4,7 @@ import { Surface } from '@/ui/primitives/Surface';
 import { Text } from '@/ui/primitives/Text';
 import { Button } from '@/ui/primitives/Button';
 import { Badge } from '@/ui/primitives/Badge';
-import { useThemeTokens } from '@/ui/hooks/useThemeTokens';
+import { useThemeTokens, useColors } from '@/ui/hooks/useThemeTokens';
 import { spacingTokens } from '@/ui/tokens/spacing';
 import { radiusTokens } from '@/ui/tokens/radii';
 
@@ -28,6 +28,7 @@ export const GameResultModal = ({
   onNewGame,
 }: GameResultModalProps) => {
   const { colors } = useThemeTokens();
+  const themeColors = useColors();
 
   const getResultText = () => {
     if (result === '1/2-1/2') {
@@ -55,7 +56,7 @@ export const GameResultModal = ({
       <Pressable
         style={{
           flex: 1,
-          backgroundColor: 'rgba(0, 0, 0, 0.7)',
+          backgroundColor: themeColors.overlay,
           justifyContent: 'center',
           alignItems: 'center',
           padding: spacingTokens[4],
@@ -113,7 +114,7 @@ export const GameResultModal = ({
 
               <Box gap={spacingTokens[3]} style={{ width: '100%', marginTop: spacingTokens[4] }}>
                 {onRematch && (
-                  <Button variant="solid" onPress={onRematch} style={{ width: '100%' }}>
+                  <Button variant="primary" onPress={onRematch} style={{ width: '100%' }}>
                     Rematch
                   </Button>
                 )}

@@ -5,6 +5,7 @@ import { Box } from '@/ui/primitives/Box';
 import { Badge } from '@/ui/primitives/Badge';
 import { useThemeTokens } from '@/ui/hooks/useThemeTokens';
 import { spacingTokens } from '@/ui/tokens/spacing';
+import { typographyTokens } from '@/ui/tokens/typography';
 
 export type GameStatus = 'in_progress' | 'waiting_for_opponent' | 'ended' | 'preparing';
 
@@ -87,8 +88,7 @@ export const GameActions = React.forwardRef<unknown, GameActionsProps>(
                 🤝 Draw
               </Button>
               <Button
-                variant="solid"
-                color={colors.error}
+                variant="destructive"
                 size="sm"
                 onPress={onResign}
                 accessibilityLabel="Resign from game"
@@ -109,7 +109,7 @@ export const GameActions = React.forwardRef<unknown, GameActionsProps>(
             )}
             {result && (
               <>
-                <Text variant="title" color={colors.foreground.primary} weight="bold" style={{ fontSize: 32, textAlign: 'center' }}>
+                <Text variant="title" color={colors.foreground.primary} weight="bold" style={{ fontSize: typographyTokens.fontSize['3xl'], textAlign: 'center' }}>
                   {resultData.text}
                 </Text>
                 {resultData.winner && (
@@ -123,7 +123,7 @@ export const GameActions = React.forwardRef<unknown, GameActionsProps>(
               </>
             )}
             {!result && !endReason && (
-              <Text variant="title" color={colors.foreground.primary} weight="bold" style={{ fontSize: 28 }}>
+              <Text variant="title" color={colors.foreground.primary} weight="bold" style={{ fontSize: typographyTokens.fontSize['2xl'] }}>
                 Game Over
               </Text>
             )}
@@ -132,7 +132,7 @@ export const GameActions = React.forwardRef<unknown, GameActionsProps>(
 
         {!isGameActive && !isGameEnded && (
           <Box alignItems="center" gap={spacingTokens[3]}>
-            <Text variant="body" color={colors.foreground.muted} style={{ fontStyle: 'italic', textAlign: 'center', fontSize: 16 }}>
+            <Text variant="body" color={colors.foreground.muted} style={{ fontStyle: 'italic', textAlign: 'center', fontSize: typographyTokens.fontSize.base }}>
               {getStatusMessage()}
             </Text>
           </Box>

@@ -163,7 +163,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: '#D1D5DB',
+    borderColor: '#D1D5DB', // Note: This should be dynamically set via props or styled-components for theme support
   },
   
   section: {
@@ -192,7 +192,7 @@ const styles = StyleSheet.create({
     right: 0,
     top: '50%',
     height: 2,
-    backgroundColor: '#9CA3AF',
+    backgroundColor: '#9CA3AF', // Note: This should be dynamically set via props or styled-components for theme support
     opacity: 0.5,
   },
 });

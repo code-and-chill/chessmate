@@ -18,7 +18,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { GestureDetector, Gesture } from 'react-native-gesture-handler';
-import { useThemeTokens } from '@/ui';
+import { useThemeTokens } from '@/ui/hooks/useThemeTokens';
 import { defaultBoardConfig, type BoardConfig } from '@/features/board/config';
 import { getBoardColors, type BoardTheme, type ThemeMode, type PieceTheme } from '@/features/board/config/themeConfig';
 import { 

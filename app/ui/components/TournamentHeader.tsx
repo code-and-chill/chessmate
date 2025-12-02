@@ -5,6 +5,7 @@
 
 import { Box } from '../primitives/Box';
 import { Text } from '../primitives/Text';
+import { useColors } from '../hooks/useThemeTokens';
 
 type TournamentHeaderProps = {
   title: string;
@@ -17,28 +18,32 @@ export const TournamentHeader: React.FC<TournamentHeaderProps> = ({
   subtitle,
   badge,
 }) => {
+  const colors = useColors();
+
   return (
     <Box
       padding={6}
-      backgroundColor="rgba(59, 130, 246, 0.05)"
-      borderBottomWidth={1}
-      borderColor="rgba(59, 130, 246, 0.2)"
+      style={{
+        backgroundColor: `${colors.accent.primary}0D`,
+        borderBottomWidth: 1,
+        borderBottomColor: `${colors.accent.primary}33`,
+      }}
     >
       <Box gap={2}>
         <Box flexDirection="row" alignItems="center" gap={3}>
-          <Text variant="title" weight="bold" color="#171717">
+          <Text variant="title" weight="bold" color={colors.foreground.primary}>
             {title}
           </Text>
           {badge && (
-            <Box padding={2} radius="sm" backgroundColor="#3B82F6">
-              <Text variant="caption" weight="semibold" color="#FAFAFA">
+            <Box padding={2} radius="sm" backgroundColor={colors.accent.primary}>
+              <Text variant="caption" weight="semibold" color={colors.accentForeground.primary}>
                 {badge}
               </Text>
             </Box>
           )}
         </Box>
         {subtitle && (
-          <Text variant="body" color="#737373">
+          <Text variant="body" color={colors.foreground.secondary}>
             {subtitle}
           </Text>
         )}

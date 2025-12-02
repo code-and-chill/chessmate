@@ -1,9 +1,12 @@
 /**
  * Achievements View Component
  * features/settings/components/AchievementsView.tsx
+ * 
+ * Refactored to use DLS primitives and tokens
  */
 
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, TouchableOpacity } from 'react-native';
+import { VStack, Card, Text, useColors, Box, spacingTokens, typographyTokens } from '@/ui';
 
 export interface AchievementsViewProps {
   onBack: () => void;
@@ -22,38 +25,67 @@ const MOCK_ACHIEVEMENTS = [
 ];
 
 export function AchievementsView({ onBack }: AchievementsViewProps) {
+  const colors = useColors();
   const unlockedCount = MOCK_ACHIEVEMENTS.filter(a => a.unlocked).length;
   const totalCount = MOCK_ACHIEVEMENTS.length;
   const progressPercent = Math.round((unlockedCount / totalCount) * 100);
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <TouchableOpacity style={styles.backButton} onPress={onBack}>
-        <Text style={styles.backButtonText}>← Back</Text>
-      </TouchableOpacity>
+    <ScrollView style={{ flex: 1, backgroundColor: colors.background.primary }}>
+      <VStack gap={spacingTokens[5]} style={{ padding: spacingTokens[5] }}>
+        <TouchableOpacity onPress={onBack}>
+          <Text variant="body" color={colors.accent.primary}>← Back</Text>
+        </TouchableOpacity>
 
-      <Text style={styles.title}>Achievements</Text>
-      <Text style={styles.subtitle}>{unlockedCount} of {totalCount} unlocked</Text>
+        <VStack gap={spacingTokens[2]}>
+          <Text variant="display" weight="bold" color={colors.foreground.primary}>
+            Achievements
+          </Text>
+          <Text variant="body" color={colors.foreground.secondary}>
+            {unlockedCount} of {totalCount} unlocked
+          </Text>
+        </VStack>
 
-      {/* Progress Bar */}
-      <View style={styles.achievementProgress}>
-        <View style={styles.achievementProgressBar}>
-          <View style={[styles.achievementProgressFill, { width: `${progressPercent}%` }]} />
-        </View>
-        <Text style={styles.achievementProgressText}>{progressPercent}% Complete</Text>
-      </View>
+        {/* Progress Bar */}
+        <VStack gap={spacingTokens[2]}>
+          <Box
+            style={{
+              height: 12,
+              backgroundColor: colors.background.tertiary,
+              borderRadius: 6,
+              overflow: 'hidden',
+            }}
+          >
+            <Box
+              style={{
+                height: '100%',
+                width: `${progressPercent}%`,
+                backgroundColor: colors.accent.primary,
+                borderRadius: 6,
+              }}
+            />
+          </Box>
+          <Text variant="bodyMedium" color={colors.accent.primary} weight="semibold" style={{ textAlign: 'center' }}>
+            {progressPercent}% Complete
+          </Text>
+        </VStack>
 
-      {/* Unlocked Achievements */}
-      <Text style={styles.sectionTitle}>Unlocked</Text>
-      {MOCK_ACHIEVEMENTS.filter(a => a.unlocked).map(achievement => (
-        <AchievementBadge key={achievement.id} {...achievement} />
-      ))}
+        {/* Unlocked Achievements */}
+        <Text variant="title" weight="semibold" color={colors.foreground.primary}>
+          Unlocked
+        </Text>
+        {MOCK_ACHIEVEMENTS.filter(a => a.unlocked).map(achievement => (
+          <AchievementBadge key={achievement.id} {...achievement} />
+        ))}
 
-      {/* Locked Achievements */}
-      <Text style={styles.sectionTitle}>In Progress</Text>
-      {MOCK_ACHIEVEMENTS.filter(a => !a.unlocked).map(achievement => (
-        <AchievementBadge key={achievement.id} {...achievement} />
-      ))}
+        {/* Locked Achievements */}
+        <Text variant="title" weight="semibold" color={colors.foreground.primary}>
+          In Progress
+        </Text>
+        {MOCK_ACHIEVEMENTS.filter(a => !a.unlocked).map(achievement => (
+          <AchievementBadge key={achievement.id} {...achievement} />
+        ))}
+      </VStack>
     </ScrollView>
   );
 }
@@ -66,123 +98,37 @@ function AchievementBadge({ title, description, unlocked, icon, date, progress }
   date?: string;
   progress?: string;
 }) {
+  const colors = useColors();
+
   return (
-    <View style={[styles.achievementBadge, !unlocked ? styles.achievementBadgeLocked : undefined]}>
-      <Text style={[styles.achievementIcon, !unlocked ? styles.achievementIconLocked : undefined]}>{icon}</Text>
-      <View style={styles.achievementDetails}>
-        <Text style={[styles.achievementTitle, !unlocked ? styles.achievementTitleLocked : undefined]}>{title}</Text>
-        <Text style={styles.achievementDescription}>{description}</Text>
-        {unlocked && date && <Text style={styles.achievementDate}>Unlocked on {date}</Text>}
-        {!unlocked && progress && <Text style={styles.achievementProgress2}>Progress: {progress}</Text>}
-      </View>
-    </View>
+    <Card variant="default" size="md" style={{ opacity: unlocked ? 1 : 0.6 }}>
+      <Box flexDirection="row" alignItems="center" gap={spacingTokens[4]}>
+        <Text style={{ fontSize: typographyTokens.fontSize['4xl'], opacity: unlocked ? 1 : 0.5 }}>
+          {icon}
+        </Text>
+        <VStack flex={1} gap={spacingTokens[1]}>
+          <Text 
+            variant="body" 
+            weight="semibold" 
+            color={unlocked ? colors.foreground.primary : colors.foreground.secondary}
+          >
+            {title}
+          </Text>
+          <Text variant="bodyMedium" color={colors.foreground.secondary}>
+            {description}
+          </Text>
+          {unlocked && date && (
+            <Text variant="caption" color={colors.accent.primary} weight="medium">
+              Unlocked on {date}
+            </Text>
+          )}
+          {!unlocked && progress && (
+            <Text variant="caption" color={colors.warning} weight="medium">
+              Progress: {progress}
+            </Text>
+          )}
+        </VStack>
+      </Box>
+    </Card>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f9f9f9',
-  },
-  content: {
-    padding: 20,
-  },
-  backButton: {
-    alignSelf: 'flex-start',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    marginBottom: 16,
-  },
-  backButtonText: {
-    fontSize: 16,
-    color: '#5856D6',
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    marginBottom: 8,
-    color: '#000',
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#666',
-    marginBottom: 24,
-  },
-  achievementProgress: {
-    marginBottom: 24,
-  },
-  achievementProgressBar: {
-    height: 12,
-    backgroundColor: '#f2f2f7',
-    borderRadius: 6,
-    marginBottom: 8,
-    overflow: 'hidden',
-  },
-  achievementProgressFill: {
-    height: '100%',
-    backgroundColor: '#5856D6',
-    borderRadius: 6,
-  },
-  achievementProgressText: {
-    fontSize: 14,
-    color: '#5856D6',
-    fontWeight: '600',
-    textAlign: 'center',
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#000',
-    marginBottom: 16,
-  },
-  achievementBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  achievementBadgeLocked: {
-    opacity: 0.6,
-  },
-  achievementIcon: {
-    fontSize: 48,
-    marginRight: 16,
-  },
-  achievementIconLocked: {
-    opacity: 0.5,
-  },
-  achievementDetails: {
-    flex: 1,
-  },
-  achievementTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#000',
-    marginBottom: 4,
-  },
-  achievementTitleLocked: {
-    color: '#666',
-  },
-  achievementDescription: {
-    fontSize: 14,
-    color: '#666',
-    marginBottom: 4,
-  },
-  achievementDate: {
-    fontSize: 12,
-    color: '#5856D6',
-    fontWeight: '500',
-  },
-  achievementProgress2: {
-    fontSize: 12,
-    color: '#FF9F0A',
-    fontWeight: '500',
-  },
-});

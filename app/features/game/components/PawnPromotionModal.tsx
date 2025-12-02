@@ -1,9 +1,10 @@
 import type React from 'react';
-import { Modal, Pressable, StyleSheet } from 'react-native';
+import { Modal, Pressable } from 'react-native';
 import { Box } from '@/ui/primitives/Box';
 import { Surface } from '@/ui/primitives/Surface';
 import { Text } from '@/ui/primitives/Text';
-import { useThemeTokens } from '@/ui/hooks/useThemeTokens';
+import { useThemeTokens, useColors } from '@/ui/hooks/useThemeTokens';
+import { typographyTokens } from '@/ui/tokens/typography';
 import { spacingTokens } from '@/ui/tokens/spacing';
 import { radiusTokens } from '@/ui/tokens/radii';
 
@@ -30,6 +31,7 @@ export const PawnPromotionModal: React.FC<PawnPromotionModalProps> = ({
   onCancel,
 }) => {
   const { colors } = useThemeTokens();
+  const themeColors = useColors();
 
   return (
     <Modal
@@ -39,7 +41,13 @@ export const PawnPromotionModal: React.FC<PawnPromotionModalProps> = ({
       onRequestClose={onCancel}
     >
       <Pressable
-        style={styles.overlay}
+        style={{
+          flex: 1,
+          backgroundColor: themeColors.overlay,
+          justifyContent: 'center',
+          alignItems: 'center',
+          padding: 16,
+        }}
         onPress={onCancel}
       >
         <Pressable onPress={e => e.stopPropagation()}>
@@ -55,10 +63,10 @@ export const PawnPromotionModal: React.FC<PawnPromotionModalProps> = ({
             <Box gap={spacingTokens[4]}>
               {/* Header */}
               <Box alignItems="center" gap={spacingTokens[2]}>
-                <Text variant="title" weight="bold" color={colors.foreground.primary} style={{ fontSize: 24 }}>
+                <Text variant="title" weight="bold" color={colors.foreground.primary} style={{ fontSize: typographyTokens.fontSize['2xl'] }}>
                   Promote Pawn
                 </Text>
-                <Text variant="body" color={colors.foreground.muted} style={{ fontSize: 14, textAlign: 'center' }}>
+                <Text variant="body" color={colors.foreground.muted} style={{ fontSize: typographyTokens.fontSize.sm, textAlign: 'center' }}>
                   Choose a piece to promote your pawn
                 </Text>
               </Box>
@@ -92,14 +100,14 @@ export const PawnPromotionModal: React.FC<PawnPromotionModalProps> = ({
                         },
                       ]}
                     >
-                      <Text style={{ fontSize: 48 }}>
+                      <Text style={{ fontSize: typographyTokens.fontSize['4xl'] }}>
                         {symbol}
                       </Text>
                       <Text 
                         variant="body" 
                         weight="semibold"
                         color={colors.foreground.primary}
-                        style={{ fontSize: 14 }}
+                        style={{ fontSize: typographyTokens.fontSize.sm }}
                       >
                         {pieceData.name}
                       </Text>
@@ -115,12 +123,4 @@ export const PawnPromotionModal: React.FC<PawnPromotionModalProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 16,
-  },
-});
+
