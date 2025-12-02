@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { View, StyleSheet, ActivityIndicator, Text, Dimensions } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useApiClients } from '@/contexts/ApiContext';
@@ -20,6 +20,7 @@ import { Box } from '@/ui/primitives/Box';
 import { VStack } from '@/ui/primitives/Stack';
 import { Card } from '@/ui/primitives/Card';
 import { spacingTokens } from '@/ui/tokens/spacing';
+import { applyMoveToFENSimple } from '@/core/utils/chess/engine';
 
 type PieceColor = 'w' | 'b';
 
@@ -40,6 +41,12 @@ export default function GameScreen() {
     isVisible: false,
     move: null,
   });
+  
+  // Use a ref to always have the latest game state
+  const gameStateRef = useRef(gameState);
+  useEffect(() => {
+    gameStateRef.current = gameState;
+  }, [gameState]);
 
   const screenConfig = createPlayScreenConfig();
   const BOARD_SIZE = Math.min(Dimensions.get('window').width - 48, 420);
@@ -84,16 +91,20 @@ export default function GameScreen() {
     }
   }, [id, showResultModal]);
 
-  const handleMove = useCallback(async (from: string, to: string) => {
-    if (!gameState || gameState.status !== 'in_progress') {
-      console.log('🚫 Cannot make move - game state:', gameState?.status);
+  const handleMove = useCallback((from: string, to: string) => {
+    const currentState = gameStateRef.current;
+    
+    if (!currentState || currentState.status !== 'in_progress') {
+      console.log('🚫 Cannot make move - game state:', currentState?.status);
       return;
     }
 
     console.log('♟️ Attempting move:', from, '→', to);
+    console.log('📊 Current FEN:', currentState.fen);
+    console.log('📊 Current side:', currentState.sideToMove);
 
     // Check if pawn promotion is needed
-    const isPromotion = checkForPromotion(from, to, gameState.fen, gameState.sideToMove);
+    const isPromotion = checkForPromotion(from, to, currentState.fen, currentState.sideToMove);
     
     if (isPromotion) {
       console.log('👑 Pawn promotion detected');
@@ -104,14 +115,59 @@ export default function GameScreen() {
       return;
     }
 
-    try {
-      const updatedGame = await playApi.makeMove(id!, from, to);
-      console.log('✅ Move successful, new FEN:', updatedGame.fen);
-      setGameState(updatedGame);
-    } catch (err) {
-      console.error('❌ Failed to make move:', err);
+    // For local/offline games
+    const isLocalGame = currentState.mode === 'local' || 
+                        currentState.isLocal === true || 
+                        id?.startsWith('local-');
+    
+    if (isLocalGame) {
+      console.log('🏠 Local game - applying move locally (synchronous)');
+      
+      // Apply move synchronously using chess engine
+      const moveStr = from + to;
+      const newFen = applyMoveToFENSimple(currentState.fen, moveStr);
+      
+      console.log('📊 Old FEN:', currentState.fen);
+      console.log('📊 New FEN:', newFen);
+      
+      const newMove = {
+        from,
+        to,
+        san: moveStr,
+      };
+      
+      const updatedGame = {
+        ...currentState,
+        fen: newFen,
+        sideToMove: currentState.sideToMove === 'w' ? 'b' : 'w',
+        moves: [...currentState.moves, newMove],
+      };
+      
+      console.log('✅ Setting new game state (synchronous)');
+      console.log('📊 updatedGame object:', JSON.stringify({
+        fen: updatedGame.fen,
+        sideToMove: updatedGame.sideToMove,
+        movesCount: updatedGame.moves.length
+      }));
+      
+      // Force a new object reference
+      const newState = JSON.parse(JSON.stringify(updatedGame));
+      setGameState(newState);
+      
+      console.log('✅ State set complete');
+    } else {
+      // For online games, make API call asynchronously
+      console.log('🌐 Online game - making API call');
+      playApi.makeMove(id!, from, to)
+        .then((updatedGame) => {
+          console.log('✅ Move successful, new FEN:', updatedGame.fen);
+          setGameState(updatedGame);
+        })
+        .catch((err) => {
+          console.error('❌ Failed to make move:', err);
+        });
     }
-  }, [gameState, id]);
+  }, [id, playApi]);
 
   const handlePawnPromotion = useCallback(async (piece: PieceType) => {
     if (!promotionState.move) return;
@@ -120,14 +176,45 @@ export default function GameScreen() {
     console.log('👑 Promoting pawn to:', piece);
     
     try {
-      const updatedGame = await playApi.makeMove(id!, from, to, piece.toLowerCase());
-      console.log('✅ Promotion successful');
-      setPromotionState({ isVisible: false, move: null });
-      setGameState(updatedGame);
+      // For local/offline games (detected by mode, isLocal flag, or 'local-' prefix in ID)
+      const isLocalGame = gameState?.mode === 'local' || 
+                          gameState?.isLocal === true || 
+                          id?.startsWith('local-');
+      
+      if (isLocalGame && gameState) {
+        console.log('🏠 Local game - applying promotion locally');
+        const { applyMoveToFENSimple } = await import('@/core/utils/chess/engine');
+        const moveStr = from + to + piece.toLowerCase();
+        const newFen = applyMoveToFENSimple(gameState.fen, moveStr);
+        
+        const newMove = {
+          from,
+          to,
+          promotion: piece.toLowerCase(),
+          san: moveStr,
+        };
+        
+        const updatedGame = {
+          ...gameState,
+          fen: newFen,
+          sideToMove: gameState.sideToMove === 'w' ? 'b' : 'w',
+          moves: [...gameState.moves, newMove],
+        };
+        
+        console.log('✅ Local promotion successful');
+        setPromotionState({ isVisible: false, move: null });
+        setGameState(updatedGame);
+      } else {
+        // For online games, make API call
+        const updatedGame = await playApi.makeMove(id!, from, to, piece.toLowerCase());
+        console.log('✅ Promotion successful');
+        setPromotionState({ isVisible: false, move: null });
+        setGameState(updatedGame);
+      }
     } catch (err) {
       console.error('❌ Failed to make promotion move:', err);
     }
-  }, [promotionState, id]);
+  }, [promotionState, id, gameState]);
 
   const handleResign = useCallback(async () => {
     console.log('🏳️ Resigning from game');
@@ -177,12 +264,15 @@ export default function GameScreen() {
     );
   }
 
+  const boardOrientation = gameState.sideToMove === 'w' ? 'white' : 'black';
+  const boardKey = `${gameState.fen}-${gameState.sideToMove}`;
+  
   const boardProps = {
     ...getHydratedBoardProps(screenConfig),
     fen: gameState.fen,
     sideToMove: gameState.sideToMove,
-    myColor: 'w' as const, // Local play - always view from white's perspective
-    orientation: 'white' as const, // Keep board orientation fixed for pass-and-play
+    myColor: gameState.sideToMove, // Match current side to move for local play
+    orientation: boardOrientation, // Flip board for each player's turn
     lastMove: gameState.moves.length > 0 ? {
       from: gameState.moves[gameState.moves.length - 1].from,
       to: gameState.moves[gameState.moves.length - 1].to,
@@ -229,9 +319,22 @@ export default function GameScreen() {
             <Animated.View entering={FadeInUp.duration(250).delay(50)} style={{ alignItems: 'center' }}>
               <Card variant="elevated" size="md" padding={0}>
                 <ChessBoard
-                  {...boardProps}
+                  key={boardKey}
+                  fen={gameState.fen}
+                  sideToMove={gameState.sideToMove}
+                  myColor={gameState.sideToMove}
+                  orientation={boardOrientation}
+                  lastMove={gameState.moves.length > 0 ? {
+                    from: gameState.moves[gameState.moves.length - 1].from,
+                    to: gameState.moves[gameState.moves.length - 1].to,
+                  } : null}
+                  isInteractive={gameState.status === 'in_progress'}
+                  isLocalGame={true}
+                  onMove={handleMove}
                   size={BOARD_SIZE}
                   squareSize={BOARD_SIZE / 8}
+                  boardTheme={screenConfig.boardTheme}
+                  themeMode={screenConfig.themeMode}
                 />
               </Card>
             </Animated.View>

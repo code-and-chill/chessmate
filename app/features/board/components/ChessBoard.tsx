@@ -9,7 +9,7 @@
  * - Cross-platform: Web, iOS, Android
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { View, Text, Platform, Dimensions, Pressable, StyleSheet } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -112,7 +112,22 @@ export const ChessBoard = React.forwardRef<View, ChessBoardProps>(
   }, ref) => {
     const [selectedSquare, setSelectedSquare] = useState<Square | null>(null);
     const [legalMoves, setLegalMoves] = useState<Square[]>([]);
-    const board = parseFEN(fen);
+    const prevFenRef = useRef<string | null>(null);
+    
+    // Parse the FEN to get the board state
+    const board = useMemo(() => {
+      return parseFEN(fen);
+    }, [fen]);
+    
+    // Clear selection when FEN changes (after a move is made)
+    useEffect(() => {
+      // Skip on initial mount
+      if (prevFenRef.current !== null && prevFenRef.current !== fen) {
+        setSelectedSquare(null);
+        setLegalMoves([]);
+      }
+      prevFenRef.current = fen;
+    }, [fen]);
     
     // Ensure boardSize is never undefined
     const boardSize = size || 320;
