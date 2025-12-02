@@ -1840,6 +1840,337 @@ Reference implementations:
 
 ---
 
+## Minimalist Pro Components
+
+### 7. Enhanced Panel Component (Glassmorphism)
+
+```typescript
+// app/ui/primitives/Panel.tsx
+
+import React from 'react';
+import type { ViewStyle } from 'react-native';
+import { View, StyleSheet, Platform } from 'react-native';
+import { BlurView } from 'expo-blur';
+import { useThemeTokens } from '@/ui';
+
+type PanelVariant = 'glass' | 'solid' | 'translucent';
+
+type PanelProps = {
+  children: React.ReactNode;
+  variant?: PanelVariant;
+  padding?: number;
+  blur?: boolean;
+  style?: ViewStyle;
+};
+
+export const Panel: React.FC<PanelProps> = ({
+  children,
+  variant = 'glass',
+  padding = 16,
+  blur = true,
+  style,
+}) => {
+  const { colors, isDark } = useThemeTokens();
+
+  // Glass variant with backdrop blur
+  if (variant === 'glass' && blur && Platform.OS !== 'web') {
+    return (
+      <BlurView
+        intensity={isDark ? 40 : 60}
+        tint={isDark ? 'dark' : 'light'}
+        style={[styles.container, style]}
+      >
+        <View style={{ padding }}>{children}</View>
+      </BlurView>
+    );
+  }
+
+  // Fallback for solid/translucent or web
+  return (
+    <View style={[styles.container, { padding }, style]}>
+      {children}
+    </View>
+  );
+};
+```
+
+**Usage:**
+```typescript
+<Panel variant="glass" padding={20}>
+  <Text>Glassmorphic content with backdrop blur</Text>
+</Panel>
+```
+
+**Variants:**
+- `glass`: Glassmorphic with backdrop blur (iOS/Android)
+- `solid`: Solid background color
+- `translucent`: Semi-transparent without blur
+
+### 8. SegmentedControl Component
+
+```typescript
+// app/ui/components/SegmentedControl.tsx
+
+import React from 'react';
+import { View, TouchableOpacity, StyleSheet } from 'react-native';
+import Animated, { useAnimatedStyle, withSpring, useSharedValue } from 'react-native-reanimated';
+import { Text } from '@/ui/primitives/Text';
+import { useThemeTokens } from '@/ui';
+
+type SegmentedControlProps<T extends string> = {
+  segments: T[];
+  selectedSegment: T;
+  onSegmentChange: (segment: T) => void;
+};
+
+export function SegmentedControl<T extends string>({
+  segments,
+  selectedSegment,
+  onSegmentChange,
+}: SegmentedControlProps<T>) {
+  const { colors, isDark } = useThemeTokens();
+  const selectedIndex = segments.indexOf(selectedSegment);
+  const segmentWidth = (width - 48) / segments.length;
+  
+  const translateX = useSharedValue(selectedIndex * segmentWidth);
+
+  React.useEffect(() => {
+    translateX.value = withSpring(selectedIndex * segmentWidth, {
+      damping: 20,
+      stiffness: 200,
+    });
+  }, [selectedIndex]);
+
+  const indicatorStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: translateX.value }],
+  }));
+
+  return (
+    <View style={[styles.container, { backgroundColor: colors.background.secondary }]}>
+      <Animated.View style={[styles.indicator, { width: segmentWidth }, indicatorStyle]} />
+      {segments.map((segment) => (
+        <TouchableOpacity
+          key={segment}
+          style={[styles.segment, { width: segmentWidth }]}
+          onPress={() => onSegmentChange(segment)}
+        >
+          <Text variant="label" weight={segment === selectedSegment ? 'semibold' : 'medium'}>
+            {segment}
+          </Text>
+        </TouchableOpacity>
+      ))}
+    </View>
+  );
+}
+```
+
+**Usage:**
+```typescript
+<SegmentedControl
+  segments={['all', 'easy', 'medium', 'hard']}
+  selectedSegment={difficulty}
+  onSegmentChange={setDifficulty}
+/>
+```
+
+**Features:**
+- iOS-style design with smooth animated indicator
+- Spring physics for natural movement
+- Theme-aware colors
+- Generic type support for type-safe segments
+
+### 9. Enhanced StatCard Component
+
+```typescript
+// app/ui/components/StatCard.tsx
+
+import React from 'react';
+import { View, StyleSheet } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
+import { Text } from '@/ui/primitives/Text';
+import { useThemeTokens } from '@/ui';
+
+type StatCardProps = {
+  value: string | number;
+  label: string;
+  icon?: string;
+  trend?: 'up' | 'down' | 'neutral';
+  trendValue?: string;
+  delay?: number;
+};
+
+export const StatCard: React.FC<StatCardProps> = ({
+  value,
+  label,
+  icon,
+  trend,
+  trendValue,
+  delay = 0,
+}) => {
+  const { colors } = useThemeTokens();
+
+  return (
+    <Animated.View entering={FadeInDown.duration(400).delay(delay)} style={styles.container}>
+      {icon && <Text style={styles.icon}>{icon}</Text>}
+      <Text
+        variant="heading"
+        weight="bold"
+        style={{ fontVariant: ['tabular-nums'], color: colors.foreground.primary }}
+      >
+        {value}
+      </Text>
+      <Text variant="caption" style={{ color: colors.foreground.secondary }}>
+        {label}
+      </Text>
+      {trend && trendValue && (
+        <View style={styles.trend}>
+          <Text style={{ fontSize: 12, fontWeight: '600' }}>
+            {trend === 'up' ? '↗' : trend === 'down' ? '↘' : '→'} {trendValue}
+          </Text>
+        </View>
+      )}
+    </Animated.View>
+  );
+};
+```
+
+**Usage:**
+```typescript
+<HStack gap={3}>
+  <StatCard value="147" label="Solved" />
+  <StatCard value="1450" label="Rating" trend="up" trendValue="+25" />
+  <StatCard value="🔥 7" label="Streak" />
+</HStack>
+```
+
+**Features:**
+- Monospaced numbers (tabular-nums) for alignment
+- Optional icon support
+- Trend indicators (up/down/neutral)
+- Animated entrance with staggered delays
+- Theme-aware styling
+
+### Minimalist Pro Design Pattern
+
+**Example: Puzzle Screen Implementation**
+
+```typescript
+export default function PuzzleHubScreen() {
+  const { colors } = useThemeTokens();
+  const [difficulty, setDifficulty] = useState<'all' | 'easy' | 'medium' | 'hard'>('all');
+  const [themes, setThemes] = useState<string[]>([]);
+
+  return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background.primary }}>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <VStack style={styles.content} gap={6}>
+          {/* Header with elegant typography */}
+          <Animated.View entering={FadeInUp.delay(100).duration(400)}>
+            <Text style={[styles.title, { color: colors.accent.primary }]}>Puzzles</Text>
+            <Text style={[styles.subtitle, { color: colors.foreground.secondary }]}>
+              Sharpen your tactical skills
+            </Text>
+          </Animated.View>
+
+          {/* Glassmorphic Stats Panel */}
+          <Animated.View entering={FadeInDown.delay(200).duration(400)}>
+            <Panel variant="glass" padding={20}>
+              <VStack gap={4}>
+                <Text style={styles.sectionTitle}>Your Progress</Text>
+                <HStack gap={3}>
+                  <StatCard value="147" label="Solved" />
+                  <StatCard value="1450" label="Rating" />
+                </HStack>
+                <HStack gap={3}>
+                  <StatCard value="🔥 7" label="Streak" />
+                  <StatCard value="89%" label="Success" />
+                </HStack>
+              </VStack>
+            </Panel>
+          </Animated.View>
+
+          {/* Daily Puzzle Hero Card */}
+          <Animated.View entering={FadeInDown.delay(300).duration(400)}>
+            <Pressable onPress={() => router.push('/puzzle/daily')}>
+              <Panel variant="glass" padding={24}>
+                <VStack gap={3} style={{ alignItems: 'center' }}>
+                  <View style={styles.dailyBadge}>
+                    <Text style={styles.dailyIcon}>⭐</Text>
+                  </View>
+                  <Text style={styles.dailyTitle}>Daily Puzzle</Text>
+                  <Text style={styles.dailySubtitle}>Rating: 1520</Text>
+                  <View style={styles.playButton}>
+                    <Text style={styles.playButtonText}>Play Now →</Text>
+                  </View>
+                </VStack>
+              </Panel>
+            </Pressable>
+          </Animated.View>
+
+          {/* Segmented Control for Difficulty */}
+          <Animated.View entering={FadeInDown.delay(400).duration(400)}>
+            <VStack gap={3}>
+              <Text style={styles.sectionTitle}>Difficulty</Text>
+              <SegmentedControl
+                segments={['all', 'easy', 'medium', 'hard']}
+                selectedSegment={difficulty}
+                onSegmentChange={setDifficulty}
+              />
+            </VStack>
+          </Animated.View>
+
+          {/* Theme Tags (horizontal scroll) */}
+          <Animated.View entering={FadeInDown.delay(500).duration(400)}>
+            <VStack gap={3}>
+              <Text style={styles.sectionTitle}>Themes</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                {themeOptions.map((theme) => (
+                  <Pressable
+                    key={theme.id}
+                    style={[
+                      styles.themeChip,
+                      { backgroundColor: themes.includes(theme.id) ? colors.accent.primary : colors.background.secondary }
+                    ]}
+                    onPress={() => toggleTheme(theme.id)}
+                  >
+                    <Text style={styles.themeIcon}>{theme.icon}</Text>
+                    <Text style={styles.themeLabel}>{theme.label}</Text>
+                  </Pressable>
+                ))}
+              </ScrollView>
+            </VStack>
+          </Animated.View>
+
+          {/* Action Buttons */}
+          <Animated.View entering={FadeInDown.delay(600).duration(400)}>
+            <VStack gap={3}>
+              <Pressable style={styles.primaryButton} onPress={startPuzzle}>
+                <Text style={styles.primaryButtonText}>🎲 Start Training</Text>
+              </Pressable>
+              <Pressable style={styles.secondaryButton} onPress={viewHistory}>
+                <Text style={styles.secondaryButtonText}>📊 View History</Text>
+              </Pressable>
+            </VStack>
+          </Animated.View>
+        </VStack>
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+```
+
+**Key Minimalist Pro Principles:**
+1. ✅ **Glassmorphism**: Translucent panels with backdrop blur
+2. ✅ **Elegant Typography**: Proper font weights, letter-spacing, line-heights
+3. ✅ **Soft Shadows**: Subtle depth without harsh borders
+4. ✅ **Smooth Animations**: Spring physics and staggered entrances
+5. ✅ **Monospaced Numbers**: Tabular figures for stat alignment
+6. ✅ **Premium Spacing**: Generous padding and proper whitespace
+7. ✅ **Theme Awareness**: Adapts to light/dark mode seamlessly
+8. ✅ **Subtle Interactions**: Gentle hover states and pressed effects
+
+---
+
 ## Future Enhancements
 
 - Animation presets (fade, slide, scale)
@@ -1848,6 +2179,8 @@ Reference implementations:
 - Dark mode refinement
 - Custom theme creation API
 - Component composition patterns
+- Glassmorphism presets for different surfaces
+- Advanced segmented control with icons
 - Accessibility improvements (A11y labels, focus management)
 - Performance monitoring hooks
 

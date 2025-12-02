@@ -36,12 +36,14 @@ export default function FriendsScreen() {
         getFriends(),
         getFriendRequests(),
       ]);
-      setFriends(friendsData);
-      setRequests(requestsData);
+      setFriends(friendsData || []);
+      setRequests(requestsData || []);
     } catch (error) {
       console.error('Failed to load friends data:', error);
       // Silently fail - user needs to be authenticated
-      // In production, you might want to redirect to login
+      // Set empty arrays as fallback
+      setFriends([]);
+      setRequests([]);
     }
   };
 

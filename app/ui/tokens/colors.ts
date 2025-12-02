@@ -113,8 +113,8 @@ export const semanticColors = (isDark: boolean) => ({
     muted: getColor(colorTokens.neutral[500], isDark),
   },
   accent: {
-    primary: getColor(colorTokens.blue[600], isDark),
-    secondary: getColor(colorTokens.purple[600], isDark),
+    primary: isDark ? getColor(colorTokens.blue[500], isDark) : getColor(colorTokens.blue[600], isDark),
+    secondary: isDark ? getColor(colorTokens.purple[500], isDark) : getColor(colorTokens.purple[600], isDark),
   },
   accentForeground: {
     primary: getColor(colorTokens.neutral[50], isDark),
@@ -125,10 +125,13 @@ export const semanticColors = (isDark: boolean) => ({
   warning: getColor(colorTokens.amber[500], isDark),
   info: getColor(colorTokens.cyan[600], isDark),
   interactive: {
-    default: getColor(colorTokens.blue[600], isDark),
-    hover: getColor(colorTokens.blue[700], isDark),
-    active: getColor(colorTokens.blue[800], isDark),
+    default: isDark ? getColor(colorTokens.blue[500], isDark) : getColor(colorTokens.blue[600], isDark),
+    hover: isDark ? getColor(colorTokens.blue[400], isDark) : getColor(colorTokens.blue[700], isDark),
+    active: isDark ? getColor(colorTokens.blue[300], isDark) : getColor(colorTokens.blue[800], isDark),
     disabled: getColor(colorTokens.neutral[300], isDark),
+  },
+  button: {
+    shadow: isDark ? 'rgba(96, 165, 250, 0.15)' : 'rgba(102, 126, 234, 0.25)',
   },
   translucent: {
     light: isDark ? 'rgba(15, 15, 15, 0.7)' : 'rgba(255, 255, 255, 0.8)',

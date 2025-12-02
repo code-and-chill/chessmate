@@ -12,6 +12,7 @@ import Animated, {
   withSpring,
   useSharedValue,
 } from 'react-native-reanimated';
+import { useColors } from '@/ui';
 
 export type CardVariant = 'default' | 'elevated' | 'glass' | 'gradient' | 'outline';
 export type CardSize = 'sm' | 'md' | 'lg' | 'xl';
@@ -52,6 +53,7 @@ export const Card: React.FC<CardProps> = ({
   animated = false,
   style,
 }) => {
+  const colors = useColors();
   const scale = useSharedValue(1);
   const opacity = useSharedValue(1);
 
@@ -82,11 +84,11 @@ export const Card: React.FC<CardProps> = ({
   const finalPadding = padding ?? sizePadding;
 
   const variantStyles = {
-    default: styles.default,
-    elevated: styles.elevated,
+    default: { ...styles.default, backgroundColor: colors.background.secondary },
+    elevated: { ...styles.elevated, backgroundColor: colors.background.secondary },
     glass: styles.glass,
     gradient: styles.gradient,
-    outline: styles.outline,
+    outline: { ...styles.outline, borderColor: colors.background.tertiary },
   };
 
   const cardStyle = [
@@ -138,7 +140,7 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   default: {
-    backgroundColor: '#FFFFFF',
+    // backgroundColor set dynamically from theme
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -152,7 +154,7 @@ const styles = StyleSheet.create({
     }),
   },
   elevated: {
-    backgroundColor: '#FFFFFF',
+    // backgroundColor set dynamically from theme
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -198,6 +200,6 @@ const styles = StyleSheet.create({
   outline: {
     backgroundColor: 'transparent',
     borderWidth: 2,
-    borderColor: '#E5E7EB',
+    // borderColor set dynamically from theme
   },
 });

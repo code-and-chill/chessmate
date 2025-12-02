@@ -1,9 +1,12 @@
 import { useState, useEffect } from 'react';
-import { StyleSheet, View, TouchableOpacity, Text, SafeAreaView, ScrollView, ActivityIndicator } from 'react-native';
+import { StyleSheet, View, TouchableOpacity, Text, SafeAreaView, ScrollView, ActivityIndicator, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { Card } from '@/ui/primitives/Card';
-import { VStack } from '@/ui';
+import { Panel } from '@/ui/primitives/Panel';
+import { VStack, HStack } from '@/ui';
+import { StatCard } from '@/ui/components/StatCard';
+import { SegmentedControl } from '@/ui/components/SegmentedControl';
 import { usePuzzle } from '@/contexts/PuzzleContext';
 import { useThemeTokens } from '@/ui';
 import { useI18n } from '@/i18n/I18nContext';
@@ -14,7 +17,7 @@ export default function PuzzleHubScreen() {
   const { t, ti } = useI18n();
   const { dailyPuzzle, puzzleStats, getDailyPuzzle, getUserStats, isLoading } = usePuzzle();
   
-  const [selectedDifficulty, setSelectedDifficulty] = useState<string[]>([]);
+  const [selectedDifficulty, setSelectedDifficulty] = useState<'all' | 'beginner' | 'easy' | 'medium' | 'hard' | 'expert' | 'master'>('all');
   const [selectedThemes, setSelectedThemes] = useState<string[]>([]);
 
   useEffect(() => {
@@ -22,24 +25,25 @@ export default function PuzzleHubScreen() {
     getUserStats();
   }, []);
 
-  const difficulties = ['beginner', 'easy', 'medium', 'hard', 'expert', 'master'];
-  const themes = ['fork', 'pin', 'skewer', 'sacrifice', 'checkmate', 'endgame'];
+  const difficulties = ['all', 'beginner', 'easy', 'medium', 'hard', 'expert', 'master'] as const;
+  const themes = [
+    { id: 'fork', label: 'Fork', icon: '⚔️' },
+    { id: 'pin', label: 'Pin', icon: '📌' },
+    { id: 'skewer', label: 'Skewer', icon: '🗡️' },
+    { id: 'sacrifice', label: 'Sacrifice', icon: '♕' },
+    { id: 'checkmate', label: 'Checkmate', icon: '♔' },
+    { id: 'endgame', label: 'Endgame', icon: '🏁' },
+  ];
 
-  const toggleDifficulty = (diff: string) => {
-    setSelectedDifficulty(prev =>
-      prev.includes(diff) ? prev.filter(d => d !== diff) : [...prev, diff]
-    );
-  };
-
-  const toggleTheme = (theme: string) => {
+  const toggleTheme = (themeId: string) => {
     setSelectedThemes(prev =>
-      prev.includes(theme) ? prev.filter(t => t !== theme) : [...prev, theme]
+      prev.includes(themeId) ? prev.filter(t => t !== themeId) : [...prev, themeId]
     );
   };
 
   const startRandomPuzzle = () => {
     const filter = {
-      difficulty: selectedDifficulty.length ? selectedDifficulty : undefined,
+      difficulty: selectedDifficulty !== 'all' ? [selectedDifficulty] : undefined,
       themes: selectedThemes.length ? selectedThemes : undefined,
     };
     router.push({
@@ -61,137 +65,162 @@ export default function PuzzleHubScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background.primary }]}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <VStack style={styles.content} gap={6}>
           {/* Header */}
-          <Animated.View entering={FadeInDown.delay(100).duration(500)}>
-            <Text style={[styles.title, { color: colors.foreground.primary }]}>{t('puzzle.puzzles')}</Text>
+          <Animated.View entering={FadeInUp.delay(100).duration(400)} style={styles.header}>
+            <Text style={[styles.title, { color: colors.accent.primary }]}>{t('puzzle.puzzles')}</Text>
             <Text style={[styles.subtitle, { color: colors.foreground.secondary }]}>{t('puzzle.sharpen_skills')}</Text>
           </Animated.View>
 
-          {/* Stats Card */}
+          {/* Glassmorphic Stats Panel */}
           {puzzleStats && (
-            <Animated.View entering={FadeInDown.delay(200).duration(500)}>
-              <Card variant="gradient" size="md">
-                <VStack gap={3} style={{ padding: 16 }}>
-                  <Text style={[styles.statsTitle, { color: colors.foreground.primary }]}>{t('puzzle.your_progress')}</Text>
-                  <View style={styles.statsGrid}>
-                    <View style={styles.statItem}>
-                      <Text style={[styles.statValue, { color: colors.foreground.primary }]}>{puzzleStats.totalSolved}</Text>
-                      <Text style={[styles.statLabel, { color: colors.foreground.secondary }]}>{t('puzzle.solved')}</Text>
-                    </View>
-                    <View style={styles.statItem}>
-                      <Text style={[styles.statValue, { color: colors.foreground.primary }]}>{puzzleStats.userRating}</Text>
-                      <Text style={[styles.statLabel, { color: colors.foreground.secondary }]}>{t('puzzle.rating')}</Text>
-                    </View>
-                    <View style={styles.statItem}>
-                      <Text style={[styles.statValue, { color: colors.foreground.primary }]}>{puzzleStats.currentStreak}🔥</Text>
-                      <Text style={[styles.statLabel, { color: colors.foreground.secondary }]}>{t('puzzle.streak')}</Text>
-                    </View>
-                    <View style={styles.statItem}>
-                      <Text style={[styles.statValue, { color: colors.foreground.primary }]}>
-                        {Math.round((puzzleStats.totalSolved / puzzleStats.totalAttempts) * 100)}%
-                      </Text>
-                      <Text style={[styles.statLabel, { color: colors.foreground.secondary }]}>{t('puzzle.success')}</Text>
-                    </View>
-                  </View>
+            <Animated.View entering={FadeInDown.delay(200).duration(400)}>
+              <Panel variant="glass" padding={20}>
+                <VStack gap={4}>
+                  <Text style={[styles.sectionTitle, { color: colors.foreground.primary }]}>
+                    {t('puzzle.your_progress')}
+                  </Text>
+                  <HStack gap={3}>
+                    <StatCard 
+                      value={puzzleStats.totalSolved.toString()} 
+                      label={t('puzzle.solved')} 
+                    />
+                    <StatCard 
+                      value={puzzleStats.userRating.toString()} 
+                      label={t('puzzle.rating')} 
+                    />
+                  </HStack>
+                  <HStack gap={3}>
+                    <StatCard 
+                      value={`🔥 ${puzzleStats.currentStreak}`} 
+                      label={t('puzzle.streak')} 
+                    />
+                    <StatCard 
+                      value={`${Math.round((puzzleStats.totalSolved / puzzleStats.totalAttempts) * 100)}%`} 
+                      label={t('puzzle.success')} 
+                    />
+                  </HStack>
                 </VStack>
-              </Card>
+              </Panel>
             </Animated.View>
           )}
 
-          {/* Daily Puzzle */}
-          <Animated.View entering={FadeInDown.delay(300).duration(500)}>
-            <Card variant="default" size="md">
-              <TouchableOpacity
-                style={styles.dailyPuzzle}
-                onPress={() => router.push('/puzzle/daily')}
-              >
-                <View style={styles.dailyHeader}>
-                  <Text style={styles.dailyIcon}>⭐</Text>
-                  <VStack gap={1}>
-                    <Text style={[styles.dailyTitle, { color: colors.foreground.primary }]}>{t('puzzle.daily_puzzle')}</Text>
+          {/* Daily Puzzle Hero Card */}
+          <Animated.View entering={FadeInDown.delay(300).duration(400)}>
+            <Pressable onPress={() => router.push('/puzzle/daily')}>
+              <Panel variant="glass" padding={24} style={[styles.dailyPuzzlePanel, { shadowColor: colors.accent.primary }]}>
+                <VStack gap={3} style={{ alignItems: 'center' }}>
+                  <View style={styles.dailyBadge}>
+                    <Text style={styles.dailyIcon}>⭐</Text>
+                  </View>
+                  <VStack gap={1} style={{ alignItems: 'center' }}>
+                    <Text style={[styles.dailyTitle, { color: colors.foreground.primary }]}>
+                      {t('puzzle.daily_puzzle')}
+                    </Text>
                     <Text style={[styles.dailySubtitle, { color: colors.foreground.secondary }]}>
-                      {dailyPuzzle ? ti('puzzle.rating_value', { rating: dailyPuzzle.rating }) : t('puzzle.complete_today_challenge')}
+                      {dailyPuzzle 
+                        ? ti('puzzle.rating_value', { rating: dailyPuzzle.rating }) 
+                        : t('puzzle.complete_today_challenge')}
                     </Text>
                   </VStack>
-                </View>
-                <Text style={[styles.arrow, { color: colors.accent.primary }]}>→</Text>
-              </TouchableOpacity>
-            </Card>
+                  <View style={[
+                    styles.playButton, 
+                    { 
+                      backgroundColor: colors.accent.primary,
+                      shadowColor: colors.accent.primary,
+                    }
+                  ]}>
+                    <Text style={[styles.playButtonText, { color: '#FFFFFF' }]}>Play Now →</Text>
+                  </View>
+                </VStack>
+              </Panel>
+            </Pressable>
           </Animated.View>
 
-          {/* Difficulty Filter */}
-          <Animated.View entering={FadeInDown.delay(400).duration(500)}>
-            <VStack gap={2}>
-              <Text style={[styles.filterLabel, { color: colors.foreground.primary }]}>{t('puzzle.difficulty')}</Text>
-              <View style={styles.filterGrid}>
-                {difficulties.map((diff) => (
-                  <TouchableOpacity
-                    key={diff}
-                    style={[
-                      styles.filterChip,
-                      { backgroundColor: selectedDifficulty.includes(diff) ? colors.accent.primary : colors.background.secondary, borderColor: selectedDifficulty.includes(diff) ? colors.accent.primary : colors.background.tertiary },
-                    ]}
-                    onPress={() => toggleDifficulty(diff)}
-                  >
-                    <Text
-                      style={[
-                        styles.filterChipText,
-                        { color: selectedDifficulty.includes(diff) ? colors.accentForeground.primary : colors.foreground.secondary },
-                      ]}
-                    >
-                      {diff}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </VStack>
+          {/* Difficulty Selector */}
+          <Animated.View entering={FadeInDown.delay(400).duration(400)}>
+            <Panel variant="glass" padding={20}>
+              <VStack gap={3}>
+                <Text style={[styles.sectionTitle, { color: colors.foreground.primary }]}>
+                  {t('puzzle.difficulty')}
+                </Text>
+                <SegmentedControl
+                  segments={difficulties}
+                  selectedSegment={selectedDifficulty}
+                  onSegmentChange={setSelectedDifficulty}
+                />
+              </VStack>
+            </Panel>
           </Animated.View>
 
-          {/* Theme Filter */}
-          <Animated.View entering={FadeInDown.delay(500).duration(500)}>
-            <VStack gap={2}>
-              <Text style={[styles.filterLabel, { color: colors.foreground.primary }]}>Themes</Text>
-              <View style={styles.filterGrid}>
-                {themes.map((theme) => (
-                  <TouchableOpacity
-                    key={theme}
-                    style={[
-                      styles.filterChip,
-                      { backgroundColor: selectedThemes.includes(theme) ? colors.accent.primary : colors.background.secondary, borderColor: selectedThemes.includes(theme) ? colors.accent.primary : colors.background.tertiary },
-                    ]}
-                    onPress={() => toggleTheme(theme)}
-                  >
-                    <Text
-                      style={[
-                        styles.filterChipText,
-                        { color: selectedThemes.includes(theme) ? colors.accentForeground.primary : colors.foreground.secondary },
-                      ]}
-                    >
-                      {theme}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </VStack>
+          {/* Theme Selector */}
+          <Animated.View entering={FadeInDown.delay(500).duration(400)}>
+            <Panel variant="glass" padding={20}>
+              <VStack gap={3}>
+                <Text style={[styles.sectionTitle, { color: colors.foreground.primary }]}>
+                  Themes
+                </Text>
+                <ScrollView 
+                  horizontal 
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.themeScroll}
+                >
+                  {themes.map((theme) => {
+                    const isSelected = selectedThemes.includes(theme.id);
+                    return (
+                      <Pressable
+                        key={theme.id}
+                        style={[
+                          styles.themeChip,
+                          {
+                            backgroundColor: isSelected ? colors.accent.primary : colors.background.secondary,
+                            borderColor: isSelected ? colors.accent.primary : colors.background.tertiary,
+                          },
+                        ]}
+                        onPress={() => toggleTheme(theme.id)}
+                      >
+                        <Text style={styles.themeIcon}>{theme.icon}</Text>
+                        <Text
+                          style={[
+                            styles.themeLabel,
+                            { color: isSelected ? '#FFFFFF' : colors.foreground.secondary },
+                          ]}
+                        >
+                          {theme.label}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </ScrollView>
+              </VStack>
+            </Panel>
           </Animated.View>
 
           {/* Action Buttons */}
-          <Animated.View entering={FadeInDown.delay(600).duration(500)}>
-            <VStack gap={3}>
-              <TouchableOpacity style={[styles.button, { backgroundColor: colors.accent.primary }]} onPress={startRandomPuzzle}>
-                <Text style={[styles.buttonText, { color: colors.accentForeground.primary }]}>🎲 Random Puzzle</Text>
-              </TouchableOpacity>
+          <Animated.View entering={FadeInDown.delay(600).duration(400)}>
+            <VStack gap={3} style={styles.actionButtons}>
+              <Pressable 
+                style={[
+                  styles.primaryButton, 
+                  { 
+                    backgroundColor: colors.accent.primary,
+                    shadowColor: colors.accent.primary,
+                  }
+                ]} 
+                onPress={startRandomPuzzle}
+              >
+                <Text style={styles.primaryButtonText}>🎲 Start Training</Text>
+              </Pressable>
               
-              <TouchableOpacity
-                style={[styles.button, styles.buttonSecondary, { borderColor: colors.accent.primary, backgroundColor: 'transparent' }]}
+              <Pressable
+                style={[styles.secondaryButton, { borderColor: colors.background.tertiary }]}
                 onPress={() => router.push('/puzzle/history')}
               >
-                <Text style={[styles.buttonText, styles.buttonTextSecondary, { color: colors.accent.primary }]}>
+                <Text style={[styles.secondaryButtonText, { color: colors.foreground.primary }]}>
                   📊 View History
                 </Text>
-              </TouchableOpacity>
+              </Pressable>
             </VStack>
           </Animated.View>
         </VStack>
@@ -208,102 +237,131 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   content: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
+    paddingHorizontal: 24,
+    paddingTop: 24,
+    maxWidth: 600,
+    alignSelf: 'center',
+    width: '100%',
+  },
+  header: {
+    alignItems: 'center',
+    marginBottom: 8,
   },
   title: {
     fontSize: 36,
-    fontWeight: 'bold',
+    fontWeight: '800',
     textAlign: 'center',
+    letterSpacing: -0.5,
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 17,
     textAlign: 'center',
-    marginTop: 4,
+    marginTop: 6,
+    fontWeight: '500',
+    lineHeight: 24,
   },
-  statsTitle: {
+  sectionTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: '600',
+    letterSpacing: -0.3,
   },
-  statsGrid: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  dailyPuzzlePanel: {
+    // shadowColor set dynamically from theme
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 20,
+    elevation: 8,
   },
-  statItem: {
+  dailyBadge: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: 'rgba(102, 126, 234, 0.1)',
+    justifyContent: 'center',
     alignItems: 'center',
-  },
-  statValue: {
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
-  statLabel: {
-    fontSize: 12,
-    marginTop: 4,
-  },
-  dailyPuzzle: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 16,
-  },
-  dailyHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
   },
   dailyIcon: {
-    fontSize: 40,
+    fontSize: 32,
   },
   dailyTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
+    fontSize: 22,
+    fontWeight: '700',
+    letterSpacing: -0.4,
   },
   dailySubtitle: {
-    fontSize: 14,
+    fontSize: 15,
+    fontWeight: '500',
   },
-  arrow: {
-    fontSize: 24,
+  playButton: {
+    paddingHorizontal: 32,
+    paddingVertical: 12,
+    borderRadius: 12,
+    marginTop: 8,
+    // shadowColor set dynamically from theme
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
-  filterLabel: {
+  playButtonText: {
     fontSize: 16,
     fontWeight: '600',
   },
-  filterGrid: {
+  themeScroll: {
+    gap: 12,
+    paddingVertical: 2,
+  },
+  themeChip: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
+    alignItems: 'center',
     gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 1,
   },
-  filterChip: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 2,
+  themeIcon: {
+    fontSize: 18,
   },
-  filterChipActive: {
-    // Handled inline
-  },
-  filterChipText: {
+  themeLabel: {
     fontSize: 14,
     fontWeight: '600',
-    textTransform: 'capitalize',
   },
-  filterChipTextActive: {
-    // Handled inline
+  actionButtons: {
+    marginTop: 8,
   },
-  button: {
-    padding: 18,
-    borderRadius: 12,
+  primaryButton: {
+    paddingVertical: 18,
+    borderRadius: 14,
     alignItems: 'center',
+    // shadowColor set dynamically from theme
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 6,
   },
-  buttonSecondary: {
-    borderWidth: 2,
-  },
-  buttonText: {
+  primaryButtonText: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: '700',
+    color: '#FFFFFF',
+    letterSpacing: -0.3,
   },
-  buttonTextSecondary: {
-    // Handled inline
+  secondaryButton: {
+    paddingVertical: 18,
+    borderRadius: 14,
+    alignItems: 'center',
+    borderWidth: 1,
+    backgroundColor: 'transparent',
+  },
+  secondaryButtonText: {
+    fontSize: 17,
+    fontWeight: '600',
+    letterSpacing: -0.3,
   },
   loader: {
     flex: 1,
@@ -311,7 +369,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   loaderText: {
-    fontSize: 16,
-    marginTop: 16,
+    fontSize: 17,
+    marginTop: 20,
+    fontWeight: '500',
   },
 });
