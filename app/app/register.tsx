@@ -1,11 +1,16 @@
 import { useState } from 'react';
-import { StyleSheet, View, TextInput, TouchableOpacity, Text, SafeAreaView, KeyboardAvoidingView, Platform, Alert, ScrollView } from 'react-native';
+import { StyleSheet, View, TextInput, TouchableOpacity, Text, KeyboardAvoidingView, Platform, Alert, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
+import { Stack } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
+import { useThemeTokens } from '@/ui';
+import { useI18n } from '@/i18n/I18nContext';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { VStack } from '@/ui';
 
 export default function RegisterScreen() {
+  const { colors } = useThemeTokens();
+  const { t, ti } = useI18n();
   const router = useRouter();
   const { register, isLoading } = useAuth();
   
@@ -24,31 +29,31 @@ export default function RegisterScreen() {
     const newErrors: typeof errors = {};
     
     if (!username) {
-      newErrors.username = 'Username is required';
+      newErrors.username = t('auth.username_required');
     } else if (username.length < 3) {
-      newErrors.username = 'Username must be at least 3 characters';
+      newErrors.username = ti('auth.username_min_length', { min: 3 });
     } else if (!/^[a-zA-Z0-9_]+$/.test(username)) {
-      newErrors.username = 'Username can only contain letters, numbers, and underscores';
+      newErrors.username = t('auth.username_format');
     }
     
     if (!email) {
-      newErrors.email = 'Email is required';
+      newErrors.email = t('auth.email_required');
     } else if (!/\S+@\S+\.\S+/.test(email)) {
-      newErrors.email = 'Email is invalid';
+      newErrors.email = t('auth.email_invalid');
     }
     
     if (!password) {
-      newErrors.password = 'Password is required';
+      newErrors.password = t('auth.password_required');
     } else if (password.length < 8) {
-      newErrors.password = 'Password must be at least 8 characters';
+      newErrors.password = ti('auth.password_min_length', { min: 8 });
     } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)) {
-      newErrors.password = 'Password must contain uppercase, lowercase, and number';
+      newErrors.password = t('auth.password_requirements');
     }
     
     if (!confirmPassword) {
-      newErrors.confirmPassword = 'Please confirm your password';
+      newErrors.confirmPassword = t('auth.confirm_password_required');
     } else if (password !== confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
+      newErrors.confirmPassword = t('auth.passwords_dont_match');
     }
     
     setErrors(newErrors);
@@ -62,32 +67,41 @@ export default function RegisterScreen() {
       await register(username, email, password);
       router.replace('/(tabs)');
     } catch (error: any) {
-      Alert.alert('Registration Failed', error.message || 'Please try again');
+      Alert.alert(t('auth.registration_failed'), error.message || t('auth.try_again'));
     }
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <>
+      <Stack.Screen
+        options={{
+          presentation: 'modal',
+          headerShown: true,
+          title: t('auth.create_account'),
+          headerStyle: { backgroundColor: colors.background.secondary },
+          headerTintColor: colors.foreground.primary,
+        }}
+      />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardView}
+        style={[styles.keyboardView, { backgroundColor: colors.background.primary }]}
       >
         <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
           <VStack style={styles.content} gap={6}>
             <Animated.View entering={FadeInDown.delay(100).duration(500)}>
-              <Text style={styles.title}>Create Account</Text>
-              <Text style={styles.subtitle}>Join the ChessMate community</Text>
+              <Text style={[styles.title, { color: colors.foreground.primary }]}>{t('auth.create_account')}</Text>
+              <Text style={[styles.subtitle, { color: colors.foreground.secondary }]}>{t('auth.create_account_subtitle')}</Text>
             </Animated.View>
 
             <Animated.View entering={FadeInDown.delay(200).duration(500)} style={styles.form}>
               <VStack gap={4}>
                 {/* Username Input */}
                 <View>
-                  <Text style={styles.label}>Username</Text>
+                  <Text style={[styles.label, { color: colors.foreground.primary }]}>{t('auth.username')}</Text>
                   <TextInput
-                    style={[styles.input, errors.username && styles.inputError]}
-                    placeholder="chess_master"
-                    placeholderTextColor="#64748B"
+                    style={[styles.input, { backgroundColor: colors.background.secondary, borderColor: colors.background.tertiary, color: colors.foreground.primary }, errors.username && { borderColor: colors.error }]}
+                    placeholder={t('auth.username').toLowerCase()}
+                    placeholderTextColor={colors.foreground.muted}
                     value={username}
                     onChangeText={(text) => {
                       setUsername(text);
@@ -96,16 +110,16 @@ export default function RegisterScreen() {
                     autoCapitalize="none"
                     autoCorrect={false}
                   />
-                  {errors.username && <Text style={styles.errorText}>{errors.username}</Text>}
+                  {errors.username && <Text style={[styles.errorText, { color: colors.error }]}>{errors.username}</Text>}
                 </View>
 
                 {/* Email Input */}
                 <View>
-                  <Text style={styles.label}>Email</Text>
+                  <Text style={[styles.label, { color: colors.foreground.primary }]}>{t('auth.email')}</Text>
                   <TextInput
-                    style={[styles.input, errors.email && styles.inputError]}
-                    placeholder="your@email.com"
-                    placeholderTextColor="#64748B"
+                    style={[styles.input, { backgroundColor: colors.background.secondary, borderColor: colors.background.tertiary, color: colors.foreground.primary }, errors.email && { borderColor: colors.error }]}
+                    placeholder={t('auth.email').toLowerCase()}
+                    placeholderTextColor={colors.foreground.muted}
                     value={email}
                     onChangeText={(text) => {
                       setEmail(text);
@@ -115,16 +129,16 @@ export default function RegisterScreen() {
                     autoCapitalize="none"
                     autoCorrect={false}
                   />
-                  {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
+                  {errors.email && <Text style={[styles.errorText, { color: colors.error }]}>{errors.email}</Text>}
                 </View>
 
                 {/* Password Input */}
                 <View>
-                  <Text style={styles.label}>Password</Text>
+                  <Text style={[styles.label, { color: colors.foreground.primary }]}>{t('auth.password')}</Text>
                   <TextInput
-                    style={[styles.input, errors.password && styles.inputError]}
+                    style={[styles.input, { backgroundColor: colors.background.secondary, borderColor: colors.background.tertiary, color: colors.foreground.primary }, errors.password && { borderColor: colors.error }]}
                     placeholder="••••••••"
-                    placeholderTextColor="#64748B"
+                    placeholderTextColor={colors.foreground.muted}
                     value={password}
                     onChangeText={(text) => {
                       setPassword(text);
@@ -133,16 +147,16 @@ export default function RegisterScreen() {
                     secureTextEntry
                     autoCapitalize="none"
                   />
-                  {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
+                  {errors.password && <Text style={[styles.errorText, { color: colors.error }]}>{errors.password}</Text>}
                 </View>
 
                 {/* Confirm Password Input */}
                 <View>
-                  <Text style={styles.label}>Confirm Password</Text>
+                  <Text style={[styles.label, { color: colors.foreground.primary }]}>{t('auth.confirm_password')}</Text>
                   <TextInput
-                    style={[styles.input, errors.confirmPassword && styles.inputError]}
+                    style={[styles.input, { backgroundColor: colors.background.secondary, borderColor: colors.background.tertiary, color: colors.foreground.primary }, errors.confirmPassword && { borderColor: colors.error }]}
                     placeholder="••••••••"
-                    placeholderTextColor="#64748B"
+                    placeholderTextColor={colors.foreground.muted}
                     value={confirmPassword}
                     onChangeText={(text) => {
                       setConfirmPassword(text);
@@ -151,46 +165,42 @@ export default function RegisterScreen() {
                     secureTextEntry
                     autoCapitalize="none"
                   />
-                  {errors.confirmPassword && <Text style={styles.errorText}>{errors.confirmPassword}</Text>}
+                  {errors.confirmPassword && <Text style={[styles.errorText, { color: colors.error }]}>{errors.confirmPassword}</Text>}
                 </View>
 
                 {/* Register Button */}
                 <TouchableOpacity
-                  style={[styles.button, isLoading && styles.buttonDisabled]}
+                  style={[styles.button, { backgroundColor: colors.accent.primary }, isLoading && styles.buttonDisabled]}
                   onPress={handleRegister}
                   disabled={isLoading}
                 >
-                  <Text style={styles.buttonText}>{isLoading ? 'Creating Account...' : 'Create Account'}</Text>
+                  <Text style={[styles.buttonText, { color: colors.accentForeground.primary }]}>{isLoading ? t('auth.creating_account') : t('auth.create_account')}</Text>
                 </TouchableOpacity>
 
                 {/* Terms */}
-                <Text style={styles.termsText}>
-                  By signing up, you agree to our{' '}
-                  <Text style={styles.linkText}>Terms of Service</Text>
-                  {' '}and{' '}
-                  <Text style={styles.linkText}>Privacy Policy</Text>
+                <Text style={[styles.termsText, { color: colors.foreground.muted }]}>
+                  {t('auth.terms_agreement')}{' '}
+                  <Text style={{ color: colors.accent.primary }}>{t('auth.terms_of_service')}</Text>
+                  {' '}{t('auth.and')}{' '}
+                  <Text style={{ color: colors.accent.primary }}>{t('auth.privacy_policy')}</Text>
                 </Text>
               </VStack>
             </Animated.View>
 
             <Animated.View entering={FadeInDown.delay(300).duration(500)} style={styles.footer}>
-              <Text style={styles.footerText}>Already have an account? </Text>
+              <Text style={[styles.footerText, { color: colors.foreground.secondary }]}>{t('auth.already_have_account')} </Text>
               <TouchableOpacity onPress={() => router.push('/login')}>
-                <Text style={styles.linkTextBold}>Sign In</Text>
+                <Text style={[styles.linkTextBold, { color: colors.accent.primary }]}>{t('auth.sign_in')}</Text>
               </TouchableOpacity>
             </Animated.View>
           </VStack>
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#0F172A',
-  },
   keyboardView: {
     flex: 1,
   },
@@ -205,13 +215,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 36,
     fontWeight: 'bold',
-    color: '#FFFFFF',
     textAlign: 'center',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: '#94A3B8',
     textAlign: 'center',
   },
   form: {
@@ -220,28 +228,19 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#FFFFFF',
     marginBottom: 8,
   },
   input: {
-    backgroundColor: '#1E293B',
-    color: '#FFFFFF',
     padding: 16,
     borderRadius: 12,
     fontSize: 16,
     borderWidth: 2,
-    borderColor: '#334155',
-  },
-  inputError: {
-    borderColor: '#EF4444',
   },
   errorText: {
-    color: '#EF4444',
     fontSize: 12,
     marginTop: 4,
   },
   button: {
-    backgroundColor: '#667EEA',
     padding: 18,
     borderRadius: 12,
     alignItems: 'center',
@@ -251,21 +250,15 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   buttonText: {
-    color: '#FFFFFF',
     fontSize: 18,
     fontWeight: 'bold',
   },
   termsText: {
-    color: '#64748B',
     fontSize: 12,
     textAlign: 'center',
     marginTop: 12,
   },
-  linkText: {
-    color: '#667EEA',
-  },
   linkTextBold: {
-    color: '#667EEA',
     fontSize: 16,
     fontWeight: 'bold',
   },
@@ -276,7 +269,6 @@ const styles = StyleSheet.create({
     marginTop: 24,
   },
   footerText: {
-    color: '#94A3B8',
     fontSize: 14,
   },
 });

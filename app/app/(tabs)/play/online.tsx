@@ -6,35 +6,37 @@ import { Card } from '@/ui/primitives/Card';
 import { VStack } from '@/ui';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMatchmaking } from '@/contexts/MatchmakingContext';
+import { useThemeTokens } from '@/ui';
+import { useI18n } from '@/i18n/I18nContext';
 
 type TimeControl = '1+0' | '3+0' | '5+0' | '10+0' | '15+10' | '30+0';
 
-const TIME_CONTROLS = [
-  { id: '1+0' as TimeControl, label: '⚡ Bullet 1 min', type: 'bullet' },
-  { id: '3+0' as TimeControl, label: '⚡ Blitz 3 min', type: 'blitz' },
-  { id: '5+0' as TimeControl, label: '⚡ Blitz 5 min', type: 'blitz' },
-  { id: '10+0' as TimeControl, label: '⏱️ Rapid 10 min', type: 'rapid' },
-  { id: '15+10' as TimeControl, label: '⏱️ Rapid 15|10', type: 'rapid' },
-  { id: '30+0' as TimeControl, label: '🐢 Classical 30 min', type: 'classical' },
-];
-
 export default function OnlinePlayScreen() {
   const router = useRouter();
+  const { colors } = useThemeTokens();
+  const { t, ti } = useI18n();
   const { isAuthenticated } = useAuth();
   const { joinQueue, leaveQueue, queueStatus, matchFound } = useMatchmaking();
+  
+  const TIME_CONTROLS = [
+    { id: '1+0' as TimeControl, label: `⚡ ${t('game_modes.bullet_1min')}`, type: 'bullet' },
+    { id: '3+0' as TimeControl, label: `⚡ ${t('game_modes.blitz_3min')}`, type: 'blitz' },
+    { id: '5+0' as TimeControl, label: `⚡ ${t('game_modes.blitz_5min')}`, type: 'blitz' },
+    { id: '10+0' as TimeControl, label: `⏱️ ${t('game_modes.rapid_10min')}`, type: 'rapid' },
+    { id: '15+10' as TimeControl, label: `⏱️ ${t('game_modes.rapid_15_10')}`, type: 'rapid' },
+    { id: '30+0' as TimeControl, label: `🐢 ${t('game_modes.classical_30min')}`, type: 'classical' },
+  ];
   
   const [timeControl, setTimeControl] = useState<TimeControl>('10+0');
   const [isSearching, setIsSearching] = useState(false);
 
   useEffect(() => {
     if (!isAuthenticated) {
-      // Redirect to login if not authenticated
       router.replace('/login');
     }
   }, [isAuthenticated]);
 
   useEffect(() => {
-    // Navigate to game when match is found
     if (matchFound) {
       router.push(`/game/${matchFound.gameId}`);
     }
@@ -64,21 +66,21 @@ export default function OnlinePlayScreen() {
 
   if (isSearching) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.background.primary }]}>
         <View style={styles.searchingContainer}>
-          <ActivityIndicator size="large" color="#667EEA" />
-          <Text style={styles.searchingTitle}>Finding opponent...</Text>
-          <Text style={styles.searchingSubtitle}>
-            {queueStatus?.playersInQueue || 0} players online
+          <ActivityIndicator size="large" color={colors.accent.primary} />
+          <Text style={[styles.searchingTitle, { color: colors.foreground.primary }]}>{t('game_modes.finding_opponent')}</Text>
+          <Text style={[styles.searchingSubtitle, { color: colors.foreground.secondary }]}>
+            {ti('game_modes.players_online', { count: queueStatus?.playersInQueue || 0 })}
           </Text>
-          <Text style={styles.searchingTime}>
-            Searching for {queueStatus?.waitTime || 0}s
+          <Text style={[styles.searchingTime, { color: colors.foreground.muted }]}>
+            {ti('game_modes.searching_for', { seconds: queueStatus?.waitTime || 0 })}
           </Text>
           <TouchableOpacity
-            style={[styles.button, styles.cancelButton]}
+            style={[styles.button, styles.cancelButton, { backgroundColor: colors.error }]}
             onPress={handleCancelSearch}
           >
-            <Text style={styles.buttonText}>Cancel Search</Text>
+            <Text style={[styles.buttonText, { color: colors.accentForeground.primary }]}>{t('game_modes.cancel_search')}</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -86,15 +88,11 @@ export default function OnlinePlayScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background.primary }]}>
       <VStack style={styles.content} gap={6}>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <Text style={styles.backButtonText}>← Back</Text>
-        </TouchableOpacity>
-
         <VStack gap={2} style={{ alignItems: 'center' }}>
-          <Text style={styles.title}>Online Play</Text>
-          <Text style={styles.subtitle}>Choose your game speed</Text>
+          <Text style={[styles.title, { color: colors.foreground.primary }]}>{t('game_modes.online_play')}</Text>
+          <Text style={[styles.subtitle, { color: colors.foreground.secondary }]}>{t('game_modes.choose_game_speed')}</Text>
         </VStack>
 
         <VStack gap={3} style={{ marginTop: 8 }}>
@@ -121,7 +119,7 @@ export default function OnlinePlayScreen() {
                   <Text
                     style={[
                       styles.timeControlText,
-                      timeControl === tc.id ? styles.timeControlTextSelected : null,
+                      { color: colors.foreground.primary },
                     ]}
                   >
                     {tc.label}
@@ -133,8 +131,8 @@ export default function OnlinePlayScreen() {
         </VStack>
 
         <Animated.View entering={FadeInUp.delay(500).duration(400).springify()}>
-          <TouchableOpacity style={styles.button} onPress={handleFindMatch}>
-            <Text style={styles.buttonText}>Find Match</Text>
+          <TouchableOpacity style={[styles.button, { backgroundColor: colors.accent.primary }]} onPress={handleFindMatch}>
+            <Text style={[styles.buttonText, { color: colors.accentForeground.primary }]}>{t('game_modes.find_match')}</Text>
           </TouchableOpacity>
         </Animated.View>
       </VStack>
@@ -145,30 +143,19 @@ export default function OnlinePlayScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0F172A',
   },
   content: {
     flex: 1,
     paddingHorizontal: 20,
     paddingTop: 20,
   },
-  backButton: {
-    alignSelf: 'flex-start',
-    padding: 8,
-  },
-  backButtonText: {
-    color: '#94A3B8',
-    fontSize: 16,
-  },
   title: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#FFFFFF',
     textAlign: 'center',
   },
   subtitle: {
     fontSize: 16,
-    color: '#94A3B8',
     textAlign: 'center',
   },
   timeControlButton: {
@@ -179,22 +166,19 @@ const styles = StyleSheet.create({
   },
   timeControlText: {
     fontSize: 18,
-    color: '#FFFFFF',
     textAlign: 'center',
     fontWeight: '600',
   },
   timeControlTextSelected: {
-    color: '#FFFFFF',
+    // Additional styling when selected
   },
   button: {
-    backgroundColor: '#667EEA',
     padding: 18,
     borderRadius: 12,
     alignItems: 'center',
     marginTop: 16,
   },
   buttonText: {
-    color: '#FFFFFF',
     fontSize: 18,
     fontWeight: 'bold',
   },
@@ -207,21 +191,17 @@ const styles = StyleSheet.create({
   searchingTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#FFFFFF',
     marginTop: 20,
   },
   searchingSubtitle: {
     fontSize: 16,
-    color: '#94A3B8',
     marginTop: 8,
   },
   searchingTime: {
     fontSize: 14,
-    color: '#64748B',
     marginTop: 4,
   },
   cancelButton: {
-    backgroundColor: '#EF4444',
     marginTop: 32,
     minWidth: 200,
   },

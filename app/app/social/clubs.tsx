@@ -1,14 +1,18 @@
 import { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, SafeAreaView, ScrollView, FlatList, TextInput } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, SafeAreaView, ScrollView, FlatList, TextInput, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Card } from '@/ui/primitives/Card';
 import { VStack } from '@/ui';
 import { useSocial } from '@/contexts/SocialContext';
 import type { Club } from '@/contexts/SocialContext';
+import { useThemeTokens } from '@/ui';
+import { useI18n } from '@/i18n/I18nContext';
 
 export default function ClubsScreen() {
   const router = useRouter();
+  const { colors } = useThemeTokens();
+  const { t, ti } = useI18n();
   const { getClubs, getMyClubs, joinClub, leaveClub, createClub, isLoading } = useSocial();
   
   const [allClubs, setAllClubs] = useState<Club[]>([]);
@@ -21,9 +25,14 @@ export default function ClubsScreen() {
   }, []);
 
   const loadData = async () => {
-    const [clubs, mine] = await Promise.all([getClubs(), getMyClubs()]);
-    setAllClubs(clubs);
-    setMyClubs(mine);
+    try {
+      const [clubs, mine] = await Promise.all([getClubs(), getMyClubs()]);
+      setAllClubs(clubs);
+      setMyClubs(mine);
+    } catch (error) {
+      console.error('Failed to load clubs data:', error);
+      // Silently fail - user needs to be authenticated
+    }
   };
 
   const handleJoinClub = async (clubId: string) => {
@@ -59,10 +68,10 @@ export default function ClubsScreen() {
               </Text>
               
               <View style={styles.clubStats}>
-                <Text style={styles.clubStat}>👥 {item.memberCount} members</Text>
-                <Text style={styles.clubStat}>⭐ Avg: {item.averageRating}</Text>
+                <Text style={styles.clubStat}>👥 {ti('social.member_count', { count: item.memberCount })}</Text>
+                <Text style={styles.clubStat}>⭐ {ti('social.avg_rating', { rating: item.averageRating })}</Text>
                 {item.createdBy && (
-                  <Text style={styles.clubStat}>By: {item.createdBy}</Text>
+                  <Text style={styles.clubStat}>{ti('social.created_by', { name: item.createdBy })}</Text>
                 )}
               </View>
             </VStack>
@@ -72,7 +81,7 @@ export default function ClubsScreen() {
               onPress={() => (isMember ? handleLeaveClub(item.id) : handleJoinClub(item.id))}
             >
               <Text style={[styles.clubButtonText, isMember && styles.clubButtonTextJoined]}>
-                {isMember ? '✓ Joined' : '+ Join'}
+                {isMember ? t('social.joined') : t('social.join_club')}
               </Text>
             </TouchableOpacity>
           </View>
@@ -82,16 +91,13 @@ export default function ClubsScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background.primary }]}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <VStack style={styles.content} gap={6}>
           {/* Header */}
           <Animated.View entering={FadeInDown.delay(100).duration(500)}>
-            <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-              <Text style={styles.backText}>← Back</Text>
-            </TouchableOpacity>
-            <Text style={styles.title}>Chess Clubs</Text>
-            <Text style={styles.subtitle}>Join communities and play together</Text>
+            <Text style={styles.title}>{t('social.clubs')}</Text>
+            <Text style={styles.subtitle}>{t('social.join_communities')}</Text>
           </Animated.View>
 
           {/* Tabs */}
@@ -102,7 +108,7 @@ export default function ClubsScreen() {
                 onPress={() => setSelectedTab('discover')}
               >
                 <Text style={[styles.tabText, selectedTab === 'discover' && styles.tabTextActive]}>
-                  🌍 Discover
+                  🌍 {t('social.discover')}
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -110,7 +116,7 @@ export default function ClubsScreen() {
                 onPress={() => setSelectedTab('my-clubs')}
               >
                 <Text style={[styles.tabText, selectedTab === 'my-clubs' && styles.tabTextActive]}>
-                  👥 My Clubs ({myClubs.length})
+                  👥 {ti('social.my_clubs_count', { count: myClubs.length })}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -121,7 +127,7 @@ export default function ClubsScreen() {
             <Animated.View entering={FadeInDown.delay(300).duration(500)}>
               <TextInput
                 style={styles.searchInput}
-                placeholder="Search clubs..."
+                placeholder={t('social.search_clubs')}
                 placeholderTextColor="#64748B"
                 value={searchQuery}
                 onChangeText={setSearchQuery}
@@ -136,11 +142,11 @@ export default function ClubsScreen() {
                 <Card variant="default" size="md">
                   <View style={styles.emptyState}>
                     <Text style={styles.emptyIcon}>🔍</Text>
-                    <Text style={styles.emptyTitle}>No clubs found</Text>
+                    <Text style={styles.emptyTitle}>{t('social.no_clubs_found')}</Text>
                     <Text style={styles.emptyText}>
                       {searchQuery
-                        ? 'Try a different search term'
-                        : 'Be the first to create a club!'}
+                        ? t('social.try_different_search')
+                        : t('social.be_first_to_create')}
                     </Text>
                   </View>
                 </Card>
@@ -161,15 +167,15 @@ export default function ClubsScreen() {
                 <Card variant="default" size="md">
                   <View style={styles.emptyState}>
                     <Text style={styles.emptyIcon}>🏛️</Text>
-                    <Text style={styles.emptyTitle}>Not in any clubs yet</Text>
+                    <Text style={styles.emptyTitle}>{t('social.not_in_clubs')}</Text>
                     <Text style={styles.emptyText}>
-                      Join or create a club to connect with players
+                      {t('social.join_or_create_club')}
                     </Text>
                     <TouchableOpacity
                       style={styles.emptyButton}
                       onPress={() => setSelectedTab('discover')}
                     >
-                      <Text style={styles.emptyButtonText}>Discover Clubs</Text>
+                      <Text style={styles.emptyButtonText}>{t('social.discover_clubs_button')}</Text>
                     </TouchableOpacity>
                   </View>
                 </Card>
@@ -192,7 +198,6 @@ export default function ClubsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0F172A',
   },
   scrollContent: {
     paddingBottom: 40,
@@ -200,14 +205,6 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: 20,
     paddingTop: 20,
-  },
-  backButton: {
-    marginBottom: 12,
-  },
-  backText: {
-    fontSize: 16,
-    color: '#667EEA',
-    fontWeight: '600',
   },
   title: {
     fontSize: 36,

@@ -823,3 +823,135 @@ export class MockLiveGameApiClient {
     };
   }
 }
+
+/**
+ * Mock Puzzle API Client
+ */
+export class MockPuzzleApiClient {
+  private mockPuzzles = [
+    {
+      id: 'puzzle-001',
+      fen: 'r1bqkb1r/pppp1ppp/2n2n2/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 4 4',
+      solutionMoves: ['f3g5', 'h7h6', 'd1h5', 'g7g6', 'h5e5'],
+      sideToMove: 'w' as const,
+      rating: 1200,
+      themes: ['fork', 'tactics'],
+      difficulty: 'easy',
+      initialDepth: 5,
+    },
+    {
+      id: 'puzzle-002',
+      fen: 'r1bqk2r/pppp1ppp/2n2n2/2b1p3/2B1P3/3P1N2/PPP2PPP/RNBQK2R w KQkq - 0 6',
+      solutionMoves: ['c4f7', 'e8f7', 'f3g5', 'f7g8', 'g5e6'],
+      sideToMove: 'w' as const,
+      rating: 1400,
+      themes: ['pin', 'tactics'],
+      difficulty: 'medium',
+      initialDepth: 5,
+    },
+    {
+      id: 'puzzle-003',
+      fen: 'r2qk2r/ppp2ppp/2np1n2/2b1p1B1/2B1P1b1/2NP1N2/PPP2PPP/R2QK2R w KQkq - 0 8',
+      solutionMoves: ['d1d5', 'c6d8', 'c3d5', 'd8e6', 'd5e7'],
+      sideToMove: 'w' as const,
+      rating: 1600,
+      themes: ['sacrifice', 'tactics'],
+      difficulty: 'hard',
+      initialDepth: 5,
+    },
+  ];
+
+  async getDailyPuzzle() {
+    await delay();
+    return this.mockPuzzles[0];
+  }
+
+  async getPuzzle(puzzleId: string) {
+    await delay();
+    const puzzle = this.mockPuzzles.find(p => p.id === puzzleId);
+    if (!puzzle) throw new Error('Puzzle not found');
+    return puzzle;
+  }
+
+  async getRandomPuzzle() {
+    await delay();
+    const randomIndex = Math.floor(Math.random() * this.mockPuzzles.length);
+    return this.mockPuzzles[randomIndex];
+  }
+
+  async getPuzzlesByTheme(theme: string) {
+    await delay();
+    return this.mockPuzzles.filter(p => p.themes.includes(theme));
+  }
+
+  async submitAttempt(puzzleId: string, attempt: Record<string, unknown>) {
+    await delay();
+    return {
+      id: `attempt-${Date.now()}`,
+      puzzleId,
+      ratingChange: Math.random() > 0.5 ? 10 : -5,
+      status: Math.random() > 0.5 ? 'SUCCESS' : 'FAILED',
+    };
+  }
+
+  async getUserStats(_userId?: string) {
+    await delay();
+    return {
+      totalAttempts: 45,
+      successfulAttempts: 32,
+      successRate: 71,
+      averageRating: 1350,
+      currentStreak: 3,
+      longestStreak: 8,
+      userRating: 1350,
+      byDifficulty: {
+        beginner: { attempted: 0, solved: 0 },
+        easy: { attempted: 15, solved: 13 },
+        medium: { attempted: 20, solved: 14 },
+        hard: { attempted: 10, solved: 5 },
+        expert: { attempted: 0, solved: 0 },
+        master: { attempted: 0, solved: 0 },
+      },
+      byTheme: {
+        fork: { attempted: 12, solved: 9 },
+        pin: { attempted: 10, solved: 7 },
+        skewer: { attempted: 8, solved: 5 },
+        sacrifice: { attempted: 5, solved: 2 },
+      },
+      recentActivity: [
+        {
+          puzzleId: 'puzzle-001',
+          date: new Date(Date.now() - 86400000).toISOString(),
+          success: true,
+          ratingChange: 10,
+        },
+      ],
+    };
+  }
+
+  async getUserHistory(_userId?: string) {
+    await delay();
+    return [
+      {
+        id: 'attempt-1',
+        puzzle_id: 'puzzle-001',
+        created_at: new Date(Date.now() - 86400000).toISOString(),
+        status: 'SUCCESS',
+        moves_played: ['f3g5', 'h7h6'],
+        time_spent_ms: 45000,
+        hints_used: 0,
+        rating_change: 10,
+      },
+      {
+        id: 'attempt-2',
+        puzzle_id: 'puzzle-002',
+        created_at: new Date(Date.now() - 172800000).toISOString(),
+        status: 'FAILED',
+        moves_played: ['c4f7'],
+        time_spent_ms: 120000,
+        hints_used: 1,
+        rating_change: -5,
+      },
+    ];
+  }
+}

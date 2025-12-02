@@ -7,3 +7,4 @@
 export { FeatureScreenLayout } from './FeatureScreenLayout';
 export { FeatureCard } from './FeatureCard';
 export { StatCard } from './StatCard';
+export { GlobalLayout } from './GlobalLayout';

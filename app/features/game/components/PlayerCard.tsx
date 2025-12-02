@@ -155,8 +155,8 @@ export const PlayerCard = React.memo<PlayerCardProps>(({
             <Avatar
               name={name}
               size="sm"
-              backgroundColor={color === 'w' ? '#FAFAFA' : '#171717'}
-              textColor={color === 'w' ? '#171717' : '#FAFAFA'}
+              backgroundColor={color === 'w' ? colors.background.tertiary : colors.foreground.primary}
+              textColor={color === 'w' ? colors.foreground.primary : colors.background.tertiary}
             />
             {/* Color Badge Overlay */}
             <Box
@@ -167,7 +167,7 @@ export const PlayerCard = React.memo<PlayerCardProps>(({
                 width: 18,
                 height: 18,
                 borderRadius: 9,
-                backgroundColor: color === 'w' ? '#FAFAFA' : '#171717',
+                backgroundColor: color === 'w' ? colors.background.tertiary : colors.foreground.primary,
                 borderWidth: 2,
                 borderColor: colors.background.secondary,
                 justifyContent: 'center',

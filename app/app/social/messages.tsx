@@ -6,10 +6,12 @@ import { Card } from '@/ui/primitives/Card';
 import { VStack } from '@/ui';
 import { useSocial } from '@/contexts/SocialContext';
 import type { Conversation, Message } from '@/contexts/SocialContext';
+import { useThemeTokens } from '@/ui';
 
 export default function MessagesScreen() {
   const router = useRouter();
-  const { getConversations, getMessages, sendMessage, markAsRead, isLoading } = useSocial();
+  const { colors } = useThemeTokens();
+  const { getConversations, getConversation, sendMessage, markAsRead, isLoading } = useSocial();
   
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
@@ -27,8 +29,10 @@ export default function MessagesScreen() {
 
   const selectConversation = async (conv: Conversation) => {
     setSelectedConversation(conv);
-    const msgs = await getMessages(conv.id);
-    setMessages(msgs);
+    
+    // Get full conversation with messages
+    const fullConv = await getConversation(conv.participant.id);
+    setMessages(fullConv.messages);
     
     // Mark as read
     if (conv.unreadCount > 0) {
@@ -40,11 +44,11 @@ export default function MessagesScreen() {
   const handleSendMessage = async () => {
     if (!messageText.trim() || !selectedConversation) return;
 
-    await sendMessage(selectedConversation.otherUserId, messageText);
+    await sendMessage(selectedConversation.participant.id, messageText);
     
     // Reload messages
-    const msgs = await getMessages(selectedConversation.id);
-    setMessages(msgs);
+    const fullConv = await getConversation(selectedConversation.participant.id);
+    setMessages(fullConv.messages);
     setMessageText('');
   };
 
@@ -53,28 +57,34 @@ export default function MessagesScreen() {
       <TouchableOpacity onPress={() => selectConversation(item)}>
         <Card variant="default" size="md" style={{ marginBottom: 8 }}>
           <View style={styles.conversationCard}>
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>{item.otherUsername[0].toUpperCase()}</Text>
+            <View style={[styles.avatar, { backgroundColor: colors.accent.primary }]}>
+              <Text style={[styles.avatarText, { color: colors.accentForeground.primary }]}>
+                {item.participant?.username?.[0]?.toUpperCase() || '?'}
+              </Text>
             </View>
             <VStack gap={1} style={{ flex: 1 }}>
               <View style={styles.conversationHeader}>
-                <Text style={styles.conversationName}>{item.otherUsername}</Text>
-                {item.isOnline && <View style={styles.onlineBadge} />}
+                <Text style={[styles.conversationName, { color: colors.foreground.primary }]}>
+                  {item.participant?.username || 'Unknown'}
+                </Text>
+                {item.participant?.online && <View style={[styles.onlineBadge, { backgroundColor: colors.success }]} />}
               </View>
-              <Text style={styles.lastMessage} numberOfLines={1}>
-                {item.lastMessage}
+              <Text style={[styles.lastMessage, { color: colors.foreground.secondary }]} numberOfLines={1}>
+                {item.lastMessage?.content || 'No messages yet'}
               </Text>
             </VStack>
             <VStack gap={1} style={{ alignItems: 'flex-end' }}>
-              <Text style={styles.timestamp}>
-                {new Date(item.lastMessageTime).toLocaleTimeString('en-US', {
+              <Text style={[styles.timestamp, { color: colors.foreground.muted }]}>
+                {item.lastMessage?.sentAt ? new Date(item.lastMessage.sentAt).toLocaleTimeString('en-US', {
                   hour: '2-digit',
                   minute: '2-digit',
-                })}
+                }) : ''}
               </Text>
               {item.unreadCount > 0 && (
-                <View style={styles.unreadBadge}>
-                  <Text style={styles.unreadText}>{item.unreadCount}</Text>
+                <View style={[styles.unreadBadge, { backgroundColor: colors.accent.primary }]}>
+                  <Text style={[styles.unreadText, { color: colors.accentForeground.primary }]}>
+                    {item.unreadCount}
+                  </Text>
                 </View>
               )}
             </VStack>
@@ -85,19 +95,28 @@ export default function MessagesScreen() {
   );
 
   const renderMessage = ({ item, index }: { item: Message; index: number }) => {
-    const isOwn = item.senderId === 'current-user-id'; // TODO: Replace with actual user ID
+    const isOwn = item.from === 'current-user-id'; // TODO: Replace with actual user ID from auth context
     
     return (
       <Animated.View
         entering={FadeInDown.delay(index * 20).duration(300)}
         style={[styles.messageContainer, isOwn ? styles.ownMessage : styles.otherMessage]}
       >
-        <View style={[styles.messageBubble, isOwn ? styles.ownBubble : styles.otherBubble]}>
-          <Text style={[styles.messageText, isOwn && styles.ownMessageText]}>
+        <View style={[
+          styles.messageBubble, 
+          isOwn ? { backgroundColor: colors.accent.primary } : { backgroundColor: colors.background.secondary }
+        ]}>
+          <Text style={[
+            styles.messageText, 
+            { color: isOwn ? colors.accentForeground.primary : colors.foreground.primary }
+          ]}>
             {item.content}
           </Text>
-          <Text style={[styles.messageTime, isOwn && styles.ownMessageTime]}>
-            {new Date(item.timestamp).toLocaleTimeString('en-US', {
+          <Text style={[
+            styles.messageTime, 
+            { color: isOwn ? colors.accentForeground.primary + '99' : colors.foreground.muted }
+          ]}>
+            {new Date(item.sentAt).toLocaleTimeString('en-US', {
               hour: '2-digit',
               minute: '2-digit',
             })}
@@ -109,7 +128,7 @@ export default function MessagesScreen() {
 
   if (selectedConversation) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.background.primary }]}>
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={{ flex: 1 }}
@@ -122,17 +141,19 @@ export default function MessagesScreen() {
                 onPress={() => setSelectedConversation(null)}
                 style={styles.backButton}
               >
-                <Text style={styles.backText}>←</Text>
+                <Text style={[styles.backText, { color: colors.accent.primary }]}>←</Text>
               </TouchableOpacity>
-              <View style={styles.avatar}>
-                <Text style={styles.avatarText}>
-                  {selectedConversation.otherUsername[0].toUpperCase()}
+              <View style={[styles.avatar, { backgroundColor: colors.accent.primary }]}>
+                <Text style={[styles.avatarText, { color: colors.accentForeground.primary }]}>
+                  {selectedConversation.participant?.username?.[0]?.toUpperCase() || '?'}
                 </Text>
               </View>
               <VStack gap={0} style={{ flex: 1 }}>
-                <Text style={styles.chatHeaderName}>{selectedConversation.otherUsername}</Text>
-                {selectedConversation.isOnline && (
-                  <Text style={styles.chatHeaderStatus}>Online</Text>
+                <Text style={[styles.chatHeaderName, { color: colors.foreground.primary }]}>
+                  {selectedConversation.participant?.username || 'Unknown'}
+                </Text>
+                {selectedConversation.participant?.online && (
+                  <Text style={[styles.chatHeaderStatus, { color: colors.success }]}>Online</Text>
                 )}
               </VStack>
             </View>
@@ -147,22 +168,30 @@ export default function MessagesScreen() {
             />
 
             {/* Input Bar */}
-            <View style={styles.inputContainer}>
+            <View style={[styles.inputContainer, { backgroundColor: colors.background.secondary }]}>
               <TextInput
-                style={styles.input}
+                style={[styles.input, { 
+                  backgroundColor: colors.background.tertiary,
+                  borderColor: colors.background.tertiary,
+                  color: colors.foreground.primary,
+                }]}
                 placeholder="Type a message..."
-                placeholderTextColor="#64748B"
+                placeholderTextColor={colors.foreground.muted}
                 value={messageText}
                 onChangeText={setMessageText}
                 multiline
                 maxLength={500}
               />
               <TouchableOpacity
-                style={[styles.sendButton, !messageText.trim() && styles.sendButtonDisabled]}
+                style={[
+                  styles.sendButton, 
+                  { backgroundColor: colors.accent.primary },
+                  !messageText.trim() && { opacity: 0.5 }
+                ]}
                 onPress={handleSendMessage}
                 disabled={!messageText.trim()}
               >
-                <Text style={styles.sendButtonText}>➤</Text>
+                <Text style={[styles.sendButtonText, { color: colors.accentForeground.primary }]}>➤</Text>
               </TouchableOpacity>
             </View>
           </VStack>
@@ -172,15 +201,12 @@ export default function MessagesScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background.primary }]}>
       <VStack style={styles.content} gap={6}>
         {/* Header */}
         <Animated.View entering={FadeIn.duration(500)}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButtonTop}>
-            <Text style={styles.backTextTop}>← Back</Text>
-          </TouchableOpacity>
-          <Text style={styles.title}>Messages</Text>
-          <Text style={styles.subtitle}>
+          <Text style={[styles.title, { color: colors.foreground.primary }]}>Messages</Text>
+          <Text style={[styles.subtitle, { color: colors.foreground.secondary }]}>
             {conversations.reduce((sum, c) => sum + c.unreadCount, 0)} unread
           </Text>
         </Animated.View>
@@ -191,15 +217,15 @@ export default function MessagesScreen() {
             <Card variant="default" size="md">
               <View style={styles.emptyState}>
                 <Text style={styles.emptyIcon}>💬</Text>
-                <Text style={styles.emptyTitle}>No messages yet</Text>
-                <Text style={styles.emptyText}>
+                <Text style={[styles.emptyTitle, { color: colors.foreground.primary }]}>No messages yet</Text>
+                <Text style={[styles.emptyText, { color: colors.foreground.secondary }]}>
                   Start a conversation with your friends
                 </Text>
                 <TouchableOpacity
-                  style={styles.emptyButton}
+                  style={[styles.emptyButton, { backgroundColor: colors.accent.primary }]}
                   onPress={() => router.push('/social/friends')}
                 >
-                  <Text style={styles.emptyButtonText}>View Friends</Text>
+                  <Text style={[styles.emptyButtonText, { color: colors.accentForeground.primary }]}>View Friends</Text>
                 </TouchableOpacity>
               </View>
             </Card>
@@ -220,30 +246,19 @@ export default function MessagesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0F172A',
   },
   content: {
     flex: 1,
     paddingHorizontal: 20,
     paddingTop: 20,
   },
-  backButtonTop: {
-    marginBottom: 12,
-  },
-  backTextTop: {
-    fontSize: 16,
-    color: '#667EEA',
-    fontWeight: '600',
-  },
   title: {
     fontSize: 36,
     fontWeight: 'bold',
-    color: '#FFFFFF',
     textAlign: 'center',
   },
   subtitle: {
     fontSize: 16,
-    color: '#94A3B8',
     textAlign: 'center',
     marginTop: 4,
   },
@@ -257,14 +272,12 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#667EEA',
     justifyContent: 'center',
     alignItems: 'center',
   },
   avatarText: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#FFFFFF',
   },
   conversationHeader: {
     flexDirection: 'row',
@@ -274,27 +287,22 @@ const styles = StyleSheet.create({
   conversationName: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#FFFFFF',
   },
   onlineBadge: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#10B981',
   },
   lastMessage: {
     fontSize: 14,
-    color: '#94A3B8',
   },
   timestamp: {
     fontSize: 12,
-    color: '#64748B',
   },
   unreadBadge: {
     minWidth: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: '#667EEA',
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 6,
@@ -302,7 +310,6 @@ const styles = StyleSheet.create({
   unreadText: {
     fontSize: 12,
     fontWeight: 'bold',
-    color: '#FFFFFF',
   },
   chatContainer: {
     flex: 1,
@@ -312,25 +319,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
     padding: 16,
-    backgroundColor: '#1E293B',
     borderBottomWidth: 1,
-    borderBottomColor: '#334155',
   },
   backButton: {
     padding: 8,
   },
   backText: {
     fontSize: 24,
-    color: '#667EEA',
   },
   chatHeaderName: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#FFFFFF',
   },
   chatHeaderStatus: {
     fontSize: 12,
-    color: '#10B981',
   },
   messagesList: {
     padding: 16,
@@ -350,61 +352,36 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 16,
   },
-  ownBubble: {
-    backgroundColor: '#667EEA',
-    borderBottomRightRadius: 4,
-  },
-  otherBubble: {
-    backgroundColor: '#1E293B',
-    borderBottomLeftRadius: 4,
-  },
   messageText: {
     fontSize: 15,
-    color: '#FFFFFF',
     lineHeight: 20,
     marginBottom: 4,
   },
-  ownMessageText: {
-    color: '#FFFFFF',
-  },
   messageTime: {
     fontSize: 11,
-    color: '#94A3B8',
-  },
-  ownMessageTime: {
-    color: '#E0E7FF',
   },
   inputContainer: {
     flexDirection: 'row',
     gap: 8,
     padding: 16,
-    backgroundColor: '#1E293B',
     borderTopWidth: 1,
-    borderTopColor: '#334155',
   },
   input: {
     flex: 1,
     padding: 12,
-    backgroundColor: '#0F172A',
     borderRadius: 20,
     fontSize: 15,
-    color: '#FFFFFF',
     maxHeight: 100,
   },
   sendButton: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#667EEA',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  sendButtonDisabled: {
-    opacity: 0.5,
-  },
   sendButtonText: {
     fontSize: 20,
-    color: '#FFFFFF',
   },
   emptyState: {
     padding: 40,
@@ -417,17 +394,14 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#FFFFFF',
     marginBottom: 8,
   },
   emptyText: {
     fontSize: 14,
-    color: '#94A3B8',
     textAlign: 'center',
     marginBottom: 24,
   },
   emptyButton: {
-    backgroundColor: '#667EEA',
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 12,
@@ -435,6 +409,5 @@ const styles = StyleSheet.create({
   emptyButtonText: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#FFFFFF',
   },
 });

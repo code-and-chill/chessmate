@@ -18,6 +18,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { GestureDetector, Gesture } from 'react-native-gesture-handler';
+import { useThemeTokens } from '@/ui';
 import { defaultBoardConfig, type BoardConfig } from '@/features/board/config';
 import { getBoardColors, type BoardTheme, type ThemeMode, type PieceTheme } from '@/features/board/config/themeConfig';
 import { 
@@ -213,10 +214,11 @@ export const ChessBoard = React.forwardRef<View, ChessBoardProps>(
       }
     };
 
+    const { colors } = useThemeTokens();
     const lightColor = themeColors.lightSquare;
     const darkColor = themeColors.darkSquare;
-    const selectedColor = '#7FC97F';
-    const checkColor = '#FF6B6B'; // Red for check
+    const selectedColor = colors.accent.primary;
+    const checkColor = colors.error; // Red for check
     const boardBg = themeColors.background;
 
     // Detect if current player is in check

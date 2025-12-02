@@ -6,9 +6,11 @@ import { Card } from '@/ui/primitives/Card';
 import { VStack } from '@/ui';
 import { useLearning } from '@/contexts/LearningContext';
 import type { Lesson, Quiz } from '@/contexts/LearningContext';
+import { useI18n } from '@/i18n/I18nContext';
 
 export default function LessonViewerScreen() {
   const router = useRouter();
+  const { t, ti } = useI18n();
   const { lessonId } = useLocalSearchParams<{ lessonId: string }>();
   const { startLesson, completeLesson, getQuiz, submitQuiz, isLoading } = useLearning();
   
@@ -58,8 +60,8 @@ export default function LessonViewerScreen() {
     } else {
       // No quiz, mark as complete
       await completeLesson(lessonId);
-      Alert.alert('Lesson Complete! 🎉', 'You\'ve finished this lesson.', [
-        { text: 'Continue', onPress: () => router.back() },
+      Alert.alert(t('learn.lesson_complete'), t('learn.lesson_complete_message'), [
+        { text: t('common.continue'), onPress: () => router.back() },
       ]);
     }
   };
@@ -103,7 +105,7 @@ export default function LessonViewerScreen() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loader}>
-          <Text style={styles.loaderText}>Loading lesson...</Text>
+          <Text style={styles.loaderText}>{t('learn.loading_lesson')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -118,10 +120,6 @@ export default function LessonViewerScreen() {
         <VStack style={styles.content} gap={6}>
           {/* Header */}
           <Animated.View entering={FadeIn.duration(500)}>
-            <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-              <Text style={styles.backText}>← Back</Text>
-            </TouchableOpacity>
-            
             <Text style={styles.title}>{lesson.title}</Text>
             
             {/* Progress Bar */}
@@ -131,7 +129,7 @@ export default function LessonViewerScreen() {
                   <View style={[styles.progressBar, { width: `${progress}%` }]} />
                 </View>
                 <Text style={styles.progressText}>
-                  Section {currentSection + 1} of {lesson.content.length}
+                  {ti('learn.section_progress', { current: currentSection + 1, total: lesson.content.length })}
                 </Text>
               </View>
             )}
@@ -153,7 +151,7 @@ export default function LessonViewerScreen() {
                     <View>
                       <Text style={styles.contentTitle}>{currentContent.title}</Text>
                       <View style={styles.videoPlaceholder}>
-                        <Text style={styles.videoText}>📹 Video Player</Text>
+                        <Text style={styles.videoText}>{t('learn.video_player')}</Text>
                         <Text style={styles.videoUrl}>{currentContent.content}</Text>
                       </View>
                     </View>
@@ -163,7 +161,7 @@ export default function LessonViewerScreen() {
                     <View>
                       <Text style={styles.contentTitle}>{currentContent.title}</Text>
                       <View style={styles.diagramPlaceholder}>
-                        <Text style={styles.diagramText}>♟️ Chess Diagram</Text>
+                        <Text style={styles.diagramText}>{t('learn.chess_diagram')}</Text>
                         <Text style={styles.fenText}>{currentContent.content}</Text>
                       </View>
                     </View>
@@ -173,7 +171,7 @@ export default function LessonViewerScreen() {
                     <View>
                       <Text style={styles.contentTitle}>{currentContent.title}</Text>
                       <View style={styles.interactivePlaceholder}>
-                        <Text style={styles.interactiveText}>🎮 Interactive Exercise</Text>
+                        <Text style={styles.interactiveText}>{t('learn.interactive_exercise')}</Text>
                         <Text style={styles.instructionText}>{currentContent.content}</Text>
                       </View>
                     </View>
@@ -187,9 +185,9 @@ export default function LessonViewerScreen() {
               <VStack gap={4}>
                 <Card variant="gradient" size="md">
                   <View style={{ padding: 16 }}>
-                    <Text style={styles.quizTitle}>📝 Quiz Time!</Text>
+                    <Text style={styles.quizTitle}>{t('learn.quiz_time')}</Text>
                     <Text style={styles.quizSubtitle}>
-                      {quiz?.questions.length} questions • Passing score: {quiz?.passingScore}%
+                      {ti('learn.quiz_info', { count: quiz?.questions.length, score: quiz?.passingScore })}
                     </Text>
                   </View>
                 </Card>
@@ -197,7 +195,7 @@ export default function LessonViewerScreen() {
                 {quiz?.questions.map((question, qIndex) => (
                   <Card key={question.id} variant="default" size="md">
                     <VStack gap={3} style={{ padding: 16 }}>
-                      <Text style={styles.questionNumber}>Question {qIndex + 1}</Text>
+                      <Text style={styles.questionNumber}>{ti('learn.question_number', { number: qIndex + 1 })}</Text>
                       <Text style={styles.questionText}>{question.question}</Text>
                       
                       {question.options.map((option, optIndex) => {
@@ -244,13 +242,13 @@ export default function LessonViewerScreen() {
                   <Card variant="gradient" size="md">
                     <VStack gap={3} style={{ padding: 20, alignItems: 'center' }}>
                       <Text style={styles.scoreTitle}>
-                        {quizScore >= (quiz?.passingScore || 70) ? '🎉 Passed!' : '📚 Try Again'}
+                        {t('learn.quiz_score_title')}
                       </Text>
                       <Text style={styles.scoreValue}>{quizScore}%</Text>
                       <Text style={styles.scoreText}>
                         {quizScore >= (quiz?.passingScore || 70)
-                          ? 'Congratulations! You\'ve completed this lesson.'
-                          : 'Review the material and try again.'}
+                          ? t('learn.quiz_passed')
+                          : t('learn.quiz_failed')}
                       </Text>
                     </VStack>
                   </Card>
@@ -268,12 +266,12 @@ export default function LessonViewerScreen() {
                   onPress={handlePrevious}
                   disabled={currentSection === 0}
                 >
-                  <Text style={styles.navButtonText}>← Previous</Text>
+                  <Text style={styles.navButtonText}>{t('learn.previous')}</Text>
                 </TouchableOpacity>
                 
                 <TouchableOpacity style={styles.navButton} onPress={handleNext}>
                   <Text style={styles.navButtonText}>
-                    {currentSection < lesson.content.length - 1 ? 'Next →' : 'Finish →'}
+                    {currentSection < lesson.content.length - 1 ? t('learn.next_section') : t('learn.complete_lesson')}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -293,17 +291,17 @@ export default function LessonViewerScreen() {
                   onPress={handleQuizSubmit}
                   disabled={Object.keys(selectedAnswers).length !== quiz?.questions.length}
                 >
-                  <Text style={styles.submitButtonText}>Submit Quiz</Text>
+                  <Text style={styles.submitButtonText}>{t('learn.submit_quiz')}</Text>
                 </TouchableOpacity>
               ) : (
                 <VStack gap={2}>
                   {quizScore < (quiz?.passingScore || 70) && (
                     <TouchableOpacity style={styles.retryButton} onPress={handleQuizRetry}>
-                      <Text style={styles.retryButtonText}>🔄 Retry Quiz</Text>
+                      <Text style={styles.retryButtonText}>{t('learn.retry_quiz')}</Text>
                     </TouchableOpacity>
                   )}
                   <TouchableOpacity style={styles.continueButton} onPress={() => router.back()}>
-                    <Text style={styles.continueButtonText}>Continue</Text>
+                    <Text style={styles.continueButtonText}>{t('common.continue')}</Text>
                   </TouchableOpacity>
                 </VStack>
               )}
@@ -326,14 +324,6 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: 20,
     paddingTop: 20,
-  },
-  backButton: {
-    marginBottom: 12,
-  },
-  backText: {
-    fontSize: 16,
-    color: '#667EEA',
-    fontWeight: '600',
   },
   title: {
     fontSize: 28,

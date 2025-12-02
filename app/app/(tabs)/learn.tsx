@@ -3,12 +3,14 @@ import { StyleSheet, View, Text, TouchableOpacity, SafeAreaView } from 'react-na
 import { useRouter } from 'expo-router';
 import { FeatureScreenLayout, FeatureCard, StatCard } from '@/ui/components';
 import { HStack } from '@/ui';
+import { useI18n } from '@/i18n/I18nContext';
 
 type LearnMode = 'hub' | 'lessons' | 'tactics' | 'review' | 'openings';
 type LessonCategory = 'beginner' | 'intermediate' | 'advanced';
 
 export default function LearnTab() {
   const router = useRouter();
+  const { t, ti } = useI18n();
   const [mode, setMode] = useState<LearnMode>('hub');
   const [selectedCategory, setSelectedCategory] = useState<LessonCategory>('beginner');
   const [streak] = useState(7);
@@ -18,47 +20,47 @@ export default function LearnTab() {
   if (mode === 'hub') {
     return (
       <FeatureScreenLayout
-        title="Learn & Improve"
-        subtitle="Master chess through structured learning"
+        title={t('learn.learn_improve')}
+        subtitle={t('learn.master_chess')}
         statsRow={
           <HStack gap={3}>
-            <StatCard value={`🔥 ${streak}`} label="Day Streak" />
-            <StatCard value={`⚡ ${tacticsRating}`} label="Tactics Rating" />
+            <StatCard value={`🔥 ${streak}`} label={t('learn.day_streak')} />
+            <StatCard value={`⚡ ${tacticsRating}`} label={t('learn.tactics_rating')} />
           </HStack>
         }
       >
         <FeatureCard
           icon="📚"
-          title="Interactive Lessons"
-          description="Structured courses from basics to advanced"
-          progress="12 of 48 lessons completed"
+          title={t('learn.interactive_lessons')}
+          description={t('learn.lessons_description')}
+          progress={ti('learn.lessons_completed', { count: 12, total: 48 })}
           onPress={() => setMode('lessons')}
           delay={200}
         />
         
         <FeatureCard
           icon="🎯"
-          title="Tactics Trainer"
-          description="Solve puzzles, improve pattern recognition"
-          progress={`Rating: ${tacticsRating} • 234 solved`}
+          title={t('learn.tactics_trainer')}
+          description={t('learn.tactics_description')}
+          progress={ti('learn.tactics_progress', { rating: tacticsRating, solved: 234 })}
           onPress={() => setMode('tactics')}
           delay={300}
         />
         
         <FeatureCard
           icon="🔍"
-          title="Game Review"
-          description="Analyze your games, find improvements"
-          progress="3 games pending review"
+          title={t('learn.game_review')}
+          description={t('learn.review_description')}
+          progress={ti('learn.games_pending', { count: 3 })}
           onPress={() => setMode('review')}
           delay={400}
         />
         
         <FeatureCard
           icon="📖"
-          title="Openings Explorer"
-          description="Study openings with statistics"
-          progress="5 openings in repertoire"
+          title={t('learn.openings_explorer')}
+          description={t('learn.openings_description')}
+          progress={ti('learn.openings_in_repertoire', { count: 5 })}
           onPress={() => setMode('openings')}
           delay={500}
         />
@@ -71,12 +73,8 @@ export default function LearnTab() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.detailContent}>
-          <TouchableOpacity style={styles.backButton} onPress={() => setMode('hub')}>
-            <Text style={styles.backButtonText}>← Back</Text>
-          </TouchableOpacity>
-
-          <Text style={styles.title}>Interactive Lessons</Text>
-          <Text style={styles.subtitle}>Progress: 12/48 lessons • 🔥 {streak} day streak</Text>
+          <Text style={styles.title}>{t('learn.interactive_lessons')}</Text>
+          <Text style={styles.subtitle}>{ti('learn.lessons_progress', { completed: 12, total: 48, streak })}</Text>
 
           {/* Category Tabs */}
           <View style={styles.categoryTabs}>
@@ -87,7 +85,7 @@ export default function LearnTab() {
                 onPress={() => setSelectedCategory(cat)}
               >
                 <Text style={[styles.categoryTabText, selectedCategory === cat ? styles.categoryTabTextActive : undefined]}>
-                  {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                  {t(`learn.${cat}`)}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -96,24 +94,24 @@ export default function LearnTab() {
           {/* Lesson List */}
           {selectedCategory === 'beginner' && (
             <>
-              <LessonCard title="How Pieces Move" completed={true} time="5 min" />
-              <LessonCard title="Basic Checkmates" completed={true} time="10 min" />
-              <LessonCard title="Opening Principles" completed={false} time="15 min" />
-              <LessonCard title="Pawn Structure Basics" completed={false} time="12 min" />
+              <LessonCard title={t('learn.how_pieces_move')} completed={true} time={ti('learn.time_minutes', { minutes: 5 })} />
+              <LessonCard title={t('learn.basic_checkmates')} completed={true} time={ti('learn.time_minutes', { minutes: 10 })} />
+              <LessonCard title={t('learn.opening_principles')} completed={false} time={ti('learn.time_minutes', { minutes: 15 })} />
+              <LessonCard title={t('learn.pawn_structure_basics')} completed={false} time={ti('learn.time_minutes', { minutes: 12 })} />
             </>
           )}
           {selectedCategory === 'intermediate' && (
             <>
-              <LessonCard title="Tactics: Forks & Pins" completed={true} time="20 min" />
-              <LessonCard title="Endgame Essentials" completed={false} time="25 min" />
-              <LessonCard title="Attacking the King" completed={false} time="30 min" />
+              <LessonCard title={t('learn.tactics_forks_pins')} completed={true} time={ti('learn.time_minutes', { minutes: 20 })} />
+              <LessonCard title={t('learn.endgame_essentials')} completed={false} time={ti('learn.time_minutes', { minutes: 25 })} />
+              <LessonCard title={t('learn.attacking_king')} completed={false} time={ti('learn.time_minutes', { minutes: 30 })} />
             </>
           )}
           {selectedCategory === 'advanced' && (
             <>
-              <LessonCard title="Advanced Endgames" completed={false} time="40 min" />
-              <LessonCard title="Positional Sacrifices" completed={false} time="35 min" />
-              <LessonCard title="Modern Opening Theory" completed={false} time="45 min" />
+              <LessonCard title={t('learn.advanced_endgames')} completed={false} time={ti('learn.time_minutes', { minutes: 40 })} />
+              <LessonCard title={t('learn.positional_sacrifices')} completed={false} time={ti('learn.time_minutes', { minutes: 35 })} />
+              <LessonCard title={t('learn.modern_opening_theory')} completed={false} time={ti('learn.time_minutes', { minutes: 45 })} />
             </>
           )}
         </View>
@@ -126,30 +124,26 @@ export default function LearnTab() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.detailContent}>
-          <TouchableOpacity style={styles.backButton} onPress={() => setMode('hub')}>
-            <Text style={styles.backButtonText}>← Back</Text>
-          </TouchableOpacity>
-
-          <Text style={styles.title}>Tactics Trainer</Text>
-          <Text style={styles.subtitle}>Rating: {tacticsRating} • Solved: 234</Text>
+          <Text style={styles.title}>{t('learn.tactics_trainer')}</Text>
+          <Text style={styles.subtitle}>{ti('learn.tactics_stats', { rating: tacticsRating, solved: 234 })}</Text>
 
           <View style={styles.ratingCard}>
-            <Text style={styles.ratingLabel}>Your Tactics Rating</Text>
+            <Text style={styles.ratingLabel}>{t('learn.your_tactics_rating')}</Text>
             <Text style={styles.ratingValue}>{tacticsRating}</Text>
-            <Text style={styles.ratingChange}>+15 this week</Text>
+            <Text style={styles.ratingChange}>{t('learn.rating_change_week', { change: '+15' })}</Text>
           </View>
 
-          <TouchableOpacity style={styles.button} onPress={() => router.push('/(tabs)/explore')}>
-            <Text style={styles.buttonText}>Start Training Session</Text>
+          <TouchableOpacity style={styles.button} onPress={() => router.push('/puzzle')}>
+            <Text style={styles.buttonText}>{t('learn.start_training')}</Text>
           </TouchableOpacity>
 
           <View style={styles.categorySection}>
-            <Text style={styles.sectionTitle}>Categories</Text>
-            <CategoryButton icon="🔱" title="Forks" count={45} />
-            <CategoryButton icon="📌" title="Pins" count={38} />
-            <CategoryButton icon="🎭" title="Discovered Attacks" count={22} />
-            <CategoryButton icon="👑" title="Back Rank Mates" count={31} />
-            <CategoryButton icon="⚔️" title="Deflection" count={18} />
+            <Text style={styles.sectionTitle}>{t('learn.categories')}</Text>
+            <CategoryButton icon="🔱" title={t('learn.forks')} count={45} t={t} />
+            <CategoryButton icon="📌" title={t('learn.pins')} count={38} t={t} />
+            <CategoryButton icon="🎭" title={t('learn.discovered_attacks')} count={22} t={t} />
+            <CategoryButton icon="👑" title={t('learn.back_rank_mates')} count={31} t={t} />
+            <CategoryButton icon="⚔️" title={t('learn.deflection')} count={18} t={t} />
           </View>
         </View>
       </SafeAreaView>
@@ -161,12 +155,8 @@ export default function LearnTab() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.detailContent}>
-          <TouchableOpacity style={styles.backButton} onPress={() => setMode('hub')}>
-            <Text style={styles.backButtonText}>← Back</Text>
-          </TouchableOpacity>
-
-          <Text style={styles.title}>Game Review</Text>
-          <Text style={styles.subtitle}>Analyze your recent games</Text>
+          <Text style={styles.title}>{t('learn.game_review')}</Text>
+          <Text style={styles.subtitle}>{t('learn.analyze_recent_games')}</Text>
 
           <GameReviewCard 
             opponent="Magnus2024"
@@ -199,15 +189,11 @@ export default function LearnTab() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.detailContent}>
-          <TouchableOpacity style={styles.backButton} onPress={() => setMode('hub')}>
-            <Text style={styles.backButtonText}>← Back</Text>
-          </TouchableOpacity>
-
-          <Text style={styles.title}>Openings Explorer</Text>
-          <Text style={styles.subtitle}>Build your opening repertoire</Text>
+          <Text style={styles.title}>{t('learn.openings_explorer')}</Text>
+          <Text style={styles.subtitle}>{t('learn.build_repertoire')}</Text>
 
           <View style={styles.categorySection}>
-            <Text style={styles.sectionTitle}>Your Repertoire</Text>
+            <Text style={styles.sectionTitle}>{t('learn.your_repertoire')}</Text>
             <OpeningCard 
               name="Italian Game"
               eco="C50"
@@ -229,7 +215,7 @@ export default function LearnTab() {
           </View>
 
           <TouchableOpacity style={[styles.button, styles.secondary]}>
-            <Text style={styles.buttonText}>+ Add Opening</Text>
+            <Text style={styles.buttonText}>+ {t('learn.add_opening')}</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -252,12 +238,12 @@ function LessonCard({ title, completed, time }: { title: string; completed: bool
   );
 }
 
-function CategoryButton({ icon, title, count }: { icon: string; title: string; count: number }) {
+function CategoryButton({ icon, title, count, t }: { icon: string; title: string; count: number; t: any }) {
   return (
     <TouchableOpacity style={styles.categoryButton}>
       <Text style={styles.categoryIcon}>{icon}</Text>
       <Text style={styles.categoryTitle}>{title}</Text>
-      <Text style={styles.categoryCount}>{count} puzzles</Text>
+      <Text style={styles.categoryCount}>{t('learn.puzzle_count', { count })}</Text>
     </TouchableOpacity>
   );
 }

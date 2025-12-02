@@ -18,6 +18,7 @@ import {
   MockLearningApiClient,
   MockSocialApiClient,
   MockLiveGameApiClient,
+  MockPuzzleApiClient,
   PuzzleApiClient,
   LiveGameApiClient,
   GameApiClient as PlayApiClient
@@ -30,7 +31,7 @@ interface ApiContextType {
   matchmakingApi: MatchmakingApiClient | MockMatchmakingApiClient;
   learningApi: LearningApiClient | MockLearningApiClient;
   socialApi: SocialApiClient | MockSocialApiClient;
-  puzzleApi: PuzzleApiClient;
+  puzzleApi: PuzzleApiClient | MockPuzzleApiClient;
   liveGameApi: LiveGameApiClient | MockLiveGameApiClient;
   playApi: PlayApiClient;
   useMockApi: boolean;
@@ -62,6 +63,7 @@ export function ApiProvider({ children }: { children: ReactNode }) {
     let learningApi: LearningApiClient | MockLearningApiClient;
     let socialApi: SocialApiClient | MockSocialApiClient;
     let liveGameApi: LiveGameApiClient | MockLiveGameApiClient;
+    let puzzleApi: PuzzleApiClient | MockPuzzleApiClient;
 
     if (USE_MOCK_API) {
       // Use mock implementations for testing
@@ -73,6 +75,7 @@ export function ApiProvider({ children }: { children: ReactNode }) {
       learningApi = new MockLearningApiClient();
       socialApi = new MockSocialApiClient();
       liveGameApi = new MockLiveGameApiClient();
+      puzzleApi = new MockPuzzleApiClient();
     } else {
       // Use real API implementations
       console.log('🌐 Using REAL API clients');
@@ -83,10 +86,10 @@ export function ApiProvider({ children }: { children: ReactNode }) {
       learningApi = new LearningApiClient(API_BASE_URLS.learning);
       socialApi = new SocialApiClient(API_BASE_URLS.account);
       liveGameApi = new LiveGameApiClient(API_BASE_URLS.liveGame, "");
+      puzzleApi = new PuzzleApiClient(API_BASE_URLS.puzzle);
     }
 
-    // These always use real implementations (or can be mocked later if needed)
-    const puzzleApi = new PuzzleApiClient(API_BASE_URLS.puzzle);
+    // This always uses real implementation (or can be mocked later if needed)
     const playApi = new PlayApiClient(API_BASE_URLS.play, "");
     
     return {

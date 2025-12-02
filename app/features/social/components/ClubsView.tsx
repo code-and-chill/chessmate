@@ -4,6 +4,8 @@
  */
 
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useThemeTokens } from '@/ui';
+import { useI18n } from '@/i18n/I18nContext';
 
 export interface ClubsViewProps {
   onBack: () => void;
@@ -11,6 +13,8 @@ export interface ClubsViewProps {
 }
 
 export function ClubsView({ onBack }: ClubsViewProps) {
+  const { colors } = useThemeTokens();
+  const { t, ti } = useI18n();
   // Mock clubs data - TODO: Create useClubs hook when clubs API is available
   const myClubs = [
     { id: '1', name: 'Chess Enthusiasts', members: 1250, activity: 'Very Active', icon: '♔', role: 'Member' },
@@ -25,66 +29,60 @@ export function ClubsView({ onBack }: ClubsViewProps) {
   ];
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <TouchableOpacity style={styles.backButton} onPress={onBack}>
-        <Text style={styles.backButtonText}>← Back</Text>
-      </TouchableOpacity>
+    <ScrollView style={[styles.container, { backgroundColor: colors.background.primary }]} contentContainerStyle={styles.content}>
+      <Text style={[styles.title, { color: colors.foreground.primary }]}>{t('social.clubs')}</Text>
+      <Text style={[styles.subtitle, { color: colors.foreground.secondary }]}>{ti('social.member_of_clubs', { count: myClubs.length })}</Text>
 
-      <Text style={styles.title}>Clubs</Text>
-      <Text style={styles.subtitle}>Member of {myClubs.length} clubs</Text>
-
-      <TouchableOpacity style={styles.button}>
-        <Text style={styles.buttonText}>+ Create Club</Text>
+      <TouchableOpacity style={[styles.button, { backgroundColor: colors.accent.primary }]}>
+        <Text style={[styles.buttonText, { color: colors.accentForeground.primary }]}>+ {t('social.create_club')}</Text>
       </TouchableOpacity>
 
       <View style={styles.categorySection}>
-        <Text style={styles.sectionTitle}>My Clubs</Text>
-        {myClubs.map(club => <ClubCard key={club.id} {...club} />)}
+        <Text style={[styles.sectionTitle, { color: colors.foreground.primary }]}>{t('social.my_clubs')}</Text>
+        {myClubs.map(club => <ClubCard key={club.id} {...club} colors={colors} t={t} ti={ti} />)}
       </View>
 
       <View style={styles.categorySection}>
-        <Text style={styles.sectionTitle}>Discover</Text>
-        {discoverClubs.map(club => <ClubCard key={club.id} {...club} role={undefined} />)}
+        <Text style={[styles.sectionTitle, { color: colors.foreground.primary }]}>{t('social.discover_clubs')}</Text>
+        {discoverClubs.map(club => <ClubCard key={club.id} {...club} role={undefined} colors={colors} t={t} ti={ti} />)}
       </View>
     </ScrollView>
   );
 }
 
-function ClubCard({ name, members, activity, icon, role }: any) {
+function ClubCard({ name, members, activity, icon, role, colors, t, ti }: any) {
   return (
-    <View style={styles.clubCard}>
+    <View style={[styles.clubCard, { backgroundColor: colors.background.secondary }]}>
       <Text style={styles.clubIcon}>{icon}</Text>
       <View style={styles.clubDetails}>
-        <Text style={styles.clubName}>{name}</Text>
-        <Text style={styles.clubInfo}>{members.toLocaleString()} members • {activity}</Text>
-        {role && <Text style={styles.clubRole}>{role}</Text>}
+        <Text style={[styles.clubName, { color: colors.foreground.primary }]}>{name}</Text>
+        <Text style={[styles.clubInfo, { color: colors.foreground.secondary }]}>{ti('social.club_members', { count: members })} • {activity}</Text>
+        {role && <Text style={[styles.clubRole, { color: colors.accent.primary }]}>{role}</Text>}
       </View>
-      <TouchableOpacity style={role ? styles.viewButton : styles.joinButton}>
-        <Text style={role ? styles.viewButtonText : styles.joinButtonText}>{role ? 'View' : 'Join'}</Text>
+      <TouchableOpacity style={[role ? styles.viewButton : styles.joinButton, { backgroundColor: role ? 'transparent' : colors.accent.primary, borderColor: colors.accent.primary }]}>
+        <Text style={[role ? styles.viewButtonText : styles.joinButtonText, { color: role ? colors.accent.primary : colors.accentForeground.primary }]}>{role ? t('social.view') : t('social.join')}</Text>
       </TouchableOpacity>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f9f9f9' },
+  container: { flex: 1 },
   content: { padding: 20 },
-  backButton: { alignSelf: 'flex-start', paddingVertical: 8, paddingHorizontal: 12, marginBottom: 16 },
-  backButtonText: { fontSize: 16, color: '#FF9F0A' },
-  title: { fontSize: 28, fontWeight: 'bold', marginBottom: 8, color: '#000' },
-  subtitle: { fontSize: 16, color: '#666', marginBottom: 24 },
-  button: { backgroundColor: '#FF9F0A', borderRadius: 10, padding: 16, marginBottom: 20, alignItems: 'center' },
-  buttonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
+  title: { fontSize: 28, fontWeight: 'bold', marginBottom: 8 },
+  subtitle: { fontSize: 16, marginBottom: 24 },
+  button: { borderRadius: 10, padding: 16, marginBottom: 20, alignItems: 'center' },
+  buttonText: { fontSize: 16, fontWeight: '600' },
   categorySection: { marginTop: 8 },
-  sectionTitle: { fontSize: 20, fontWeight: '600', color: '#000', marginBottom: 16 },
-  clubCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 10, padding: 16, marginBottom: 12, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 2, elevation: 2 },
+  sectionTitle: { fontSize: 20, fontWeight: '600', marginBottom: 16 },
+  clubCard: { flexDirection: 'row', alignItems: 'center', borderRadius: 10, padding: 16, marginBottom: 12, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 2, elevation: 2 },
   clubIcon: { fontSize: 32, marginRight: 12 },
   clubDetails: { flex: 1 },
-  clubName: { fontSize: 16, fontWeight: '600', color: '#000', marginBottom: 4 },
-  clubInfo: { fontSize: 13, color: '#666', marginBottom: 4 },
-  clubRole: { fontSize: 12, color: '#FF9F0A', fontWeight: '600' },
-  viewButton: { borderWidth: 1, borderColor: '#FF9F0A', borderRadius: 8, paddingVertical: 8, paddingHorizontal: 16 },
-  viewButtonText: { color: '#FF9F0A', fontSize: 14, fontWeight: '600' },
-  joinButton: { backgroundColor: '#FF9F0A', borderRadius: 8, paddingVertical: 8, paddingHorizontal: 16 },
-  joinButtonText: { color: '#fff', fontSize: 14, fontWeight: '600' },
+  clubName: { fontSize: 16, fontWeight: '600', marginBottom: 4 },
+  clubInfo: { fontSize: 13, marginBottom: 4 },
+  clubRole: { fontSize: 12, fontWeight: '600' },
+  viewButton: { borderWidth: 1, borderRadius: 8, paddingVertical: 8, paddingHorizontal: 16 },
+  viewButtonText: { fontSize: 14, fontWeight: '600' },
+  joinButton: { borderRadius: 8, paddingVertical: 8, paddingHorizontal: 16 },
+  joinButtonText: { fontSize: 14, fontWeight: '600' },
 });

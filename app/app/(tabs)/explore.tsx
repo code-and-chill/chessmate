@@ -1,13 +1,13 @@
 import { useRouter } from 'expo-router';
 import { FeatureScreenLayout, FeatureCard } from '@/ui/components';
 
-export default function PuzzleTab() {
+export default function ExploreTab() {
   const router = useRouter();
 
   return (
     <FeatureScreenLayout
-      title="Puzzles & Learning"
-      subtitle="Sharpen your skills and master chess"
+      title="Explore Chess"
+      subtitle="Discover features to improve your game"
     >
       <FeatureCard
         icon="🧩"
@@ -27,7 +27,7 @@ export default function PuzzleTab() {
       
       <FeatureCard
         icon="👥"
-        title="Friends & Social"
+        title="Friends"
         description="Connect with players and join clubs"
         onPress={() => router.push('/social/friends')}
         delay={400}

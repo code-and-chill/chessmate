@@ -5,9 +5,13 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Card } from '@/ui/primitives/Card';
 import { VStack } from '@/ui';
 import { usePuzzle } from '@/contexts/PuzzleContext';
+import { useThemeTokens } from '@/ui';
+import { useI18n } from '@/i18n/I18nContext';
 
 export default function PuzzleHubScreen() {
   const router = useRouter();
+  const { colors } = useThemeTokens();
+  const { t, ti } = useI18n();
   const { dailyPuzzle, puzzleStats, getDailyPuzzle, getUserStats, isLoading } = usePuzzle();
   
   const [selectedDifficulty, setSelectedDifficulty] = useState<string[]>([]);
@@ -46,23 +50,23 @@ export default function PuzzleHubScreen() {
 
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.background.primary }]}>
         <View style={styles.loader}>
-          <ActivityIndicator size="large" color="#667EEA" />
-          <Text style={styles.loaderText}>Loading puzzles...</Text>
+          <ActivityIndicator size="large" color={colors.accent.primary} />
+          <Text style={[styles.loaderText, { color: colors.foreground.secondary }]}>{t('puzzle.loading_puzzles')}</Text>
         </View>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background.primary }]}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <VStack style={styles.content} gap={6}>
           {/* Header */}
           <Animated.View entering={FadeInDown.delay(100).duration(500)}>
-            <Text style={styles.title}>Puzzles</Text>
-            <Text style={styles.subtitle}>Sharpen your tactical skills</Text>
+            <Text style={[styles.title, { color: colors.foreground.primary }]}>{t('puzzle.puzzles')}</Text>
+            <Text style={[styles.subtitle, { color: colors.foreground.secondary }]}>{t('puzzle.sharpen_skills')}</Text>
           </Animated.View>
 
           {/* Stats Card */}
@@ -70,25 +74,25 @@ export default function PuzzleHubScreen() {
             <Animated.View entering={FadeInDown.delay(200).duration(500)}>
               <Card variant="gradient" size="md">
                 <VStack gap={3} style={{ padding: 16 }}>
-                  <Text style={styles.statsTitle}>Your Progress</Text>
+                  <Text style={[styles.statsTitle, { color: colors.foreground.primary }]}>{t('puzzle.your_progress')}</Text>
                   <View style={styles.statsGrid}>
                     <View style={styles.statItem}>
-                      <Text style={styles.statValue}>{puzzleStats.totalSolved}</Text>
-                      <Text style={styles.statLabel}>Solved</Text>
+                      <Text style={[styles.statValue, { color: colors.foreground.primary }]}>{puzzleStats.totalSolved}</Text>
+                      <Text style={[styles.statLabel, { color: colors.foreground.secondary }]}>{t('puzzle.solved')}</Text>
                     </View>
                     <View style={styles.statItem}>
-                      <Text style={styles.statValue}>{puzzleStats.userRating}</Text>
-                      <Text style={styles.statLabel}>Rating</Text>
+                      <Text style={[styles.statValue, { color: colors.foreground.primary }]}>{puzzleStats.userRating}</Text>
+                      <Text style={[styles.statLabel, { color: colors.foreground.secondary }]}>{t('puzzle.rating')}</Text>
                     </View>
                     <View style={styles.statItem}>
-                      <Text style={styles.statValue}>{puzzleStats.currentStreak}🔥</Text>
-                      <Text style={styles.statLabel}>Streak</Text>
+                      <Text style={[styles.statValue, { color: colors.foreground.primary }]}>{puzzleStats.currentStreak}🔥</Text>
+                      <Text style={[styles.statLabel, { color: colors.foreground.secondary }]}>{t('puzzle.streak')}</Text>
                     </View>
                     <View style={styles.statItem}>
-                      <Text style={styles.statValue}>
+                      <Text style={[styles.statValue, { color: colors.foreground.primary }]}>
                         {Math.round((puzzleStats.totalSolved / puzzleStats.totalAttempts) * 100)}%
                       </Text>
-                      <Text style={styles.statLabel}>Success</Text>
+                      <Text style={[styles.statLabel, { color: colors.foreground.secondary }]}>{t('puzzle.success')}</Text>
                     </View>
                   </View>
                 </VStack>
@@ -106,13 +110,13 @@ export default function PuzzleHubScreen() {
                 <View style={styles.dailyHeader}>
                   <Text style={styles.dailyIcon}>⭐</Text>
                   <VStack gap={1}>
-                    <Text style={styles.dailyTitle}>Daily Puzzle</Text>
-                    <Text style={styles.dailySubtitle}>
-                      {dailyPuzzle ? `Rating: ${dailyPuzzle.rating}` : 'Complete today\'s challenge'}
+                    <Text style={[styles.dailyTitle, { color: colors.foreground.primary }]}>{t('puzzle.daily_puzzle')}</Text>
+                    <Text style={[styles.dailySubtitle, { color: colors.foreground.secondary }]}>
+                      {dailyPuzzle ? ti('puzzle.rating_value', { rating: dailyPuzzle.rating }) : t('puzzle.complete_today_challenge')}
                     </Text>
                   </VStack>
                 </View>
-                <Text style={styles.arrow}>→</Text>
+                <Text style={[styles.arrow, { color: colors.accent.primary }]}>→</Text>
               </TouchableOpacity>
             </Card>
           </Animated.View>
@@ -120,21 +124,21 @@ export default function PuzzleHubScreen() {
           {/* Difficulty Filter */}
           <Animated.View entering={FadeInDown.delay(400).duration(500)}>
             <VStack gap={2}>
-              <Text style={styles.filterLabel}>Difficulty</Text>
+              <Text style={[styles.filterLabel, { color: colors.foreground.primary }]}>{t('puzzle.difficulty')}</Text>
               <View style={styles.filterGrid}>
                 {difficulties.map((diff) => (
                   <TouchableOpacity
                     key={diff}
                     style={[
                       styles.filterChip,
-                      selectedDifficulty.includes(diff) && styles.filterChipActive,
+                      { backgroundColor: selectedDifficulty.includes(diff) ? colors.accent.primary : colors.background.secondary, borderColor: selectedDifficulty.includes(diff) ? colors.accent.primary : colors.background.tertiary },
                     ]}
                     onPress={() => toggleDifficulty(diff)}
                   >
                     <Text
                       style={[
                         styles.filterChipText,
-                        selectedDifficulty.includes(diff) && styles.filterChipTextActive,
+                        { color: selectedDifficulty.includes(diff) ? colors.accentForeground.primary : colors.foreground.secondary },
                       ]}
                     >
                       {diff}
@@ -148,21 +152,21 @@ export default function PuzzleHubScreen() {
           {/* Theme Filter */}
           <Animated.View entering={FadeInDown.delay(500).duration(500)}>
             <VStack gap={2}>
-              <Text style={styles.filterLabel}>Themes</Text>
+              <Text style={[styles.filterLabel, { color: colors.foreground.primary }]}>Themes</Text>
               <View style={styles.filterGrid}>
                 {themes.map((theme) => (
                   <TouchableOpacity
                     key={theme}
                     style={[
                       styles.filterChip,
-                      selectedThemes.includes(theme) && styles.filterChipActive,
+                      { backgroundColor: selectedThemes.includes(theme) ? colors.accent.primary : colors.background.secondary, borderColor: selectedThemes.includes(theme) ? colors.accent.primary : colors.background.tertiary },
                     ]}
                     onPress={() => toggleTheme(theme)}
                   >
                     <Text
                       style={[
                         styles.filterChipText,
-                        selectedThemes.includes(theme) && styles.filterChipTextActive,
+                        { color: selectedThemes.includes(theme) ? colors.accentForeground.primary : colors.foreground.secondary },
                       ]}
                     >
                       {theme}
@@ -176,15 +180,15 @@ export default function PuzzleHubScreen() {
           {/* Action Buttons */}
           <Animated.View entering={FadeInDown.delay(600).duration(500)}>
             <VStack gap={3}>
-              <TouchableOpacity style={styles.button} onPress={startRandomPuzzle}>
-                <Text style={styles.buttonText}>🎲 Random Puzzle</Text>
+              <TouchableOpacity style={[styles.button, { backgroundColor: colors.accent.primary }]} onPress={startRandomPuzzle}>
+                <Text style={[styles.buttonText, { color: colors.accentForeground.primary }]}>🎲 Random Puzzle</Text>
               </TouchableOpacity>
               
               <TouchableOpacity
-                style={[styles.button, styles.buttonSecondary]}
+                style={[styles.button, styles.buttonSecondary, { borderColor: colors.accent.primary, backgroundColor: 'transparent' }]}
                 onPress={() => router.push('/puzzle/history')}
               >
-                <Text style={[styles.buttonText, styles.buttonTextSecondary]}>
+                <Text style={[styles.buttonText, styles.buttonTextSecondary, { color: colors.accent.primary }]}>
                   📊 View History
                 </Text>
               </TouchableOpacity>
@@ -199,7 +203,6 @@ export default function PuzzleHubScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0F172A',
   },
   scrollContent: {
     paddingBottom: 40,
@@ -211,19 +214,16 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 36,
     fontWeight: 'bold',
-    color: '#FFFFFF',
     textAlign: 'center',
   },
   subtitle: {
     fontSize: 16,
-    color: '#94A3B8',
     textAlign: 'center',
     marginTop: 4,
   },
   statsTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#FFFFFF',
   },
   statsGrid: {
     flexDirection: 'row',
@@ -235,11 +235,9 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#FFFFFF',
   },
   statLabel: {
     fontSize: 12,
-    color: '#94A3B8',
     marginTop: 4,
   },
   dailyPuzzle: {
@@ -259,20 +257,16 @@ const styles = StyleSheet.create({
   dailyTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#FFFFFF',
   },
   dailySubtitle: {
     fontSize: 14,
-    color: '#94A3B8',
   },
   arrow: {
     fontSize: 24,
-    color: '#667EEA',
   },
   filterLabel: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#FFFFFF',
   },
   filterGrid: {
     flexDirection: 'row',
@@ -283,41 +277,33 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: '#1E293B',
     borderWidth: 2,
-    borderColor: '#334155',
   },
   filterChipActive: {
-    backgroundColor: '#334155',
-    borderColor: '#667EEA',
+    // Handled inline
   },
   filterChipText: {
     fontSize: 14,
-    color: '#94A3B8',
     fontWeight: '600',
     textTransform: 'capitalize',
   },
   filterChipTextActive: {
-    color: '#FFFFFF',
+    // Handled inline
   },
   button: {
-    backgroundColor: '#667EEA',
     padding: 18,
     borderRadius: 12,
     alignItems: 'center',
   },
   buttonSecondary: {
-    backgroundColor: 'transparent',
     borderWidth: 2,
-    borderColor: '#667EEA',
   },
   buttonText: {
-    color: '#FFFFFF',
     fontSize: 18,
     fontWeight: 'bold',
   },
   buttonTextSecondary: {
-    color: '#667EEA',
+    // Handled inline
   },
   loader: {
     flex: 1,
@@ -326,7 +312,6 @@ const styles = StyleSheet.create({
   },
   loaderText: {
     fontSize: 16,
-    color: '#94A3B8',
     marginTop: 16,
   },
 });

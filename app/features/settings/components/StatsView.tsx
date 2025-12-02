@@ -5,6 +5,7 @@
 
 import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View, ActivityIndicator } from 'react-native';
+import { useThemeTokens } from '@/ui';
 import { useUserStats } from '../hooks';
 
 export interface StatsViewProps {
@@ -17,13 +18,14 @@ export interface StatsViewProps {
  * Integrates with rating-api service
  */
 export function StatsView({ onBack, userId }: StatsViewProps) {
+  const { colors } = useThemeTokens();
   const [selectedTimeControl, setSelectedTimeControl] = useState<'blitz' | 'rapid' | 'classical'>('blitz');
   const { stats, loading } = useUserStats(userId, selectedTimeControl);
 
   if (loading && !stats) {
     return (
       <View style={styles.loader}>
-        <ActivityIndicator size="large" color="#5856D6" />
+        <ActivityIndicator size="large" color={colors.accent.primary} />
       </View>
     );
   }

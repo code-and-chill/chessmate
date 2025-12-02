@@ -6,22 +6,26 @@ import { Card } from '@/ui/primitives/Card';
 import { VStack } from '@/ui';
 import { useAuth } from '@/contexts/AuthContext';
 import { useGame } from '@/contexts/GameContext';
+import { useThemeTokens } from '@/ui';
+import { useI18n } from '@/i18n/I18nContext';
 
 type BotDifficulty = 'beginner' | 'easy' | 'medium' | 'hard' | 'expert' | 'master';
 
-const BOT_LEVELS = [
-  { id: 'beginner' as BotDifficulty, label: '👶 Beginner', rating: 400, description: 'Perfect for learning' },
-  { id: 'easy' as BotDifficulty, label: '😊 Easy', rating: 800, description: 'Casual play' },
-  { id: 'medium' as BotDifficulty, label: '🎯 Intermediate', rating: 1200, description: 'Good challenge' },
-  { id: 'hard' as BotDifficulty, label: '💪 Advanced', rating: 1600, description: 'Strong opponent' },
-  { id: 'expert' as BotDifficulty, label: '🔥 Expert', rating: 2000, description: 'Very difficult' },
-  { id: 'master' as BotDifficulty, label: '🏆 Master', rating: 2400, description: 'Grandmaster level' },
-];
-
 export default function BotPlayScreen() {
   const router = useRouter();
+  const { colors } = useThemeTokens();
+  const { t } = useI18n();
   const { isAuthenticated } = useAuth();
   const { createBotGame, isCreatingGame } = useGame();
+  
+  const BOT_LEVELS = [
+    { id: 'beginner' as BotDifficulty, label: `👶 ${t('game_modes.beginner')}`, rating: 400, description: t('game_modes.perfect_for_learning') },
+    { id: 'easy' as BotDifficulty, label: `😊 ${t('game_modes.easy')}`, rating: 800, description: t('game_modes.casual_play') },
+    { id: 'medium' as BotDifficulty, label: `🎯 ${t('game_modes.intermediate')}`, rating: 1200, description: t('game_modes.good_challenge') },
+    { id: 'hard' as BotDifficulty, label: `💪 ${t('game_modes.advanced')}`, rating: 1600, description: t('game_modes.strong_opponent') },
+    { id: 'expert' as BotDifficulty, label: `🔥 ${t('game_modes.expert')}`, rating: 2000, description: t('game_modes.very_difficult') },
+    { id: 'master' as BotDifficulty, label: `🏆 ${t('game_modes.master')}`, rating: 2400, description: t('game_modes.grandmaster_level') },
+  ];
   
   const [difficulty, setDifficulty] = useState<BotDifficulty>('medium');
   const [playerColor, setPlayerColor] = useState<'white' | 'black' | 'random'>('random');
@@ -47,25 +51,21 @@ export default function BotPlayScreen() {
 
   if (isCreatingGame) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.background.primary }]}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#667EEA" />
-          <Text style={styles.loadingText}>Preparing your game...</Text>
+          <ActivityIndicator size="large" color={colors.accent.primary} />
+          <Text style={[styles.loadingText, { color: colors.foreground.secondary }]}>{t('game_modes.preparing_game')}</Text>
         </View>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background.primary }]}>
       <VStack style={styles.content} gap={6}>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <Text style={styles.backButtonText}>← Back</Text>
-        </TouchableOpacity>
-
         <VStack gap={2} style={{ alignItems: 'center' }}>
-          <Text style={styles.title}>Play vs Bot</Text>
-          <Text style={styles.subtitle}>Choose your opponent's strength</Text>
+          <Text style={[styles.title, { color: colors.foreground.primary }]}>{t('game_modes.play_vs_bot')}</Text>
+          <Text style={[styles.subtitle, { color: colors.foreground.secondary }]}>{t('game_modes.choose_opponent_strength')}</Text>
         </VStack>
 
         <VStack gap={3} style={{ marginTop: 8 }}>
@@ -87,14 +87,14 @@ export default function BotPlayScreen() {
                   activeOpacity={0.9}
                 >
                   <View style={styles.botInfo}>
-                    <Text style={[styles.botLabel, difficulty === bot.id && styles.selectedText]}>
+                    <Text style={[styles.botLabel, { color: colors.foreground.primary }]}>
                       {bot.label}
                     </Text>
-                    <Text style={[styles.botDescription, difficulty === bot.id && styles.selectedText]}>
+                    <Text style={[styles.botDescription, { color: colors.foreground.secondary }]}>
                       {bot.description}
                     </Text>
                   </View>
-                  <Text style={[styles.botRating, difficulty === bot.id && styles.selectedText]}>
+                  <Text style={[styles.botRating, { color: colors.foreground.muted }]}>
                     {bot.rating}
                   </Text>
                 </TouchableOpacity>
@@ -105,26 +105,30 @@ export default function BotPlayScreen() {
 
         <Animated.View entering={FadeInUp.delay(600).duration(400).springify()}>
           <VStack gap={2} style={{ marginTop: 16 }}>
-            <Text style={styles.sectionLabel}>Play as:</Text>
+            <Text style={[styles.sectionLabel, { color: colors.foreground.secondary }]}>{t('game_modes.play_as')}</Text>
             <View style={styles.colorSelector}>
               {(['white', 'black', 'random'] as const).map((color) => (
                 <TouchableOpacity
                   key={color}
                   style={[
                     styles.colorButton,
-                    playerColor === color && styles.colorButtonSelected,
+                    { 
+                      backgroundColor: colors.background.secondary,
+                      borderColor: playerColor === color ? colors.accent.primary : 'transparent',
+                    },
+                    playerColor === color && { backgroundColor: colors.background.tertiary },
                   ]}
                   onPress={() => setPlayerColor(color)}
                 >
                   <Text
                     style={[
                       styles.colorButtonText,
-                      playerColor === color && styles.colorButtonTextSelected,
+                      { color: playerColor === color ? colors.foreground.primary : colors.foreground.secondary },
                     ]}
                   >
-                    {color === 'white' && '⚪ White'}
-                    {color === 'black' && '⚫ Black'}
-                    {color === 'random' && '🎲 Random'}
+                    {color === 'white' && `⚪ ${t('game_modes.white')}`}
+                    {color === 'black' && `⚫ ${t('game_modes.black')}`}
+                    {color === 'random' && `🎲 ${t('game_modes.random')}`}
                   </Text>
                 </TouchableOpacity>
               ))}
@@ -133,8 +137,8 @@ export default function BotPlayScreen() {
         </Animated.View>
 
         <Animated.View entering={FadeInUp.delay(700).duration(400).springify()}>
-          <TouchableOpacity style={styles.button} onPress={handleStartGame}>
-            <Text style={styles.buttonText}>Start Game</Text>
+          <TouchableOpacity style={[styles.button, { backgroundColor: colors.accent.primary }]} onPress={handleStartGame}>
+            <Text style={[styles.buttonText, { color: colors.accentForeground.primary }]}>{t('game_modes.start_game')}</Text>
           </TouchableOpacity>
         </Animated.View>
       </VStack>
@@ -145,30 +149,19 @@ export default function BotPlayScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0F172A',
   },
   content: {
     flex: 1,
     paddingHorizontal: 20,
     paddingTop: 20,
   },
-  backButton: {
-    alignSelf: 'flex-start',
-    padding: 8,
-  },
-  backButtonText: {
-    color: '#94A3B8',
-    fontSize: 16,
-  },
   title: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#FFFFFF',
     textAlign: 'center',
   },
   subtitle: {
     fontSize: 16,
-    color: '#94A3B8',
     textAlign: 'center',
   },
   botButton: {
@@ -182,25 +175,18 @@ const styles = StyleSheet.create({
   },
   botLabel: {
     fontSize: 18,
-    color: '#FFFFFF',
     fontWeight: '600',
   },
   botDescription: {
     fontSize: 14,
-    color: '#94A3B8',
     marginTop: 4,
   },
   botRating: {
     fontSize: 16,
-    color: '#64748B',
     fontWeight: 'bold',
-  },
-  selectedText: {
-    color: '#FFFFFF',
   },
   sectionLabel: {
     fontSize: 16,
-    color: '#94A3B8',
     fontWeight: '600',
   },
   colorSelector: {
@@ -211,32 +197,20 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 12,
     borderRadius: 8,
-    backgroundColor: '#1E293B',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: 'transparent',
-  },
-  colorButtonSelected: {
-    backgroundColor: '#334155',
-    borderColor: '#667EEA',
   },
   colorButtonText: {
-    color: '#94A3B8',
     fontSize: 14,
     fontWeight: '600',
   },
-  colorButtonTextSelected: {
-    color: '#FFFFFF',
-  },
   button: {
-    backgroundColor: '#667EEA',
     padding: 18,
     borderRadius: 12,
     alignItems: 'center',
     marginTop: 16,
   },
   buttonText: {
-    color: '#FFFFFF',
     fontSize: 18,
     fontWeight: 'bold',
   },
@@ -247,7 +221,6 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 18,
-    color: '#94A3B8',
     marginTop: 16,
   },
 });

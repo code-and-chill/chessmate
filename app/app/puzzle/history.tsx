@@ -6,9 +6,13 @@ import { Card } from '@/ui/primitives/Card';
 import { VStack } from '@/ui';
 import { usePuzzle } from '@/contexts/PuzzleContext';
 import type { PuzzleAttempt } from '@/contexts/PuzzleContext';
+import { useThemeTokens } from '@/ui';
+import { useI18n } from '@/i18n/I18nContext';
 
 export default function PuzzleHistoryScreen() {
   const router = useRouter();
+  const { colors } = useThemeTokens();
+  const { t, ti } = useI18n();
   const { puzzleStats, getUserHistory, isLoading } = usePuzzle();
   
   const [history, setHistory] = useState<PuzzleAttempt[]>([]);
@@ -39,8 +43,8 @@ export default function PuzzleHistoryScreen() {
           <View style={styles.attemptHeader}>
             <Text style={styles.attemptIcon}>{item.solved ? '✓' : '✗'}</Text>
             <VStack gap={1} style={{ flex: 1 }}>
-              <Text style={styles.attemptTitle}>Puzzle #{item.puzzleId.slice(0, 8)}</Text>
-              <Text style={styles.attemptDate}>
+              <Text style={[styles.attemptTitle, { color: colors.foreground.primary }]}>{ti('puzzle.puzzle_number', { id: item.puzzleId.slice(0, 8) })}</Text>
+              <Text style={[styles.attemptDate, { color: colors.foreground.secondary }]}>
                 {new Date(item.timestamp).toLocaleDateString('en-US', {
                   month: 'short',
                   day: 'numeric',
@@ -50,8 +54,8 @@ export default function PuzzleHistoryScreen() {
               </Text>
             </VStack>
             <VStack gap={1} style={{ alignItems: 'flex-end' }}>
-              <Text style={styles.attemptRating}>{item.puzzleRating}</Text>
-              <Text style={styles.attemptTime}>{item.timeSpent}s</Text>
+              <Text style={[styles.attemptRating, { color: colors.foreground.primary }]}>{item.puzzleRating}</Text>
+              <Text style={[styles.attemptTime, { color: colors.foreground.secondary }]}>{item.timeSpent}s</Text>
             </VStack>
           </View>
           
@@ -73,14 +77,11 @@ export default function PuzzleHistoryScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background.primary }]}>
       <VStack style={styles.content} gap={6}>
         {/* Header */}
         <Animated.View entering={FadeInDown.delay(100).duration(500)}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <Text style={styles.backText}>← Back</Text>
-          </TouchableOpacity>
-          <Text style={styles.title}>Puzzle History</Text>
+          <Text style={[styles.title, { color: colors.foreground.primary }]}>{t('puzzle.puzzle_history')}</Text>
         </Animated.View>
 
         {/* Stats Summary */}
@@ -88,33 +89,33 @@ export default function PuzzleHistoryScreen() {
           <Animated.View entering={FadeInDown.delay(200).duration(500)}>
             <Card variant="gradient" size="md">
               <VStack gap={3} style={{ padding: 16 }}>
-                <Text style={styles.statsTitle}>Performance Overview</Text>
+                <Text style={[styles.statsTitle, { color: colors.foreground.primary }]}>{t('puzzle.performance_overview')}</Text>
                 <View style={styles.statsGrid}>
                   <View style={styles.statItem}>
-                    <Text style={styles.statValue}>{puzzleStats.totalSolved}</Text>
-                    <Text style={styles.statLabel}>Total Solved</Text>
+                    <Text style={[styles.statValue, { color: colors.foreground.primary }]}>{puzzleStats.totalSolved}</Text>
+                    <Text style={[styles.statLabel, { color: colors.foreground.secondary }]}>{t('puzzle.total_solved')}</Text>
                   </View>
                   <View style={styles.statItem}>
-                    <Text style={styles.statValue}>{puzzleStats.userRating}</Text>
-                    <Text style={styles.statLabel}>Current Rating</Text>
+                    <Text style={[styles.statValue, { color: colors.foreground.primary }]}>{puzzleStats.userRating}</Text>
+                    <Text style={[styles.statLabel, { color: colors.foreground.secondary }]}>{t('puzzle.current_rating')}</Text>
                   </View>
                   <View style={styles.statItem}>
-                    <Text style={styles.statValue}>{puzzleStats.currentStreak}🔥</Text>
-                    <Text style={styles.statLabel}>Current Streak</Text>
+                    <Text style={[styles.statValue, { color: colors.foreground.primary }]}>{puzzleStats.currentStreak}🔥</Text>
+                    <Text style={[styles.statLabel, { color: colors.foreground.secondary }]}>{t('puzzle.current_streak')}</Text>
                   </View>
                   <View style={styles.statItem}>
-                    <Text style={styles.statValue}>{puzzleStats.bestStreak}🏆</Text>
-                    <Text style={styles.statLabel}>Best Streak</Text>
+                    <Text style={[styles.statValue, { color: colors.foreground.primary }]}>{puzzleStats.bestStreak}🏆</Text>
+                    <Text style={[styles.statLabel, { color: colors.foreground.secondary }]}>{t('puzzle.best_streak')}</Text>
                   </View>
                 </View>
 
                 {/* Difficulty Breakdown */}
-                <View style={styles.difficultyBreakdown}>
-                  <Text style={styles.breakdownTitle}>By Difficulty</Text>
+                <View style={[styles.difficultyBreakdown, { borderTopColor: colors.background.tertiary }]}>
+                  <Text style={[styles.breakdownTitle, { color: colors.foreground.secondary }]}>{t('puzzle.by_difficulty')}</Text>
                   {Object.entries(puzzleStats.byDifficulty).map(([difficulty, count]) => (
                     <View key={difficulty} style={styles.breakdownRow}>
-                      <Text style={styles.breakdownLabel}>{difficulty}</Text>
-                      <Text style={styles.breakdownValue}>{count}</Text>
+                      <Text style={[styles.breakdownLabel, { color: colors.foreground.secondary }]}>{difficulty}</Text>
+                      <Text style={[styles.breakdownValue, { color: colors.foreground.primary }]}>{count}</Text>
                     </View>
                   ))}
                 </View>
@@ -131,17 +132,17 @@ export default function PuzzleHistoryScreen() {
                 key={filter}
                 style={[
                   styles.filterTab,
-                  selectedFilter === filter && styles.filterTabActive,
+                  { backgroundColor: selectedFilter === filter ? colors.accent.primary : colors.background.secondary, borderColor: selectedFilter === filter ? colors.accent.primary : colors.background.tertiary },
                 ]}
                 onPress={() => setSelectedFilter(filter as typeof selectedFilter)}
               >
                 <Text
                   style={[
                     styles.filterTabText,
-                    selectedFilter === filter && styles.filterTabTextActive,
+                    { color: selectedFilter === filter ? colors.accentForeground.primary : colors.foreground.secondary },
                   ]}
                 >
-                  {filter === 'all' ? 'All' : filter === 'solved' ? '✓ Solved' : '✗ Failed'}
+                  {filter === 'all' ? t('puzzle.filter_all') : filter === 'solved' ? t('puzzle.filter_solved') : t('puzzle.filter_failed')}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -155,15 +156,15 @@ export default function PuzzleHistoryScreen() {
               <Card variant="default" size="md">
                 <View style={styles.emptyState}>
                   <Text style={styles.emptyIcon}>🎯</Text>
-                  <Text style={styles.emptyTitle}>No puzzles yet</Text>
-                  <Text style={styles.emptyText}>
-                    Start solving puzzles to see your history here
+                  <Text style={[styles.emptyTitle, { color: colors.foreground.primary }]}>{t('puzzle.no_puzzles_yet')}</Text>
+                  <Text style={[styles.emptyText, { color: colors.foreground.secondary }]}>
+                    {t('puzzle.start_solving_hint')}
                   </Text>
                   <TouchableOpacity
                     style={styles.emptyButton}
                     onPress={() => router.push('/puzzle')}
                   >
-                    <Text style={styles.emptyButtonText}>Try a Puzzle</Text>
+                    <Text style={styles.emptyButtonText}>{t('puzzle.try_puzzle')}</Text>
                   </TouchableOpacity>
                 </View>
               </Card>
@@ -186,31 +187,20 @@ export default function PuzzleHistoryScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0F172A',
   },
   content: {
     flex: 1,
     paddingHorizontal: 20,
     paddingTop: 20,
   },
-  backButton: {
-    marginBottom: 12,
-  },
-  backText: {
-    fontSize: 16,
-    color: '#667EEA',
-    fontWeight: '600',
-  },
   title: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#FFFFFF',
     textAlign: 'center',
   },
   statsTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#FFFFFF',
   },
   statsGrid: {
     flexDirection: 'row',
@@ -225,23 +215,19 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#FFFFFF',
   },
   statLabel: {
     fontSize: 12,
-    color: '#94A3B8',
     marginTop: 4,
   },
   difficultyBreakdown: {
     marginTop: 12,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#334155',
   },
   breakdownTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#94A3B8',
     marginBottom: 8,
   },
   breakdownRow: {
@@ -251,13 +237,11 @@ const styles = StyleSheet.create({
   },
   breakdownLabel: {
     fontSize: 14,
-    color: '#94A3B8',
     textTransform: 'capitalize',
   },
   breakdownValue: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: '#FFFFFF',
   },
   filterTabs: {
     flexDirection: 'row',
@@ -268,22 +252,18 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 16,
     borderRadius: 12,
-    backgroundColor: '#1E293B',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: '#334155',
   },
   filterTabActive: {
-    backgroundColor: '#334155',
-    borderColor: '#667EEA',
+    // Handled inline
   },
   filterTabText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#94A3B8',
   },
   filterTabTextActive: {
-    color: '#FFFFFF',
+    // Handled inline
   },
   attemptCard: {
     padding: 16,
@@ -301,20 +281,16 @@ const styles = StyleSheet.create({
   attemptTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#FFFFFF',
   },
   attemptDate: {
     fontSize: 12,
-    color: '#94A3B8',
   },
   attemptRating: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#FFFFFF',
   },
   attemptTime: {
     fontSize: 12,
-    color: '#94A3B8',
   },
   ratingChange: {
     marginTop: 8,
@@ -322,17 +298,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
-    backgroundColor: '#334155',
   },
   ratingChangeText: {
     fontSize: 14,
     fontWeight: 'bold',
   },
   ratingUp: {
-    color: '#10B981',
+    // Handled inline with colors.success
   },
   ratingDown: {
-    color: '#EF4444',
+    // Handled inline with colors.error
   },
   emptyState: {
     padding: 40,
@@ -345,17 +320,14 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#FFFFFF',
     marginBottom: 8,
   },
   emptyText: {
     fontSize: 14,
-    color: '#94A3B8',
     textAlign: 'center',
     marginBottom: 24,
   },
   emptyButton: {
-    backgroundColor: '#667EEA',
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 12,
@@ -363,6 +335,5 @@ const styles = StyleSheet.create({
   emptyButtonText: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#FFFFFF',
   },
 });

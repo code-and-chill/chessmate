@@ -149,7 +149,7 @@ export const MoveList = React.memo(
                   >
                     <Text 
                       variant="body" 
-                      color={isWhiteSelected ? '#FFFFFF' : colors.foreground.primary} 
+                      color={isWhiteSelected ? colors.accentForeground.primary : colors.foreground.primary} 
                       weight="medium"
                       style={{ fontFamily: 'monospace', fontSize: 14 }}
                     >
@@ -174,7 +174,7 @@ export const MoveList = React.memo(
                     {group.black ? (
                       <Text 
                         variant="body" 
-                        color={isBlackSelected ? '#FFFFFF' : colors.foreground.primary} 
+                        color={isBlackSelected ? colors.accentForeground.primary : colors.foreground.primary} 
                         weight="medium"
                         style={{ fontFamily: 'monospace', fontSize: 14 }}
                       >

@@ -1,11 +1,16 @@
 import { useState } from 'react';
-import { StyleSheet, View, TextInput, TouchableOpacity, Text, SafeAreaView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
+import { StyleSheet, View, TextInput, TouchableOpacity, Text, KeyboardAvoidingView, Platform, Alert, Modal, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
+import { Stack } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
+import { useThemeTokens } from '@/ui';
+import { useI18n } from '@/i18n/I18nContext';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { VStack } from '@/ui';
 
 export default function LoginScreen() {
+  const { colors } = useThemeTokens();
+  const { t, ti } = useI18n();
   const router = useRouter();
   const { login, isLoading } = useAuth();
   
@@ -17,15 +22,15 @@ export default function LoginScreen() {
     const newErrors: { email?: string; password?: string } = {};
     
     if (!email) {
-      newErrors.email = 'Email is required';
+      newErrors.email = t('auth.email_required');
     } else if (!/\S+@\S+\.\S+/.test(email)) {
-      newErrors.email = 'Email is invalid';
+      newErrors.email = t('auth.email_invalid');
     }
     
     if (!password) {
-      newErrors.password = 'Password is required';
+      newErrors.password = t('auth.password_required');
     } else if (password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
+      newErrors.password = ti('auth.password_min_length', { min: 6 });
     }
     
     setErrors(newErrors);
@@ -39,31 +44,40 @@ export default function LoginScreen() {
       await login(email, password);
       router.replace('/(tabs)');
     } catch (error) {
-      Alert.alert('Login Failed', 'Invalid email or password');
+      Alert.alert(t('auth.login_failed'), t('auth.invalid_credentials'));
     }
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <>
+      <Stack.Screen
+        options={{
+          presentation: 'modal',
+          headerShown: true,
+          title: t('auth.sign_in'),
+          headerStyle: { backgroundColor: colors.background.secondary },
+          headerTintColor: colors.foreground.primary,
+        }}
+      />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardView}
+        style={[styles.keyboardView, { backgroundColor: colors.background.primary }]}
       >
         <VStack style={styles.content} gap={6}>
           <Animated.View entering={FadeInDown.delay(100).duration(500)}>
-            <Text style={styles.title}>Welcome Back</Text>
-            <Text style={styles.subtitle}>Sign in to continue playing</Text>
+            <Text style={[styles.title, { color: colors.foreground.primary }]}>{t('auth.welcome_back')}</Text>
+            <Text style={[styles.subtitle, { color: colors.foreground.secondary }]}>{t('auth.sign_in_subtitle')}</Text>
           </Animated.View>
 
           <Animated.View entering={FadeInDown.delay(200).duration(500)} style={styles.form}>
             <VStack gap={4}>
               {/* Email Input */}
               <View>
-                <Text style={styles.label}>Email</Text>
+                <Text style={[styles.label, { color: colors.foreground.primary }]}>{t('auth.email')}</Text>
                 <TextInput
-                  style={[styles.input, errors.email && styles.inputError]}
-                  placeholder="your@email.com"
-                  placeholderTextColor="#64748B"
+                  style={[styles.input, { backgroundColor: colors.background.secondary, borderColor: colors.background.tertiary, color: colors.foreground.primary }, errors.email && { borderColor: colors.error }]}
+                  placeholder={t('auth.email').toLowerCase()}
+                  placeholderTextColor={colors.foreground.muted}
                   value={email}
                   onChangeText={(text) => {
                     setEmail(text);
@@ -73,16 +87,16 @@ export default function LoginScreen() {
                   autoCapitalize="none"
                   autoCorrect={false}
                 />
-                {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
+                {errors.email && <Text style={[styles.errorText, { color: colors.error }]}>{errors.email}</Text>}
               </View>
 
               {/* Password Input */}
               <View>
-                <Text style={styles.label}>Password</Text>
+                <Text style={[styles.label, { color: colors.foreground.primary }]}>{t('auth.password')}</Text>
                 <TextInput
-                  style={[styles.input, errors.password && styles.inputError]}
+                  style={[styles.input, { backgroundColor: colors.background.secondary, borderColor: colors.background.tertiary, color: colors.foreground.primary }, errors.password && { borderColor: colors.error }]}
                   placeholder="••••••••"
-                  placeholderTextColor="#64748B"
+                  placeholderTextColor={colors.foreground.muted}
                   value={password}
                   onChangeText={(text) => {
                     setPassword(text);
@@ -91,42 +105,38 @@ export default function LoginScreen() {
                   secureTextEntry
                   autoCapitalize="none"
                 />
-                {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
+                {errors.password && <Text style={[styles.errorText, { color: colors.error }]}>{errors.password}</Text>}
               </View>
 
               {/* Login Button */}
               <TouchableOpacity
-                style={[styles.button, isLoading && styles.buttonDisabled]}
+                style={[styles.button, { backgroundColor: colors.accent.primary }, isLoading && styles.buttonDisabled]}
                 onPress={handleLogin}
                 disabled={isLoading}
               >
-                <Text style={styles.buttonText}>{isLoading ? 'Signing in...' : 'Sign In'}</Text>
+                <Text style={[styles.buttonText, { color: colors.accentForeground.primary }]}>{isLoading ? t('auth.signing_in') : t('auth.sign_in')}</Text>
               </TouchableOpacity>
 
               {/* Forgot Password */}
-              <TouchableOpacity onPress={() => Alert.alert('Forgot Password', 'Feature coming soon!')}>
-                <Text style={styles.linkText}>Forgot password?</Text>
+              <TouchableOpacity onPress={() => Alert.alert(t('auth.forgot_password'), t('auth.forgot_password_coming_soon'))}>
+                <Text style={[styles.linkText, { color: colors.accent.primary }]}>{t('auth.forgot_password')}</Text>
               </TouchableOpacity>
             </VStack>
           </Animated.View>
 
           <Animated.View entering={FadeInDown.delay(300).duration(500)} style={styles.footer}>
-            <Text style={styles.footerText}>Don't have an account? </Text>
+            <Text style={[styles.footerText, { color: colors.foreground.secondary }]}>{t('auth.dont_have_account')} </Text>
             <TouchableOpacity onPress={() => router.push('/register')}>
-              <Text style={styles.linkTextBold}>Sign Up</Text>
+              <Text style={[styles.linkTextBold, { color: colors.accent.primary }]}>{t('auth.sign_up')}</Text>
             </TouchableOpacity>
           </Animated.View>
         </VStack>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#0F172A',
-  },
   keyboardView: {
     flex: 1,
   },
@@ -138,13 +148,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 36,
     fontWeight: 'bold',
-    color: '#FFFFFF',
     textAlign: 'center',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: '#94A3B8',
     textAlign: 'center',
   },
   form: {
@@ -153,28 +161,19 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#FFFFFF',
     marginBottom: 8,
   },
   input: {
-    backgroundColor: '#1E293B',
-    color: '#FFFFFF',
     padding: 16,
     borderRadius: 12,
     fontSize: 16,
     borderWidth: 2,
-    borderColor: '#334155',
-  },
-  inputError: {
-    borderColor: '#EF4444',
   },
   errorText: {
-    color: '#EF4444',
     fontSize: 12,
     marginTop: 4,
   },
   button: {
-    backgroundColor: '#667EEA',
     padding: 18,
     borderRadius: 12,
     alignItems: 'center',
@@ -184,18 +183,15 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   buttonText: {
-    color: '#FFFFFF',
     fontSize: 18,
     fontWeight: 'bold',
   },
   linkText: {
-    color: '#667EEA',
     fontSize: 14,
     textAlign: 'center',
     marginTop: 8,
   },
   linkTextBold: {
-    color: '#667EEA',
     fontSize: 16,
     fontWeight: 'bold',
   },
@@ -206,7 +202,6 @@ const styles = StyleSheet.create({
     marginTop: 24,
   },
   footerText: {
-    color: '#94A3B8',
     fontSize: 14,
   },
 });

@@ -5,6 +5,8 @@
 
 import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useThemeTokens } from '@/ui';
+import { useI18n } from '@/i18n/I18nContext';
 import { useLeaderboard } from '../hooks';
 import type { LeaderboardType, LeaderboardEntry } from '../types';
 
@@ -13,69 +15,79 @@ export interface LeaderboardViewProps {
 }
 
 export function LeaderboardView({ onBack }: LeaderboardViewProps) {
+  const { colors } = useThemeTokens();
+  const { t } = useI18n();
   const [selectedType, setSelectedType] = useState<LeaderboardType>('global');
   const { entries, loading } = useLeaderboard(selectedType);
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <TouchableOpacity style={styles.backButton} onPress={onBack}>
-        <Text style={styles.backButtonText}>← Back</Text>
-      </TouchableOpacity>
-
-      <Text style={styles.title}>Leaderboards</Text>
-      <Text style={styles.subtitle}>See where you rank</Text>
+    <ScrollView style={[styles.container, { backgroundColor: colors.background.primary }]} contentContainerStyle={styles.content}>
+      <Text style={[styles.title, { color: colors.foreground.primary }]}>{t('social.leaderboards')}</Text>
+      <Text style={[styles.subtitle, { color: colors.foreground.secondary }]}>{t('social.see_where_you_rank')}</Text>
 
       {/* Leaderboard Tabs */}
       <View style={styles.categoryTabs}>
         <TouchableOpacity
-          style={[styles.categoryTab, selectedType === 'global' && styles.categoryTabActive]}
+          style={[styles.categoryTab, { backgroundColor: colors.background.tertiary }, selectedType === 'global' && { backgroundColor: colors.accent.primary }]}
           onPress={() => setSelectedType('global')}
         >
-          <Text style={[styles.categoryTabText, selectedType === 'global' && styles.categoryTabTextActive]}>
-            Global
+          <Text style={[styles.categoryTabText, { color: colors.foreground.primary }, selectedType === 'global' && { color: colors.accentForeground.primary }]}>
+            {t('social.global')}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.categoryTab, selectedType === 'friends' && styles.categoryTabActive]}
+          style={[styles.categoryTab, { backgroundColor: colors.background.tertiary }, selectedType === 'friends' && { backgroundColor: colors.accent.primary }]}
           onPress={() => setSelectedType('friends')}
         >
-          <Text style={[styles.categoryTabText, selectedType === 'friends' && styles.categoryTabTextActive]}>
-            Friends
+          <Text style={[styles.categoryTabText, { color: colors.foreground.primary }, selectedType === 'friends' && { color: colors.accentForeground.primary }]}>
+            {t('social.friends')}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.categoryTab, selectedType === 'club' && styles.categoryTabActive]}
+          style={[styles.categoryTab, { backgroundColor: colors.background.tertiary }, selectedType === 'club' && { backgroundColor: colors.accent.primary }]}
           onPress={() => setSelectedType('club')}
         >
-          <Text style={[styles.categoryTabText, selectedType === 'club' && styles.categoryTabTextActive]}>
-            Club
+          <Text style={[styles.categoryTabText, { color: colors.foreground.primary }, selectedType === 'club' && { color: colors.accentForeground.primary }]}>
+            {t('social.clubs')}
           </Text>
         </TouchableOpacity>
       </View>
 
       {loading ? (
-        <Text style={styles.loadingText}>Loading leaderboard...</Text>
+        <Text style={[styles.loadingText, { color: colors.foreground.secondary }]}>{t('social.loading_leaderboard')}</Text>
       ) : (
-        entries.map(entry => <LeaderboardEntryCard key={entry.rank} entry={entry} />)
+        entries.map(entry => <LeaderboardEntryCard key={entry.rank} entry={entry} colors={colors} />)
       )}
     </ScrollView>
   );
 }
 
-function LeaderboardEntryCard({ entry }: { entry: LeaderboardEntry }) {
+function LeaderboardEntryCard({ entry, colors }: { entry: LeaderboardEntry; colors: any }) {
   return (
-    <View style={[styles.leaderboardEntry, entry.highlight && styles.leaderboardEntryHighlight]}>
-      <Text style={styles.leaderboardRank}>#{entry.rank}</Text>
+    <View style={[
+      styles.leaderboardEntry,
+      { backgroundColor: colors.background.secondary },
+      entry.highlight && { backgroundColor: colors.accent.bg, borderWidth: 2, borderColor: colors.accent.primary }
+    ]}>
+      <Text style={[styles.leaderboardRank, { color: colors.foreground.secondary }]}>#{entry.rank}</Text>
       <Text style={styles.leaderboardAvatar}>{entry.avatar}</Text>
       <View style={styles.leaderboardDetails}>
-        <Text style={[styles.leaderboardName, entry.highlight && styles.leaderboardNameHighlight]}>
+        <Text style={[
+          styles.leaderboardName,
+          { color: colors.foreground.primary },
+          entry.highlight && { color: colors.accent.primary, fontWeight: '700' }
+        ]}>
           {entry.username}
         </Text>
-        <Text style={styles.leaderboardStats}>
+        <Text style={[styles.leaderboardStats, { color: colors.foreground.secondary }]}>
           {entry.games.toLocaleString()} games • {entry.winRate}% win rate
         </Text>
       </View>
-      <Text style={[styles.leaderboardRating, entry.highlight && styles.leaderboardRatingHighlight]}>
+      <Text style={[
+        styles.leaderboardRating,
+        { color: colors.foreground.primary },
+        entry.highlight && { color: colors.accent.primary }
+      ]}>
         {entry.rating}
       </Text>
     </View>
@@ -83,42 +95,29 @@ function LeaderboardEntryCard({ entry }: { entry: LeaderboardEntry }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f9f9f9' },
+  container: { flex: 1 },
   content: { padding: 20 },
-  backButton: { alignSelf: 'flex-start', paddingVertical: 8, paddingHorizontal: 12, marginBottom: 16 },
-  backButtonText: { fontSize: 16, color: '#FF9F0A' },
-  title: { fontSize: 28, fontWeight: 'bold', marginBottom: 8, color: '#000' },
-  subtitle: { fontSize: 16, color: '#666', marginBottom: 24 },
-  loadingText: { textAlign: 'center', marginTop: 40, fontSize: 16, color: '#666' },
+  title: { fontSize: 28, fontWeight: 'bold', marginBottom: 8 },
+  subtitle: { fontSize: 16, marginBottom: 24 },
+  loadingText: { textAlign: 'center', marginTop: 40, fontSize: 16 },
   categoryTabs: { flexDirection: 'row', gap: 8, marginBottom: 20 },
-  categoryTab: { flex: 1, paddingVertical: 10, paddingHorizontal: 16, backgroundColor: '#f2f2f7', borderRadius: 8, alignItems: 'center' },
-  categoryTabActive: { backgroundColor: '#FF9F0A' },
-  categoryTabText: { fontSize: 14, fontWeight: '600', color: '#000' },
-  categoryTabTextActive: { color: '#fff' },
+  categoryTab: { flex: 1, paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8, alignItems: 'center' },
+  categoryTabText: { fontSize: 14, fontWeight: '600' },
   leaderboardEntry: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
     borderRadius: 10,
     padding: 16,
     marginBottom: 12,
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,
     elevation: 2,
   },
-  leaderboardEntryHighlight: {
-    backgroundColor: '#FFF8E1',
-    borderWidth: 2,
-    borderColor: '#FF9F0A',
-  },
-  leaderboardRank: { fontSize: 16, fontWeight: '700', color: '#666', width: 50 },
+  leaderboardRank: { fontSize: 16, fontWeight: '700', width: 50 },
   leaderboardAvatar: { fontSize: 28, marginRight: 12 },
   leaderboardDetails: { flex: 1 },
-  leaderboardName: { fontSize: 16, fontWeight: '600', color: '#000', marginBottom: 4 },
-  leaderboardNameHighlight: { color: '#FF9F0A', fontWeight: '700' },
-  leaderboardStats: { fontSize: 13, color: '#666' },
-  leaderboardRating: { fontSize: 20, fontWeight: '700', color: '#000' },
-  leaderboardRatingHighlight: { color: '#FF9F0A' },
+  leaderboardName: { fontSize: 16, fontWeight: '600', marginBottom: 4 },
+  leaderboardStats: { fontSize: 13 },
+  leaderboardRating: { fontSize: 20, fontWeight: '700' },
 });

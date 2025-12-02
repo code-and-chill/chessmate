@@ -7,6 +7,8 @@ import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-nati
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSocialStats } from '../hooks';
 import type { SocialMode } from '../types';
+import { useThemeTokens } from '@/ui';
+import { useI18n } from '@/i18n/I18nContext';
 
 export interface SocialHubProps {
   onNavigate: (mode: SocialMode) => void;
@@ -14,47 +16,49 @@ export interface SocialHubProps {
 }
 
 export function SocialHub({ onNavigate, userId }: SocialHubProps) {
+  const { colors } = useThemeTokens();
+  const { t, ti } = useI18n();
   const { stats, loading } = useSocialStats(userId);
 
   if (loading || !stats) {
     return (
-      <View style={styles.container}>
-        <Text style={styles.loadingText}>Loading...</Text>
+      <View style={[styles.container, { backgroundColor: colors.background.primary }]}>
+        <Text style={[styles.loadingText, { color: colors.foreground.secondary }]}>{t('common.loading')}</Text>
       </View>
     );
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>Social</Text>
-      <Text style={styles.subtitle}>Connect with the chess community</Text>
+    <ScrollView style={[styles.container, { backgroundColor: colors.background.primary }]} contentContainerStyle={styles.content}>
+      <Text style={[styles.title, { color: colors.foreground.primary }]}>{t('social.social')}</Text>
+      <Text style={[styles.subtitle, { color: colors.foreground.secondary }]}>{t('social.connect_with_community')}</Text>
 
       {/* Stats Row */}
       <View style={styles.statsRow}>
-        <Animated.View entering={FadeInDown.delay(0)} style={styles.statCard}>
-          <Text style={styles.statValue}>{stats.onlineFriends}</Text>
-          <Text style={styles.statLabel}>Online Friends</Text>
+        <Animated.View entering={FadeInDown.delay(0)} style={[styles.statCard, { backgroundColor: colors.background.secondary }]}>
+          <Text style={[styles.statValue, { color: colors.accent.primary }]}>{stats.onlineFriends}</Text>
+          <Text style={[styles.statLabel, { color: colors.foreground.secondary }]}>{t('social.online_friends')}</Text>
         </Animated.View>
-        <Animated.View entering={FadeInDown.delay(100)} style={styles.statCard}>
-          <Text style={styles.statValue}>{stats.clubs}</Text>
-          <Text style={styles.statLabel}>Clubs</Text>
+        <Animated.View entering={FadeInDown.delay(100)} style={[styles.statCard, { backgroundColor: colors.background.secondary }]}>
+          <Text style={[styles.statValue, { color: colors.accent.primary }]}>{stats.clubs}</Text>
+          <Text style={[styles.statLabel, { color: colors.foreground.secondary }]}>{t('social.clubs')}</Text>
         </Animated.View>
-        <Animated.View entering={FadeInDown.delay(200)} style={styles.statCard}>
-          <Text style={styles.statValue}>{stats.unreadMessages}</Text>
-          <Text style={styles.statLabel}>Unread</Text>
+        <Animated.View entering={FadeInDown.delay(200)} style={[styles.statCard, { backgroundColor: colors.background.secondary }]}>
+          <Text style={[styles.statValue, { color: colors.accent.primary }]}>{stats.unreadMessages}</Text>
+          <Text style={[styles.statLabel, { color: colors.foreground.secondary }]}>{t('social.unread')}</Text>
         </Animated.View>
       </View>
 
       {/* Main Cards */}
       <Animated.View entering={FadeInDown.delay(300)}>
-        <TouchableOpacity style={styles.card} onPress={() => onNavigate('friends')}>
+        <TouchableOpacity style={[styles.card, { backgroundColor: colors.background.secondary }]} onPress={() => onNavigate('friends')}>
           <View style={styles.cardHeader}>
             <Text style={styles.cardIcon}>👥</Text>
             <View style={styles.cardTextContainer}>
-              <Text style={styles.cardTitle}>Friends</Text>
-              <Text style={styles.cardDescription}>See who's online • Challenge friends • View profiles</Text>
-              <Text style={styles.cardProgress}>
-                {stats.totalFriends} friends • {stats.onlineFriends} online
+              <Text style={[styles.cardTitle, { color: colors.foreground.primary }]}>{t('social.friends')}</Text>
+              <Text style={[styles.cardDescription, { color: colors.foreground.secondary }]}>{t('social.friends_description')}</Text>
+              <Text style={[styles.cardProgress, { color: colors.accent.primary }]}>
+                {ti('social.friend_count', { count: stats.totalFriends })} • {ti('social.online_count', { count: stats.onlineFriends })}
               </Text>
             </View>
           </View>
@@ -62,39 +66,39 @@ export function SocialHub({ onNavigate, userId }: SocialHubProps) {
       </Animated.View>
 
       <Animated.View entering={FadeInDown.delay(400)}>
-        <TouchableOpacity style={styles.card} onPress={() => onNavigate('clubs')}>
+        <TouchableOpacity style={[styles.card, { backgroundColor: colors.background.secondary }]} onPress={() => onNavigate('clubs')}>
           <View style={styles.cardHeader}>
             <Text style={styles.cardIcon}>🏆</Text>
             <View style={styles.cardTextContainer}>
-              <Text style={styles.cardTitle}>Clubs</Text>
-              <Text style={styles.cardDescription}>Join clubs • Compete in team matches • Club chat</Text>
-              <Text style={styles.cardProgress}>Member of {stats.clubs} clubs</Text>
+              <Text style={[styles.cardTitle, { color: colors.foreground.primary }]}>{t('social.clubs')}</Text>
+              <Text style={[styles.cardDescription, { color: colors.foreground.secondary }]}>{t('social.clubs_description')}</Text>
+              <Text style={[styles.cardProgress, { color: colors.accent.primary }]}>{ti('social.member_of_clubs', { count: stats.clubs })}</Text>
             </View>
           </View>
         </TouchableOpacity>
       </Animated.View>
 
       <Animated.View entering={FadeInDown.delay(500)}>
-        <TouchableOpacity style={styles.card} onPress={() => onNavigate('messages')}>
+        <TouchableOpacity style={[styles.card, { backgroundColor: colors.background.secondary }]} onPress={() => onNavigate('messages')}>
           <View style={styles.cardHeader}>
             <Text style={styles.cardIcon}>💬</Text>
             <View style={styles.cardTextContainer}>
-              <Text style={styles.cardTitle}>Messages</Text>
-              <Text style={styles.cardDescription}>Direct messages • Club chat • Group conversations</Text>
-              <Text style={styles.cardProgress}>{stats.unreadMessages} unread messages</Text>
+              <Text style={[styles.cardTitle, { color: colors.foreground.primary }]}>{t('social.messages')}</Text>
+              <Text style={[styles.cardDescription, { color: colors.foreground.secondary }]}>{t('social.messages_description')}</Text>
+              <Text style={[styles.cardProgress, { color: colors.accent.primary }]}>{ti('social.unread_messages', { count: stats.unreadMessages })}</Text>
             </View>
           </View>
         </TouchableOpacity>
       </Animated.View>
 
       <Animated.View entering={FadeInDown.delay(600)}>
-        <TouchableOpacity style={styles.card} onPress={() => onNavigate('leaderboard')}>
+        <TouchableOpacity style={[styles.card, { backgroundColor: colors.background.secondary }]} onPress={() => onNavigate('leaderboard')}>
           <View style={styles.cardHeader}>
             <Text style={styles.cardIcon}>📊</Text>
             <View style={styles.cardTextContainer}>
-              <Text style={styles.cardTitle}>Leaderboards</Text>
-              <Text style={styles.cardDescription}>Global rankings • Friend rankings • Club rankings</Text>
-              <Text style={styles.cardProgress}>Ranked #{stats.globalRank || 'N/A'} globally</Text>
+              <Text style={[styles.cardTitle, { color: colors.foreground.primary }]}>{t('social.leaderboards')}</Text>
+              <Text style={[styles.cardDescription, { color: colors.foreground.secondary }]}>{t('social.leaderboards_description')}</Text>
+              <Text style={[styles.cardProgress, { color: colors.accent.primary }]}>{ti('social.ranked_globally', { rank: stats.globalRank || 'N/A' })}</Text>
             </View>
           </View>
         </TouchableOpacity>
@@ -106,7 +110,6 @@ export function SocialHub({ onNavigate, userId }: SocialHubProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9f9f9',
   },
   content: {
     padding: 20,
@@ -115,17 +118,14 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 100,
     fontSize: 16,
-    color: '#666',
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
     marginBottom: 8,
-    color: '#000',
   },
   subtitle: {
     fontSize: 16,
-    color: '#666',
     marginBottom: 24,
   },
   statsRow: {
@@ -135,11 +135,9 @@ const styles = StyleSheet.create({
   },
   statCard: {
     flex: 1,
-    backgroundColor: '#fff',
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -149,18 +147,14 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 4,
-    color: '#FF9F0A',
   },
   statLabel: {
     fontSize: 12,
-    color: '#666',
   },
   card: {
-    backgroundColor: '#fff',
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -180,17 +174,14 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#000',
     marginBottom: 4,
   },
   cardDescription: {
     fontSize: 14,
-    color: '#666',
     marginBottom: 4,
   },
   cardProgress: {
     fontSize: 13,
-    color: '#FF9F0A',
     fontWeight: '500',
   },
 });

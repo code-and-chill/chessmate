@@ -5,9 +5,11 @@ import { useAuth } from '@/contexts/AuthContext';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { VStack } from '@/ui';
 import { Card } from '@/ui/primitives/Card';
+import { useThemeTokens } from '@/ui';
 
 export default function SettingsScreen() {
   const router = useRouter();
+  const { colors } = useThemeTokens();
   const { user, logout } = useAuth();
   
   // Settings state
@@ -37,13 +39,13 @@ export default function SettingsScreen() {
   };
 
   const SettingRow = ({ label, value, onValueChange }: any) => (
-    <View style={styles.settingRow}>
-      <Text style={styles.settingLabel}>{label}</Text>
+    <View style={[styles.settingRow, { borderBottomColor: colors.background.tertiary }]}>
+      <Text style={[styles.settingLabel, { color: colors.foreground.primary }]}>{label}</Text>
       <Switch
         value={value}
         onValueChange={onValueChange}
-        trackColor={{ false: '#334155', true: '#667EEA' }}
-        thumbColor={value ? '#FFFFFF' : '#94A3B8'}
+        trackColor={{ false: colors.background.tertiary, true: colors.accent.primary }}
+        thumbColor={value ? colors.accentForeground.primary : colors.foreground.secondary}
       />
     </View>
   );
@@ -52,14 +54,16 @@ export default function SettingsScreen() {
     <TouchableOpacity
       style={[
         styles.actionButton,
-        variant === 'danger' && styles.actionButtonDanger,
+        { backgroundColor: colors.background.secondary, borderColor: colors.background.tertiary },
+        variant === 'danger' && { backgroundColor: colors.error + '20', borderColor: colors.error },
       ]}
       onPress={onPress}
     >
       <Text
         style={[
           styles.actionButtonText,
-          variant === 'danger' && styles.actionButtonTextDanger,
+          { color: colors.foreground.primary },
+          variant === 'danger' && { color: colors.error },
         ]}
       >
         {label}
@@ -68,23 +72,20 @@ export default function SettingsScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background.primary }]}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <VStack style={styles.content} gap={6}>
           {/* Header */}
           <Animated.View entering={FadeInDown.delay(100).duration(500)}>
-            <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-              <Text style={styles.backButtonText}>← Back</Text>
-            </TouchableOpacity>
-            <Text style={styles.title}>Settings</Text>
-            <Text style={styles.subtitle}>@{user?.username || 'Guest'}</Text>
+            <Text style={[styles.title, { color: colors.foreground.primary }]}>Settings</Text>
+            <Text style={[styles.subtitle, { color: colors.accent.primary }]}>@{user?.username || 'Guest'}</Text>
           </Animated.View>
 
           {/* Profile Section */}
           <Animated.View entering={FadeInDown.delay(200).duration(500)}>
             <Card variant="default" size="md">
               <VStack gap={3} style={{ padding: 16 }}>
-                <Text style={styles.sectionTitle}>Profile</Text>
+                <Text style={[styles.sectionTitle, { color: colors.foreground.primary }]}>Profile</Text>
                 <ActionButton label="Edit Profile" onPress={() => Alert.alert('Coming Soon', 'Profile editing will be available soon')} />
                 <ActionButton label="View Statistics" onPress={() => Alert.alert('Coming Soon', 'Statistics will be available soon')} />
                 <ActionButton label="Rating History" onPress={() => Alert.alert('Coming Soon', 'Rating history will be available soon')} />
@@ -96,7 +97,7 @@ export default function SettingsScreen() {
           <Animated.View entering={FadeInDown.delay(300).duration(500)}>
             <Card variant="default" size="md">
               <VStack gap={3} style={{ padding: 16 }}>
-                <Text style={styles.sectionTitle}>Game Settings</Text>
+                <Text style={[styles.sectionTitle, { color: colors.foreground.primary }]}>Game Preferences</Text>
                 <SettingRow
                   label="Show Legal Moves"
                   value={showLegalMoves}
@@ -120,7 +121,7 @@ export default function SettingsScreen() {
           <Animated.View entering={FadeInDown.delay(400).duration(500)}>
             <Card variant="default" size="md">
               <VStack gap={3} style={{ padding: 16 }}>
-                <Text style={styles.sectionTitle}>Appearance</Text>
+                <Text style={[styles.sectionTitle, { color: colors.foreground.primary }]}>Appearance</Text>
                 <ActionButton label="Board Theme" onPress={() => Alert.alert('Coming Soon', 'Board themes will be available soon')} />
                 <ActionButton label="Piece Style" onPress={() => Alert.alert('Coming Soon', 'Piece styles will be available soon')} />
                 <ActionButton label="Theme Mode" onPress={() => Alert.alert('Coming Soon', 'Theme switching will be available soon')} />
@@ -156,7 +157,7 @@ export default function SettingsScreen() {
           <Animated.View entering={FadeInDown.delay(600).duration(500)}>
             <Card variant="default" size="md">
               <VStack gap={3} style={{ padding: 16 }}>
-                <Text style={styles.sectionTitle}>Account</Text>
+                <Text style={[styles.sectionTitle, { color: colors.foreground.primary }]}>Account</Text>
                 <ActionButton label="Privacy Settings" onPress={() => Alert.alert('Coming Soon', 'Privacy settings will be available soon')} />
                 <ActionButton label="Blocked Users" onPress={() => Alert.alert('Coming Soon', 'Block list will be available soon')} />
                 <ActionButton label="Help & Support" onPress={() => Alert.alert('Coming Soon', 'Help center will be available soon')} />
@@ -171,8 +172,8 @@ export default function SettingsScreen() {
 
           {/* App Info */}
           <Animated.View entering={FadeInDown.delay(700).duration(500)}>
-            <Text style={styles.appInfo}>ChessMate v1.0.0</Text>
-            <Text style={styles.appInfo}>© 2025 ChessMate. All rights reserved.</Text>
+            <Text style={[styles.appInfo, { color: colors.foreground.muted }]}>ChessMate v1.0.0</Text>
+            <Text style={[styles.appInfo, { color: colors.foreground.muted }]}>© 2025 ChessMate. All rights reserved.</Text>
           </Animated.View>
         </VStack>
       </ScrollView>
@@ -183,7 +184,6 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0F172A',
   },
   scrollContent: {
     paddingBottom: 40,
@@ -198,25 +198,21 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   backButtonText: {
-    color: '#94A3B8',
     fontSize: 16,
   },
   title: {
     fontSize: 36,
     fontWeight: 'bold',
-    color: '#FFFFFF',
     textAlign: 'center',
     marginBottom: 4,
   },
   subtitle: {
     fontSize: 16,
-    color: '#667EEA',
     textAlign: 'center',
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#FFFFFF',
     marginBottom: 8,
   },
   settingRow: {
@@ -225,35 +221,28 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#334155',
   },
   settingLabel: {
     fontSize: 16,
-    color: '#FFFFFF',
   },
   actionButton: {
     padding: 14,
     borderRadius: 8,
-    backgroundColor: '#1E293B',
     borderWidth: 1,
-    borderColor: '#334155',
   },
   actionButtonDanger: {
-    backgroundColor: '#7F1D1D',
-    borderColor: '#EF4444',
+    // Styles applied inline with theme colors
   },
   actionButtonText: {
     fontSize: 16,
-    color: '#FFFFFF',
     textAlign: 'center',
     fontWeight: '600',
   },
   actionButtonTextDanger: {
-    color: '#FCA5A5',
+    // Styles applied inline with theme colors
   },
   appInfo: {
     fontSize: 12,
-    color: '#64748B',
     textAlign: 'center',
     marginTop: 4,
   },

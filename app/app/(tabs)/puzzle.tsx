@@ -1,5 +1,5 @@
 import { Redirect } from 'expo-router';
 
-export default function PuzzleRedirect() {
+export default function PuzzleTabRedirect() {
   return <Redirect href="/puzzle" />;
 }

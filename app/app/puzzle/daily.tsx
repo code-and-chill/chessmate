@@ -5,9 +5,13 @@ import Animated, { FadeIn, SlideInDown } from 'react-native-reanimated';
 import { Card } from '@/ui/primitives/Card';
 import { VStack } from '@/ui';
 import { usePuzzle } from '@/contexts/PuzzleContext';
+import { useThemeTokens } from '@/ui';
+import { useI18n } from '@/i18n/I18nContext';
 
 export default function DailyPuzzleScreen() {
   const router = useRouter();
+  const { colors } = useThemeTokens();
+  const { t, ti } = useI18n();
   const { dailyPuzzle, getDailyPuzzle, submitAttempt, isLoading } = usePuzzle();
   
   const [selectedMove, setSelectedMove] = useState<string | null>(null);
@@ -36,15 +40,15 @@ export default function DailyPuzzleScreen() {
     if (correct) {
       setTimeout(() => {
         Alert.alert(
-          '🎉 Correct!',
-          `You solved the daily puzzle in ${attempts + 1} attempt(s)!`,
+          t('puzzle.correct_title'),
+          ti('puzzle.solved_attempts', { attempts: attempts + 1 }),
           [
             {
-              text: 'View Stats',
+              text: t('puzzle.view_stats'),
               onPress: () => router.push('/puzzle/history'),
             },
             {
-              text: 'Continue',
+              text: t('common.continue'),
               onPress: () => router.back(),
               style: 'cancel',
             },
@@ -62,24 +66,21 @@ export default function DailyPuzzleScreen() {
 
   if (isLoading || !dailyPuzzle) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.background.primary }]}>
         <View style={styles.loader}>
-          <Text style={styles.loaderText}>Loading daily puzzle...</Text>
+          <Text style={[styles.loaderText, { color: colors.foreground.secondary }]}>{t('puzzle.loading_daily_puzzle')}</Text>
         </View>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background.primary }]}>
       <VStack style={styles.content} gap={6}>
         {/* Header */}
         <Animated.View entering={FadeIn.duration(500)}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <Text style={styles.backText}>← Back</Text>
-          </TouchableOpacity>
-          <Text style={styles.title}>⭐ Daily Puzzle</Text>
-          <Text style={styles.date}>{dailyPuzzle.date}</Text>
+          <Text style={[styles.title, { color: colors.foreground.primary }]}>⭐ {t('puzzle.daily_puzzle')}</Text>
+          <Text style={[styles.date, { color: colors.foreground.secondary }]}>{dailyPuzzle.date}</Text>
         </Animated.View>
 
         {/* Puzzle Info */}
@@ -87,22 +88,22 @@ export default function DailyPuzzleScreen() {
           <Card variant="gradient" size="md">
             <VStack gap={2} style={{ padding: 16 }}>
               <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Rating:</Text>
-                <Text style={styles.infoValue}>{dailyPuzzle.rating}</Text>
+                <Text style={[styles.infoLabel, { color: colors.foreground.secondary }]}>{t('puzzle.rating')}:</Text>
+                <Text style={[styles.infoValue, { color: colors.foreground.primary }]}>{dailyPuzzle.rating}</Text>
               </View>
               <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Themes:</Text>
+                <Text style={[styles.infoLabel, { color: colors.foreground.secondary }]}>{t('puzzle.themes')}:</Text>
                 <View style={styles.themesContainer}>
                   {dailyPuzzle.themes.map((theme) => (
-                    <View key={theme} style={styles.themeTag}>
-                      <Text style={styles.themeText}>{theme}</Text>
+                    <View key={theme} style={[styles.themeTag, { backgroundColor: colors.background.secondary }]}>
+                      <Text style={[styles.themeText, { color: colors.foreground.primary }]}>{theme}</Text>
                     </View>
                   ))}
                 </View>
               </View>
               <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Attempts:</Text>
-                <Text style={styles.infoValue}>{attempts}</Text>
+                <Text style={[styles.infoLabel, { color: colors.foreground.secondary }]}>{t('puzzle.attempts')}:</Text>
+                <Text style={[styles.infoValue, { color: colors.foreground.primary }]}>{attempts}</Text>
               </View>
             </VStack>
           </Card>
@@ -112,14 +113,14 @@ export default function DailyPuzzleScreen() {
         <Animated.View entering={SlideInDown.delay(300).duration(500)}>
           <Card variant="default" size="lg">
             <View style={styles.boardPlaceholder}>
-              <Text style={styles.boardText}>Chess Board</Text>
-              <Text style={styles.fenText}>FEN: {dailyPuzzle.fen}</Text>
-              <Text style={styles.instructionText}>
+              <Text style={[styles.boardText, { color: colors.foreground.primary }]}>{t('puzzle.chess_board')}</Text>
+              <Text style={[styles.fenText, { color: colors.foreground.muted }]}>FEN: {dailyPuzzle.fen}</Text>
+              <Text style={[styles.instructionText, { color: isCorrect === null ? colors.foreground.secondary : isCorrect ? colors.success : colors.error }]}>
                 {isCorrect === null
-                  ? `${dailyPuzzle.ply % 2 === 0 ? 'Black' : 'White'} to move`
+                  ? ti('puzzle.to_move', { color: dailyPuzzle.ply % 2 === 0 ? t('game.black') : t('game.white') })
                   : isCorrect
-                  ? '✓ Correct move!'
-                  : '✗ Try again!'}
+                  ? t('puzzle.correct_move')
+                  : t('puzzle.try_again')}
               </Text>
             </View>
           </Card>
@@ -128,7 +129,7 @@ export default function DailyPuzzleScreen() {
         {/* Move Options */}
         <Animated.View entering={SlideInDown.delay(400).duration(500)}>
           <VStack gap={2}>
-            <Text style={styles.movesLabel}>Select the best move:</Text>
+            <Text style={[styles.movesLabel, { color: colors.foreground.primary }]}>{t('puzzle.select_best_move')}</Text>
             <View style={styles.movesGrid}>
               {/* Generate some example moves (in real app, these would come from legal moves) */}
               {['Nf7+', 'Qxh7+', 'Rxd8', 'Be5'].map((move, idx) => (
@@ -136,9 +137,14 @@ export default function DailyPuzzleScreen() {
                   key={move}
                   style={[
                     styles.moveChip,
-                    selectedMove === move && styles.moveChipSelected,
-                    isCorrect === true && selectedMove === move && styles.moveChipCorrect,
-                    isCorrect === false && selectedMove === move && styles.moveChipWrong,
+                    { 
+                      backgroundColor: selectedMove === move 
+                        ? (isCorrect === true ? colors.success : isCorrect === false ? colors.error : colors.accent.primary)
+                        : colors.background.secondary,
+                      borderColor: selectedMove === move 
+                        ? (isCorrect === true ? colors.success : isCorrect === false ? colors.error : colors.accent.primary)
+                        : colors.background.tertiary
+                    },
                   ]}
                   onPress={() => handleMoveSelect(move)}
                   disabled={isCorrect !== null}
@@ -146,7 +152,7 @@ export default function DailyPuzzleScreen() {
                   <Text
                     style={[
                       styles.moveText,
-                      selectedMove === move && styles.moveTextSelected,
+                      { color: selectedMove === move ? colors.accentForeground.primary : colors.foreground.secondary },
                     ]}
                   >
                     {move}
@@ -160,8 +166,8 @@ export default function DailyPuzzleScreen() {
         {/* Action Buttons */}
         {isCorrect === false && (
           <Animated.View entering={FadeIn.duration(300)}>
-            <TouchableOpacity style={styles.resetButton} onPress={resetPuzzle}>
-              <Text style={styles.resetButtonText}>🔄 Try Again</Text>
+            <TouchableOpacity style={[styles.resetButton, { backgroundColor: colors.accent.primary }]} onPress={resetPuzzle}>
+              <Text style={[styles.resetButtonText, { color: colors.accentForeground.primary }]}>🔄 Try Again</Text>
             </TouchableOpacity>
           </Animated.View>
         )}
@@ -170,10 +176,10 @@ export default function DailyPuzzleScreen() {
           <Animated.View entering={FadeIn.duration(300)}>
             <VStack gap={2}>
               <TouchableOpacity
-                style={styles.successButton}
+                style={[styles.successButton, { backgroundColor: colors.success }]}
                 onPress={() => router.push('/puzzle/history')}
               >
-                <Text style={styles.successButtonText}>📊 View Stats</Text>
+                <Text style={[styles.successButtonText, { color: colors.accentForeground.primary }]}>📊 View Stats</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.continueButton}
@@ -192,29 +198,18 @@ export default function DailyPuzzleScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0F172A',
   },
   content: {
     paddingHorizontal: 20,
     paddingTop: 20,
   },
-  backButton: {
-    marginBottom: 12,
-  },
-  backText: {
-    fontSize: 16,
-    color: '#667EEA',
-    fontWeight: '600',
-  },
   title: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#FFFFFF',
     textAlign: 'center',
   },
   date: {
     fontSize: 14,
-    color: '#94A3B8',
     textAlign: 'center',
     marginTop: 4,
   },
@@ -225,31 +220,26 @@ const styles = StyleSheet.create({
   },
   infoLabel: {
     fontSize: 14,
-    color: '#94A3B8',
   },
   infoValue: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#FFFFFF',
   },
   themesContainer: {
     flexDirection: 'row',
     gap: 6,
   },
   themeTag: {
-    backgroundColor: '#334155',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
   },
   themeText: {
     fontSize: 12,
-    color: '#FFFFFF',
     textTransform: 'capitalize',
   },
   boardPlaceholder: {
     height: 320,
-    backgroundColor: '#1E293B',
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
@@ -258,24 +248,20 @@ const styles = StyleSheet.create({
   boardText: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#94A3B8',
     marginBottom: 12,
   },
   fenText: {
     fontSize: 10,
-    color: '#64748B',
     fontFamily: 'monospace',
     marginBottom: 16,
   },
   instructionText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#FFFFFF',
   },
   movesLabel: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#FFFFFF',
   },
   movesGrid: {
     flexDirection: 'row',
@@ -285,35 +271,28 @@ const styles = StyleSheet.create({
   moveChip: {
     flex: 1,
     minWidth: '45%',
-    backgroundColor: '#1E293B',
     padding: 16,
     borderRadius: 12,
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: '#334155',
   },
   moveChipSelected: {
-    borderColor: '#667EEA',
-    backgroundColor: '#334155',
+    // Handled inline
   },
   moveChipCorrect: {
-    borderColor: '#10B981',
-    backgroundColor: '#065F46',
+    // Handled inline
   },
   moveChipWrong: {
-    borderColor: '#EF4444',
-    backgroundColor: '#7F1D1D',
+    // Handled inline
   },
   moveText: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#94A3B8',
   },
   moveTextSelected: {
-    color: '#FFFFFF',
+    // Handled inline
   },
   resetButton: {
-    backgroundColor: '#F59E0B',
     padding: 16,
     borderRadius: 12,
     alignItems: 'center',
@@ -321,10 +300,8 @@ const styles = StyleSheet.create({
   resetButtonText: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#FFFFFF',
   },
   successButton: {
-    backgroundColor: '#10B981',
     padding: 16,
     borderRadius: 12,
     alignItems: 'center',
@@ -332,20 +309,16 @@ const styles = StyleSheet.create({
   successButtonText: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#FFFFFF',
   },
   continueButton: {
-    backgroundColor: 'transparent',
     padding: 16,
     borderRadius: 12,
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: '#667EEA',
   },
   continueButtonText: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#667EEA',
   },
   loader: {
     flex: 1,
@@ -354,6 +327,5 @@ const styles = StyleSheet.create({
   },
   loaderText: {
     fontSize: 16,
-    color: '#94A3B8',
   },
 });

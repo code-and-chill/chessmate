@@ -7,6 +7,8 @@ import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useFriends } from '../hooks';
 import type { Friend } from '../types';
+import { useThemeTokens } from '@/ui';
+import { useI18n } from '@/i18n/I18nContext';
 
 export interface FriendsViewProps {
   onBack: () => void;
@@ -14,6 +16,8 @@ export interface FriendsViewProps {
 }
 
 export function FriendsView({ onBack, userId }: FriendsViewProps) {
+  const { colors } = useThemeTokens();
+  const { t, ti } = useI18n();
   const { friends, loading, challengeFriend } = useFriends(userId);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -24,39 +28,37 @@ export function FriendsView({ onBack, userId }: FriendsViewProps) {
   const offlineFriends = filteredFriends.filter(f => !f.online);
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <TouchableOpacity style={styles.backButton} onPress={onBack}>
-        <Text style={styles.backButtonText}>← Back</Text>
-      </TouchableOpacity>
+    <ScrollView style={[styles.container, { backgroundColor: colors.background.primary }]} contentContainerStyle={styles.content}>
 
-      <Text style={styles.title}>Friends</Text>
-      <Text style={styles.subtitle}>
-        {friends.length} friends • {onlineFriends.length} online
+      <Text style={[styles.title, { color: colors.foreground.primary }]}>{t('social.friends')}</Text>
+      <Text style={[styles.subtitle, { color: colors.foreground.secondary }]}>
+        {ti('social.friend_count', { count: friends.length })} • {ti('social.online_count', { count: onlineFriends.length })}
       </Text>
 
       {/* Search */}
       <TextInput
-        style={styles.searchInput}
-        placeholder="Search friends..."
+        style={[styles.searchInput, { backgroundColor: colors.background.secondary, borderColor: colors.background.tertiary, color: colors.foreground.primary }]}
+        placeholder={t('social.search_friends')}
+        placeholderTextColor={colors.foreground.muted}
         value={searchQuery}
         onChangeText={setSearchQuery}
       />
 
       {/* Add Friend Button */}
-      <TouchableOpacity style={styles.button}>
-        <Text style={styles.buttonText}>+ Add Friend</Text>
+      <TouchableOpacity style={[styles.button, { backgroundColor: colors.accent.primary }]}>
+        <Text style={[styles.buttonText, { color: colors.accentForeground.primary }]}>+ {t('social.add_friend')}</Text>
       </TouchableOpacity>
 
       {loading ? (
-        <Text style={styles.loadingText}>Loading friends...</Text>
+        <Text style={[styles.loadingText, { color: colors.foreground.secondary }]}>{t('social.loading_friends')}</Text>
       ) : (
         <>
           {/* Online Friends */}
           {onlineFriends.length > 0 && (
             <View style={styles.categorySection}>
-              <Text style={styles.sectionTitle}>Online Now ({onlineFriends.length})</Text>
+              <Text style={[styles.sectionTitle, { color: colors.foreground.primary }]}>{ti('social.online_now', { count: onlineFriends.length })}</Text>
               {onlineFriends.map(friend => (
-                <FriendCard key={friend.id} friend={friend} onChallenge={challengeFriend} />
+                <FriendCard key={friend.id} friend={friend} onChallenge={challengeFriend} colors={colors} />
               ))}
             </View>
           )}
@@ -64,9 +66,9 @@ export function FriendsView({ onBack, userId }: FriendsViewProps) {
           {/* Offline Friends */}
           {offlineFriends.length > 0 && (
             <View style={styles.categorySection}>
-              <Text style={styles.sectionTitle}>Offline</Text>
+              <Text style={[styles.sectionTitle, { color: colors.foreground.primary }]}>{t('social.offline')}</Text>
               {offlineFriends.map(friend => (
-                <FriendCard key={friend.id} friend={friend} onChallenge={challengeFriend} />
+                <FriendCard key={friend.id} friend={friend} onChallenge={challengeFriend} colors={colors} />
               ))}
             </View>
           )}
@@ -79,26 +81,27 @@ export function FriendsView({ onBack, userId }: FriendsViewProps) {
 interface FriendCardProps {
   friend: Friend;
   onChallenge: (friendId: string) => void;
+  colors: any;
 }
 
-function FriendCard({ friend, onChallenge }: FriendCardProps) {
+function FriendCard({ friend, onChallenge, colors }: FriendCardProps) {
   return (
-    <View style={styles.friendCard}>
+    <View style={[styles.friendCard, { backgroundColor: colors.background.secondary }]}>
       <View style={styles.friendInfo}>
         <Text style={styles.friendAvatar}>{friend.avatar}</Text>
         <View style={styles.friendDetails}>
           <View style={styles.friendNameRow}>
-            <Text style={styles.friendName}>{friend.username}</Text>
-            {friend.online && <View style={styles.onlineIndicator} />}
+            <Text style={[styles.friendName, { color: colors.foreground.primary }]}>{friend.username}</Text>
+            {friend.online && <View style={[styles.onlineIndicator, { backgroundColor: colors.success }]} />}
           </View>
-          <Text style={styles.friendRating}>
-            {friend.rating} • {friend.online ? (friend.playing ? 'Playing' : 'Online') : friend.lastSeen}
+          <Text style={[styles.friendRating, { color: colors.foreground.secondary }]}>
+            {friend.rating} • {friend.online ? (friend.playing ? t('social.playing') : t('social.online')) : friend.lastSeen}
           </Text>
         </View>
       </View>
       {friend.online && !friend.playing && (
-        <TouchableOpacity style={styles.challengeButton} onPress={() => onChallenge(friend.id)}>
-          <Text style={styles.challengeButtonText}>Challenge</Text>
+        <TouchableOpacity style={[styles.challengeButton, { backgroundColor: colors.accent.primary }]} onPress={() => onChallenge(friend.id)}>
+          <Text style={[styles.challengeButtonText, { color: colors.accentForeground.primary }]}>{t('social.challenge')}</Text>
         </TouchableOpacity>
       )}
     </View>
@@ -108,50 +111,33 @@ function FriendCard({ friend, onChallenge }: FriendCardProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9f9f9',
   },
   content: {
     padding: 20,
-  },
-  backButton: {
-    alignSelf: 'flex-start',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    marginBottom: 16,
-  },
-  backButtonText: {
-    fontSize: 16,
-    color: '#FF9F0A',
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
     marginBottom: 8,
-    color: '#000',
   },
   subtitle: {
     fontSize: 16,
-    color: '#666',
     marginBottom: 24,
   },
   searchInput: {
-    backgroundColor: '#fff',
     borderRadius: 10,
     padding: 12,
     marginBottom: 16,
     fontSize: 16,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
   },
   button: {
-    backgroundColor: '#FF9F0A',
     borderRadius: 10,
     padding: 16,
     marginBottom: 20,
     alignItems: 'center',
   },
   buttonText: {
-    color: '#fff',
     fontSize: 16,
     fontWeight: '600',
   },
@@ -159,7 +145,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 40,
     fontSize: 16,
-    color: '#666',
   },
   categorySection: {
     marginTop: 8,
@@ -167,18 +152,15 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#000',
     marginBottom: 16,
   },
   friendCard: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#fff',
     borderRadius: 10,
     padding: 16,
     marginBottom: 12,
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,
@@ -204,27 +186,22 @@ const styles = StyleSheet.create({
   friendName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#000',
     marginRight: 8,
   },
   onlineIndicator: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#34C759',
   },
   friendRating: {
     fontSize: 13,
-    color: '#666',
   },
   challengeButton: {
-    backgroundColor: '#FF9F0A',
     borderRadius: 8,
     paddingVertical: 8,
     paddingHorizontal: 16,
   },
   challengeButtonText: {
-    color: '#fff',
     fontSize: 14,
     fontWeight: '600',
   },

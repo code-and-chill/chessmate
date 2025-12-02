@@ -88,7 +88,7 @@ export const GameActions = React.forwardRef<unknown, GameActionsProps>(
               </Button>
               <Button
                 variant="solid"
-                color="#DC2626"
+                color={colors.error}
                 size="sm"
                 onPress={onResign}
                 accessibilityLabel="Resign from game"

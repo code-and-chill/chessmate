@@ -77,7 +77,7 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
   const getDailyPuzzle = useCallback(async (): Promise<Puzzle> => {
     setIsLoading(true);
     try {
-      const puzzle = await puzzleApi.getDailyPuzzle();
+      const puzzle = await puzzleApi.getDailyPuzzle() as Puzzle;
       setDailyPuzzle(puzzle);
       return puzzle;
     } catch (error) {
@@ -91,7 +91,7 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
   const getRandomPuzzle = useCallback(async (filter?: PuzzleFilter): Promise<Puzzle> => {
     setIsLoading(true);
     try {
-      const puzzle = await puzzleApi.getRandomPuzzle(filter);
+      const puzzle = await puzzleApi.getRandomPuzzle() as Puzzle;
       setCurrentPuzzle(puzzle);
       return puzzle;
     } catch (error) {
@@ -105,7 +105,7 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
   const getPuzzleById = useCallback(async (id: string): Promise<Puzzle> => {
     setIsLoading(true);
     try {
-      const puzzle = await puzzleApi.getPuzzle(id);
+      const puzzle = await puzzleApi.getPuzzle(id) as Puzzle;
       setCurrentPuzzle(puzzle);
       return puzzle;
     } catch (error) {
@@ -119,7 +119,7 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
   const getPuzzlesByTheme = useCallback(async (theme: string, limit = 10): Promise<Puzzle[]> => {
     setIsLoading(true);
     try {
-      return await puzzleApi.getPuzzlesByTheme(theme, limit);
+      return await puzzleApi.getPuzzlesByTheme(theme, limit) as Puzzle[];
     } catch (error) {
       console.error('Failed to fetch puzzles by theme:', error);
       throw error;
@@ -134,7 +134,8 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
     timeSpent: number,
     hintsUsed: number
   ): Promise<boolean> => {
-    if (!user) throw new Error('User not authenticated');
+    // Use guest ID if not authenticated
+    const userId = user?.id || 'guest';
     
     try {
       const response = await puzzleApi.submitAttempt(puzzleId, {
@@ -154,10 +155,11 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
   }, [user, puzzleApi]);
 
   const getAttemptHistory = useCallback(async (): Promise<PuzzleAttempt[]> => {
-    if (!user) throw new Error('User not authenticated');
+    // Use guest ID if not authenticated
+    const userId = user?.id || 'guest';
     
     try {
-      const history = await puzzleApi.getUserHistory(user.id);
+      const history = await puzzleApi.getUserHistory(userId);
       // Transform API response to PuzzleAttempt format
       return history.map((item: Record<string, unknown>) => ({
         puzzleId: item.puzzle_id as string,
@@ -174,21 +176,22 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
   }, [user, puzzleApi]);
 
   const getUserStats = useCallback(async (): Promise<PuzzleStats> => {
-    if (!user) throw new Error('User not authenticated');
+    // Use guest ID if not authenticated
+    const userId = user?.id || 'guest';
     
     setIsLoading(true);
     try {
-      const apiStats = await puzzleApi.getUserStats(user.id);
+      const apiStats = await puzzleApi.getUserStats(userId) as Record<string, unknown>;
       
       // Transform API response to PuzzleStats format
       const stats: PuzzleStats = {
-        totalAttempts: (apiStats.total_attempts as number) || 0,
-        totalSolved: (apiStats.total_solved as number) || 0,
-        currentStreak: (apiStats.current_streak as number) || 0,
-        longestStreak: (apiStats.longest_streak as number) || 0,
-        averageRating: (apiStats.average_rating as number) || 0,
-        userRating: (apiStats.user_rating as number) || 0,
-        byDifficulty: (apiStats.by_difficulty as PuzzleStats['byDifficulty']) || {
+        totalAttempts: (apiStats.totalAttempts as number) || 0,
+        totalSolved: (apiStats.successfulAttempts as number) || 0,
+        currentStreak: (apiStats.currentStreak as number) || 0,
+        longestStreak: (apiStats.longestStreak as number) || 0,
+        averageRating: (apiStats.averageRating as number) || 0,
+        userRating: (apiStats.userRating as number) || 0,
+        byDifficulty: (apiStats.byDifficulty as PuzzleStats['byDifficulty']) || {
           beginner: { attempted: 0, solved: 0 },
           easy: { attempted: 0, solved: 0 },
           medium: { attempted: 0, solved: 0 },
