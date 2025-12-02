@@ -2,11 +2,13 @@
 title: AI Agent Quick Reference - Folder Structure
 service: app
 status: active
-last_reviewed: 2025-11-18
+last_reviewed: 2025-12-02
 type: how-to
 ---
 
 # AI Agent Quick Reference: Folder Structure
+
+> **🚨 BEFORE CODING**: Complete the [DLS Compliance Checklist](#-dls-compliance-checklist) for any UI work!
 
 ## 🎯 Quick Decision Tree
 
@@ -92,7 +94,98 @@ features/{feature-name}/
     └── {feature}.test.tsx
 ```
 
-## 🎨 UI Component Checklist
+## 🎨 DLS Compliance Checklist
+
+**Before creating or modifying any UI component, complete this checklist:**
+
+### ✅ Step 1: Check Existing DLS Components
+- [ ] Does [`design-language-system.md`](./design-language-system.md) already define this pattern?
+- [ ] Is there a primitive in `/ui/primitives/` I can use? (Button, Text, Box, Card, etc.)
+- [ ] Can I compose this from existing primitives instead of creating new?
+- [ ] Have I searched for similar components in the codebase?
+
+**Example**: Need a button → Check `ui/primitives/Button.tsx` first → Use existing or extend with new variant
+
+### ✅ Step 2: Verify Design Token Usage
+- [ ] All colors come from `colorTokens` or `useColors()` hook
+- [ ] All spacing uses `spacingTokens` (e.g., `spacingTokens.md`, `spacingTokens[4]`)
+- [ ] All typography uses `textVariants` (e.g., `textVariants.heading`, `textVariants.body`)
+- [ ] All shadows use `shadowTokens` (e.g., `shadowTokens.card`, `shadowTokens.md`)
+- [ ] All border radii use `radiusTokens` (e.g., `radiusTokens.md`, `radiusTokens.lg`)
+
+**Example**: Need spacing → Use `spacingTokens.md` (16px) instead of hard-coding `padding: 16`
+
+### ✅ Step 3: Ensure Theme Awareness
+- [ ] Component works in both light and dark mode
+- [ ] Using `useColors()` hook for dynamic colors
+- [ ] Using `useIsDark()` if conditional logic needed
+- [ ] Tested appearance in both themes
+
+**Example**: Background color → `useColors().background.primary` instead of `#FFFFFF`
+
+### ✅ Step 4: Follow Composition Patterns
+- [ ] Component is composed from primitives (not built from scratch)
+- [ ] Using `Box` for layout, not raw `View`
+- [ ] Using `Text` primitive, not raw `RNText`
+- [ ] Props follow DLS naming conventions
+
+**Example**: Card with button → `<Card><Box><Text /><Button /></Box></Card>`
+
+### ✅ Step 5: Document in DLS
+- [ ] Added new pattern to `design-language-system.md`
+- [ ] Added JSDoc comments with usage examples
+- [ ] Exported from `ui/index.ts` or feature `index.ts`
+- [ ] Created tests for component
+
+**Example**: New Button variant → Add section to DLS under "Button Component" → "Variants"
+
+### 🚫 Forbidden Patterns (Auto-Fail)
+| ❌ NEVER DO THIS | ✅ DO THIS INSTEAD |
+|------------------|---------------------|
+| `color: '#FFFFFF'` | `color: useColors().foreground.primary` |
+| `color: 'rgba(255,255,255,0.5)'` | `color: colorTokens.neutral[50].light` with opacity |
+| `padding: 16` | `padding: spacingTokens[6]` or `padding: spacingScale.padding` |
+| `fontSize: 14` | `fontSize: typographyTokens.fontSize.sm` |
+| `fontWeight: 'bold'` | `fontWeight: typographyTokens.fontWeight.bold` |
+| `borderRadius: 8` | `borderRadius: radiusTokens.md` |
+| `shadowColor: '#000'` | `...shadowTokens.card` (spread operator) |
+| `<View style={{...}}>` | `<Box padding={4} radius="md">` |
+| `<RNText style={{...}}>` | `<Text variant="body" color={colors.text}>` |
+
+### 🎯 Quick DLS Reference
+
+**Primitives** (always use these):
+- `Box` — Layout container (replaces `View`)
+- `Text` — Typography (replaces `RNText`)
+- `Button` — Interactive buttons
+- `Card` — Content containers
+- `Panel` — Translucent panels
+- `Input` — Form inputs
+- `Tag` — Labels/badges
+- `Avatar` — User avatars
+- `Divider` — Separators
+
+**Tokens** (import from `/ui/tokens`):
+- `colorTokens` — Color palette
+- `spacingTokens` — Spacing scale (0-16)
+- `typographyTokens` — Font sizes, weights, line heights
+- `textVariants` — Pre-configured text styles
+- `radiusTokens` — Border radius values
+- `shadowTokens` — Shadow presets
+- `motionTokens` — Animation durations and easings
+
+**Hooks** (import from `/ui/hooks`):
+- `useColors()` — Theme-aware colors
+- `useIsDark()` — Check if dark mode
+- `useThemeTokens()` — Full theme context
+
+### 📚 DLS Documentation Links
+- **Complete Spec**: [`design-language-system.md`](./design-language-system.md) (1850+ lines)
+- **Tokens Reference**: `/ui/tokens/` folder
+- **Primitives**: `/ui/primitives/` folder
+- **Adoption Status**: [`dls-adoption-audit.md`](./dls-adoption-audit.md)
+
+## 🎨 UI Component Checklist (Legacy - Use DLS Checklist Above)
 
 Before creating a component:
 
@@ -237,29 +330,109 @@ describe('FeatureScreen', () => {
 | Feature state | `/features/{feature}/state/` | Game state, puzzle state |
 | Component state | Inside component | Local UI state |
 
-## 🎨 Design System Usage
+## 🎨 Design System Usage (DLS Examples)
+
+### ✅ Correct: Using Primitives + Tokens
 
 ```typescript
-// ✅ Use design tokens
-import { colors, spacing, typography } from '@/ui/tokens';
+import { Box, Text, Button } from '@/ui/primitives';
+import { useColors } from '@/ui/hooks';
+import { spacingTokens, radiusTokens } from '@/ui/tokens';
 
+export function MyComponent() {
+  const colors = useColors();
+  
+  return (
+    <Box
+      padding={6}
+      radius="lg"
+      backgroundColor={colors.background.primary}
+      gap={4}
+    >
+      <Text variant="heading" color={colors.foreground.primary}>
+        Welcome
+      </Text>
+      <Button variant="solid" size="md">
+        Get Started
+      </Button>
+    </Box>
+  );
+}
+```
+
+### ❌ Incorrect: Hard-Coded Values + Raw Components
+
+```typescript
+import { View, Text as RNText, TouchableOpacity } from 'react-native';
+
+export function MyComponent() {
+  return (
+    <View style={{
+      padding: 16,                    // ❌ Hard-coded spacing
+      borderRadius: 12,               // ❌ Hard-coded radius
+      backgroundColor: '#FFFFFF',     // ❌ Hard-coded color
+    }}>
+      <RNText style={{
+        fontSize: 24,                 // ❌ Hard-coded font size
+        fontWeight: 'bold',           // ❌ Hard-coded weight
+        color: '#000000',             // ❌ Hard-coded color
+      }}>
+        Welcome
+      </RNText>
+      <TouchableOpacity style={{
+        padding: 12,                  // ❌ Hard-coded spacing
+        backgroundColor: '#007AFF',   // ❌ Hard-coded color
+        borderRadius: 8,              // ❌ Hard-coded radius
+      }}>
+        <RNText style={{ color: '#FFF' }}>Get Started</RNText>
+      </TouchableOpacity>
+    </View>
+  );
+}
+```
+
+### 🔧 Migration Pattern: From Hard-Coded to DLS
+
+**Before:**
+```typescript
 const styles = StyleSheet.create({
   container: {
-    padding: spacing.md,           // Use token
-    backgroundColor: colors.bg,    // Use token
-    fontSize: typography.body,     // Use token
+    padding: 16,
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
   },
-});
-
-// ❌ Don't hard-code
-const styles = StyleSheet.create({
-  container: {
-    padding: 16,                   // Hard-coded
-    backgroundColor: '#ffffff',    // Hard-coded
-    fontSize: 14,                  // Hard-coded
+  text: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1a1a1a',
   },
 });
 ```
+
+**After:**
+```typescript
+import { useColors } from '@/ui/hooks';
+import { spacingTokens, radiusTokens, textVariants } from '@/ui/tokens';
+
+function Component() {
+  const colors = useColors();
+  
+  return (
+    <Box
+      padding={6}                              // spacingTokens[6] = 16
+      radius="lg"                              // radiusTokens.lg = 16
+      backgroundColor={colors.background.primary}
+    >
+      <Text
+        variant="body"                         // textVariants.body = 16px, weight 400
+        weight="semibold"                      // Override weight to 600
+        color={colors.foreground.primary}
+      >
+        Content
+      </Text>
+    </Box>
+  );
+}
 
 ## 📚 Documentation Requirements
 
@@ -279,10 +452,73 @@ When creating new code:
 4. Default to more specific location (easier to move up than down)
 5. Create public API (`index.ts`) for all folders
 
+## 🎴 Quick Reference Card for AI Agents
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  UI WORK CHECKLIST (MANDATORY)                              │
+├─────────────────────────────────────────────────────────────┤
+│  Before writing ANY UI code:                                │
+│                                                              │
+│  1. ✅ Read design-language-system.md                       │
+│  2. ✅ Check if primitive exists (Button, Text, Box, Card)  │
+│  3. ✅ Use design tokens (colorTokens, spacingTokens, etc.) │
+│  4. ✅ Ensure theme-aware (useColors(), useIsDark())        │
+│  5. ✅ Compose from primitives (don't create from scratch)  │
+│  6. ✅ Update DLS docs if adding new pattern                │
+│                                                              │
+│  NEVER:                                                      │
+│  ❌ Hard-code colors (#FFFFFF, rgba())                      │
+│  ❌ Hard-code spacing (padding: 16)                         │
+│  ❌ Hard-code typography (fontSize: 14)                     │
+│  ❌ Use raw View/Text (use Box/Text primitives)            │
+├─────────────────────────────────────────────────────────────┤
+│  FOLDER PLACEMENT                                           │
+├─────────────────────────────────────────────────────────────┤
+│  Reusable UI → /ui/primitives or /ui/components            │
+│  Feature UI → /features/{feature}/components                │
+│  Business logic → /features/{feature}/hooks                 │
+│  Generic utils → /core/utils                                │
+│  Feature utils → /features/{feature}/utils                  │
+│  API clients → /services/api/{service}.api.ts              │
+│  Types → /types (global) or /features/{feature}/types      │
+│  Assets → /assets/{category}/                              │
+├─────────────────────────────────────────────────────────────┤
+│  IMPORTS (use aliases)                                      │
+├─────────────────────────────────────────────────────────────┤
+│  @/features/{feature}      — Feature components/hooks       │
+│  @/ui/primitives           — UI primitives                  │
+│  @/ui/tokens               — Design tokens                  │
+│  @/ui/hooks                — Theme hooks                    │
+│  @/services/api            — API clients                    │
+│  @/core/utils              — Generic utilities              │
+│  @/types                   — Global types                   │
+├─────────────────────────────────────────────────────────────┤
+│  DOCUMENTATION                                              │
+├─────────────────────────────────────────────────────────────┤
+│  New UI pattern → Update design-language-system.md          │
+│  New feature → Add JSDoc + exports in index.ts              │
+│  Complex logic → Add README.md in feature folder            │
+│  API changes → Update service docs                          │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## 🔗 Essential Documentation Links
+
+| Topic | Document | Purpose |
+|-------|----------|---------|
+| **DLS Complete Spec** | [`design-language-system.md`](./design-language-system.md) | Full DLS with tokens, primitives, components |
+| **Folder Structure** | [`folder-structure-convention.md`](./folder-structure-convention.md) | Detailed structure rules |
+| **App Overview** | [`overview.md`](./overview.md) | Architecture and patterns |
+| **Agent Rules** | [`../../AGENTS.md`](../../AGENTS.md) | Pre-flight checklist and guidelines |
+| **DLS Adoption** | [`dls-adoption-audit.md`](./dls-adoption-audit.md) | Current compliance status |
+
 ---
 
 **Remember**: This structure exists to make code **predictable, maintainable, and scalable**. When in doubt, choose the location that makes the most sense for future developers (including AI agents) reading the code.
 
+**For UI work**: Always complete the [DLS Compliance Checklist](#-dls-compliance-checklist) first!
+
 ---
 
-*Last updated: 2025-11-18*
+*Last updated: 2025-12-02*

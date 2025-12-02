@@ -1,7 +1,7 @@
 ---
 title: Agent Operating Guide
 status: active
-last_reviewed: 2025-11-18
+last_reviewed: 2025-12-02
 type: standard
 ---
 
@@ -13,7 +13,61 @@ Agents **MUST** obey this file before writing code, generating docs, or modifyin
 
 ---
 
-## 0. Trigger Phrase – Mandatory Rule
+## 0. Agent Core Principles
+
+### Mindset: Think → Verify → Act
+
+**Agents are proactive architecture-aware assistants, not reactive code generators.**
+
+Before writing ANY code or documentation, agents **MUST** complete the Pre-Flight Checklist below.
+
+---
+
+## 0.0. Pre-Flight Checklist (MANDATORY)
+
+**Complete this mental checklist before every action:**
+
+### ✅ Step 1: Understand the Request
+- [ ] What is the user asking for?
+- [ ] Which service/feature/component is affected?
+- [ ] Is this UI work, API work, business logic, or documentation?
+- [ ] What is the scope of the change?
+
+### ✅ Step 2: Search for Existing Patterns
+- [ ] Does similar functionality already exist?
+- [ ] Are there reusable components, utilities, or services?
+- [ ] What design patterns are used for this type of work?
+- [ ] Can I extend existing code instead of creating new?
+
+### ✅ Step 3: Identify Relevant Documentation
+- [ ] Which architectural guidelines apply?
+  - For UI: [`app/docs/design-language-system.md`](app/docs/design-language-system.md)
+  - For services: `{service}/docs/overview.md` + `docs/architecture-{language}.md`
+  - For documentation: This file (AGENTS.md) + [`docs/README.md`](docs/README.md)
+- [ ] Should I update existing docs or create new ones?
+- [ ] Where does this change belong in the documentation hierarchy?
+
+### ✅ Step 4: Consider Architecture & Patterns
+- [ ] What architectural principles apply? (DLS, DDD, Clean Architecture, Vertical Slicing)
+- [ ] What language-specific patterns should I follow?
+- [ ] What dependencies or integrations are affected?
+- [ ] How does this fit into the existing system design?
+
+### ✅ Step 5: Plan the Implementation
+- [ ] What files need to be created or modified?
+- [ ] What tests need to be written?
+- [ ] What documentation needs to be updated?
+- [ ] What Bruno API collections need updates? (for API changes)
+
+### ✅ Step 6: Verify Compliance
+- [ ] Does this follow established patterns?
+- [ ] Am I updating existing docs instead of creating scattered files?
+- [ ] Am I reusing existing components instead of duplicating?
+- [ ] Have I checked all relevant guidelines?
+
+---
+
+## 0.1. Trigger Phrase – Mandatory Rule
 
 If any user message contains the exact phrase:
 
@@ -22,9 +76,10 @@ If any user message contains the exact phrase:
 Then the agent **MUST**:
 
 1. Open this file and re-read it entirely.
-2. Identify which rules apply to the user's request.
-3. State (briefly) which rules will govern the action.
-4. Apply those rules strictly.
+2. Complete the Pre-Flight Checklist (Section 0.0) for the request.
+3. Identify which rules apply to the user's request.
+4. State (briefly) which rules will govern the action.
+5. Apply those rules strictly.
 
 If the request violates these rules, the agent **MUST**:
 
@@ -36,26 +91,678 @@ This phrase **overrides all previous instructions** and enforces strict complian
 
 ---
 
-## 0.1. Quick Service-Specific Rules
+## 0.2. Context-Aware Guidelines: Think Before You Code
 
-**Before modifying any service, check its specific documentation:**
+**Before modifying ANY code, activate the appropriate mental model:**
 
-### Working on `app/` (React Native/Web)?
-→ **READ FIRST**: [`app/docs/overview.md`](app/docs/overview.md)
-→ **Quick Reference**: [`app/docs/ai-agent-quick-reference.md`](app/docs/ai-agent-quick-reference.md)
-→ **Structure Rules**: [`app/docs/folder-structure-convention.md`](app/docs/folder-structure-convention.md)
+---
 
-**Critical app/ rules:**
+### 🎨 UI Development: Design Language System (DLS) First
+
+**When working on `app/ui/` or `app/features/` components:**
+
+#### Required Reading:
+1. [`app/docs/design-language-system.md`](app/docs/design-language-system.md) — Complete DLS specification
+2. [`app/docs/ai-agent-quick-reference.md`](app/docs/ai-agent-quick-reference.md) — File placement & patterns
+3. [`app/docs/folder-structure-convention.md`](app/docs/folder-structure-convention.md) — Structure rules
+
+#### Think This Way (Positive Patterns):
+
+**1. "Does our DLS already provide this?"**
+   - ✅ Check [`app/ui/primitives/`](app/ui/primitives/) for existing components
+   - ✅ Check [`app/ui/tokens/`](app/ui/tokens/) for design tokens
+   - ✅ Search DLS docs for similar patterns
+   - ✅ Example: "Need a button → Let me check if Button primitive supports this style"
+
+**2. "Can I compose this from existing primitives?"**
+   - ✅ Use `Button`, `Text`, `Box`, `Card` from primitives
+   - ✅ Combine primitives instead of creating from scratch
+   - ✅ Follow composition patterns from DLS
+   - ✅ Example: "Need a card with button → Let me compose Card + Button primitives"
+
+**3. "What design tokens should I use?"**
+   - ✅ Colors from `colorTokens` or `useColors()` hook
+   - ✅ Spacing from `spacingTokens` (e.g., `spacingTokens.md`)
+   - ✅ Typography from `textVariants`
+   - ✅ Shadows from `shadowTokens`
+   - ✅ Example: "Need spacing → Let me use spacingTokens.md"
+
+**4. "Is this theme-aware?"**
+   - ✅ Will it work in both light and dark mode?
+   - ✅ Am I using `useColors()` or `useIsDark()`?
+   - ✅ Are color values dynamic based on theme?
+   - ✅ Example: "Need colors → Let me use useColors() for theme support"
+
+**5. "Should I update DLS documentation?"**
+   - ✅ Adding new pattern → Update `design-language-system.md`
+   - ✅ Creating new primitive → Document in DLS + add JSDoc
+   - ✅ Modifying existing component → Update DLS section
+   - ✅ Example: "Created new variant → Let me add it to DLS docs"
+
+#### Architectural Principles:
+- **Vertical slicing**: Features are self-contained in `/features/{feature}/`
+- **Horizontal layering**: UI primitives in `/ui/`, services in `/services/`, core in `/core/`
+- **Design tokens**: All visual properties come from `/ui/tokens/`
+- **Composition over creation**: Extend existing components before creating new ones
+- **Theme-aware**: All components must support light/dark mode
+- **Type safety**: Proper TypeScript types for all props
+- **Public APIs**: Export through `index.ts` with JSDoc
+
+#### Critical Rules:
 - ✅ Features go in `/features/{feature}/`
 - ✅ UI components go in `/ui/primitives/` or `/ui/components/`
 - ✅ API clients go in `/services/api/`
 - ✅ Use design tokens from `/ui/tokens/`
+- ✅ Update `design-language-system.md` when adding patterns
 - ❌ No circular dependencies between features
 - ❌ No business logic in route files (`/app`)
-- ❌ No hard-coded colors/spacing (use tokens)
+- ❌ No hard-coded colors (e.g., `#FFFFFF`, `rgba(255,255,255,0.5)`)
+- ❌ No hard-coded spacing (e.g., `padding: 16`)
+- ❌ No hard-coded typography (e.g., `fontSize: 14`)
 
-### Working on other services?
-Check `{service}/docs/overview.md` for service-specific rules.
+---
+
+### 🏗️ Backend Development: Architecture Patterns First
+
+**When working on services (APIs, workers, engines):**
+
+#### Required Reading:
+1. `{service}/docs/overview.md` — Service capabilities and scope
+2. `docs/architecture-{language}.md` — Language-specific patterns
+   - [`docs/architecture-kotlin.md`](docs/architecture-kotlin.md) — DDD patterns
+   - [`docs/architecture-go.md`](docs/architecture-go.md) — Clean architecture
+   - [`docs/architecture-python.md`](docs/architecture-python.md) — FastAPI patterns
+   - [`docs/architecture-rust.md`](docs/architecture-rust.md) — Actix Web patterns
+   - [`docs/architecture-typescript.md`](docs/architecture-typescript.md) — BFF patterns
+
+#### Think This Way (Positive Patterns):
+
+**1. "What architectural pattern applies?"**
+   - ✅ Kotlin services → Domain-Driven Design (DDD)
+   - ✅ Go services → Clean Architecture
+   - ✅ Python services → FastAPI with Pydantic
+   - ✅ Rust services → Actix Web with strong typing
+   - ✅ TypeScript services → BFF pattern with GraphQL/REST
+
+**2. "Where does this logic belong?"**
+   - ✅ Business rules → Domain layer
+   - ✅ API routes → Application layer (use cases)
+   - ✅ Database access → Infrastructure layer
+   - ✅ External APIs → Infrastructure layer
+
+**3. "Are there existing patterns I should follow?"**
+   - ✅ Check similar endpoints in the same service
+   - ✅ Review language-specific architecture guide
+   - ✅ Look for reusable domain models or utilities
+
+**4. "What documentation needs updating?"**
+   - ✅ New endpoint → Update `docs/api.md` + create Bruno collection
+   - ✅ Domain changes → Update `docs/domain.md`
+   - ✅ Architecture changes → Update `docs/ARCHITECTURE.md`
+   - ✅ Operational changes → Update `docs/RUNBOOK.md`
+
+#### Bruno API Collections (Mandatory for HTTP APIs):
+- ✅ Every endpoint → One `.bru` file in `bruno/collections/`
+- ✅ Multi-step flows → Test files in `bruno/tests/`
+- ✅ All requests → Include assertions
+- ✅ See [Bruno API Collections Standard](#bruno-api-collections-standard) below
+
+---
+
+### 📚 Documentation: Update Shared Context, Create for New Context
+
+**When creating or modifying documentation:**
+
+#### Required Reading:
+1. This file (AGENTS.md) — Documentation hierarchy and decision tree
+2. [`docs/README.md`](docs/README.md) — Documentation structure guide
+
+#### Think This Way (Positive Patterns):
+
+**1. "Is this shared context or new context?"**
+   - ✅ **Shared context** (DLS, architecture, overview) → Update existing docs
+   - ✅ **New context** (new feature, new integration, new phase) → Create new docs
+   - ✅ Example: "Adding button variant → Update DLS (shared context)"
+   - ✅ Example: "New payment integration → Create new doc (new context)"
+
+**2. "Does documentation for this shared context already exist?"**
+   - ✅ Search for related `.md` files first
+   - ✅ Check service `docs/` folder
+   - ✅ Check platform-wide `/docs/` folder
+   - ✅ Use documentation decision tree (Section "Documentation Decision Tree" below)
+
+**3. "Where does this belong in the hierarchy?"**
+   - ✅ Platform-wide → `/docs/`
+   - ✅ Domain-specific → `/docs/{domain}/`
+   - ✅ Service-specific → `/{service}/docs/`
+   - ✅ Integration → `/docs/integrations/` or `/{service}/docs/integrations/`
+
+**4. "Should I update existing docs or create new ones?"**
+   - ✅ **Update existing** if it's shared context (DLS, architecture, API patterns)
+   - ✅ **Create new** if it's new context (new feature, new integration, new workflow)
+   - ✅ **Never scatter** shared context across multiple files
+   - ✅ Example: "Button variant → Update design-language-system.md (shared DLS context)"
+   - ✅ Example: "New OAuth flow → Create oauth-integration.md (new integration context)"
+
+**5. "What related docs need updating?"**
+   - ✅ DLS changes → Update `app/docs/design-language-system.md`
+   - ✅ New feature → Create feature README + update `app/docs/overview.md` feature list
+   - ✅ API changes → Update `docs/api.md` + Bruno collections
+   - ✅ Architecture changes → Update relevant `ARCHITECTURE.md`
+
+#### Documentation Principles:
+- **Single source of truth**: One authoritative doc per shared context
+- **Don't scatter shared context**: Extend existing docs instead of creating duplicates
+- **Create for new context**: New features, integrations, or workflows deserve new docs
+- **Hierarchical organization**: Follow 4-level structure (platform → domain → service → specific)
+- **Living documentation**: Update `last_reviewed` date when editing
+- **Cross-references**: Link related docs together
+
+---
+
+### 🔄 Iterative Development: Phase-Based Documentation
+
+**When working on multi-phase features or migrations:**
+
+#### Think This Way:
+
+**1. "What phase am I working on?"**
+   - ✅ Check `{service}/docs/migrations/README.md` for current phase
+   - ✅ Document decisions in `phase-{N}.md`
+   - ✅ Track what's in/out of scope for this phase
+
+**2. "What should I document?"**
+   - ✅ Phase objectives and goals
+   - ✅ Architecture decisions made
+   - ✅ Database schema changes
+   - ✅ API endpoints added/modified
+   - ✅ Breaking changes
+   - ✅ Testing strategy
+   - ✅ Deployment considerations
+
+**3. "How do I version documentation?"**
+   - ✅ Use `docs/migrations/` like git commits for services
+   - ✅ Track decisions and rationale for each phase
+   - ✅ Link phases to git tags/releases
+   - ✅ Never delete old phase documentation
+
+---
+
+## 0.3. Documentation & Tracking Files (MANDATORY)
+
+**Code should speak for itself. Documentation should explain architecture, patterns, and decisions.**
+
+Agents creating documentation **MUST** follow the placement rules below.
+
+---
+
+### 📋 Good Documentation vs Bad Documentation
+
+**✅ GOOD Documentation** (cohesive under `docs/`):
+- Architecture diagrams and system design
+- Design patterns and best practices
+- Domain models and business rules
+- API contracts and integration flows
+- Migration guides and breaking changes
+- Architecture Decision Records (ADRs)
+
+**❌ BAD Documentation** (avoid unless necessary):
+- Inline code comments explaining obvious code
+- "Yapping" comments that repeat what code already says
+- JSDoc for every single function (only for widely-used generic APIs)
+- README files scattered everywhere
+
+### 🗂️ Where to Put Generated Markdown Files
+
+When agents need to create tracking/documentation files:
+
+#### 📝 **Changelogs**
+```
+{service}/docs/CHANGELOG.md               # Service-wide changes
+{service}/docs/changelogs/YYYY-MM.md     # Monthly changelogs (if granular tracking needed)
+```
+
+**Format**:
+```markdown
+# Changelog
+
+## [Unreleased]
+
+### Added
+- New endpoint: POST /v1/accounts
+
+### Changed
+- Updated authentication flow to use JWT
+
+### Fixed
+- Fixed race condition in game state sync
+
+## [1.2.0] - 2025-12-02
+
+### Added
+...
+```
+
+#### ✅ **TODOs and Task Tracking**
+```
+{service}/docs/TODO.md                    # Active TODOs for service
+{service}/docs/tasks/sprint-N.md          # Sprint-specific tasks (if using sprints)
+```
+
+**Format**:
+```markdown
+# TODO
+
+## High Priority
+- [ ] Implement rate limiting for authentication endpoints
+- [ ] Add database indexes for query performance
+
+## Medium Priority
+- [ ] Refactor game state management
+- [ ] Add integration tests for payment flow
+
+## Low Priority
+- [ ] Improve error messages
+```
+
+#### 🔄 **Migration/Phase Documentation**
+```
+{service}/docs/migrations/README.md       # Overview of all phases
+{service}/docs/migrations/phase-1.md      # Phase 1: MVP
+{service}/docs/migrations/phase-2.md      # Phase 2: Enhancements
+{service}/docs/migrations/phase-N.md      # Phase N: Future work
+```
+
+**Format** (see Section "Iterative Development: Phase-Based Documentation" above)
+
+#### 📊 **Status Reports & Progress Tracking**
+```
+{service}/docs/status/YYYY-MM-DD.md       # Weekly/monthly status
+{service}/docs/progress/feature-name.md   # Feature-specific progress
+```
+
+**Format**:
+```markdown
+# Status Report - 2025-12-02
+
+## Completed
+- Implemented OAuth2 authentication
+- Added rate limiting middleware
+
+## In Progress
+- WebSocket connection stability improvements (80%)
+- Database migration for user profiles (60%)
+
+## Blocked
+- Waiting for infrastructure team to provision Redis cluster
+
+## Next Week
+- Complete WebSocket improvements
+- Start payment integration
+```
+
+#### 🐛 **Known Issues & Bugs**
+```
+{service}/docs/KNOWN_ISSUES.md            # Active known issues
+{service}/docs/issues/YYYY-MM.md          # Historical issues (resolved)
+```
+
+**Format**:
+```markdown
+# Known Issues
+
+## Critical
+- [ ] **[BUG-123]** Race condition in game state sync
+  - Impact: Games may become desynced
+  - Workaround: Refresh page
+  - ETA: 2025-12-10
+
+## Medium
+- [ ] **[BUG-124]** Slow query performance on leaderboard
+  - Impact: Leaderboard takes 5s to load
+  - Workaround: Add pagination
+  - ETA: 2025-12-15
+```
+
+#### 📐 **Architecture Decision Records (ADRs)**
+```
+{service}/docs/decisions/README.md        # ADR index
+{service}/docs/decisions/ADR-XXXX-title.md
+```
+
+**Format**: See "Architecture Decisions" section above
+
+#### 🔍 **Investigation Notes**
+```
+{service}/docs/investigations/YYYY-MM-DD-topic.md
+```
+
+**Format**:
+```markdown
+# Investigation: Slow Database Queries - 2025-12-02
+
+## Problem
+Users reporting slow leaderboard load times (5-10 seconds).
+
+## Investigation
+- Analyzed slow query logs
+- Found missing index on `games.created_at`
+- Query scans 1M rows without index
+
+## Solution
+Add compound index: `CREATE INDEX idx_games_created_player ON games(created_at, player_id)`
+
+## Results
+- Query time: 8.5s → 120ms
+- Impact: 98.6% improvement
+
+## Status
+✅ Deployed to production 2025-12-02
+```
+
+---
+
+### 📋 Documentation Checklist by Change Type
+
+#### 🎨 UI Components (New or Modified)
+
+When creating or modifying UI components, **MUST update**:
+
+1. ✅ **DLS Documentation** (if new pattern)
+   - Add section to `app/docs/design-language-system.md`
+   - Include component API, variants, and usage examples
+   - Update component index/table of contents
+
+2. ✅ **Tests** (tests serve as documentation)
+   ```typescript
+   describe('Button', () => {
+     it('renders with solid variant by default', () => {
+       // Test shows expected behavior
+     });
+   });
+   ```
+
+**When NOT to document**:
+- ❌ No need for README.md in `ui/primitives/` (use DLS instead)
+- ❌ No need for JSDoc on every component (code should be self-explanatory)
+- ❌ No need for inline comments explaining obvious code
+
+---
+
+#### 🏗️ Backend APIs (New Endpoints)
+
+When creating or modifying API endpoints, **MUST update**:
+
+1. ✅ **Service API documentation** (`{service}/docs/api.md`)
+   ```markdown
+   ### POST /v1/accounts
+   
+   Create a new user account.
+   
+   **Request Body:**
+   ```json
+   {
+     "user_id": "uuid",
+     "username": "string",
+     "email": "string"
+   }
+   ```
+   
+   **Response (201):**
+   ```json
+   {
+     "account_id": "uuid",
+     "created_at": "timestamp"
+   }
+   ```
+   
+   **Errors:**
+   - 400: Invalid request body
+   - 409: Username already exists
+   ```
+
+2. ✅ **Bruno collection** (`{service}/bruno/collections/{endpoint}.bru`)
+   - Include request example
+   - Include response example
+   - Include assertions
+   - See [Bruno API Collections Standard](#bruno-api-collections-standard)
+
+3. ✅ **Domain documentation** if business logic changes
+   - Update `{service}/docs/domain.md` with new concepts
+   - Document invariants and business rules
+
+**When NOT to document**:
+- ❌ No need for separate endpoint documentation files (use api.md)
+- ❌ No need for inline docstrings explaining obvious code
+- ❌ No need for comments that repeat what code already says
+
+---
+
+#### 🧩 Features (New Feature Slice)
+
+When creating a new feature, **MUST update**:
+
+1. ✅ **Feature README.md** (if complex, otherwise optional)
+   ```markdown
+   # Game Feature
+   
+   ## Overview
+   Real-time chess game with move validation and timer.
+   
+   ## Components
+   - `GameScreen` - Main game interface
+   - `ChessBoard` - Interactive board component
+   - `MoveHistory` - Move list sidebar
+   
+   ## Hooks
+   - `useGameState` - Game state management
+   - `useGameActions` - Game actions (move, resign, etc.)
+   - `useGameWebSocket` - Real-time sync
+   
+   ## Data Flow
+   User move → useGameActions → WebSocket → Backend → State update
+   ```
+
+2. ✅ **Update app/docs/overview.md** feature list
+   - Add to feature inventory
+   - Document dependencies on other features
+
+**When NOT to document**:
+- ❌ No need for separate component READMEs (use feature README)
+- ❌ No need for inline comments (code should be self-explanatory)
+
+---
+
+#### 🔧 Utilities & Helpers
+
+When creating utility functions, **MUST provide**:
+
+1. ✅ **Tests documenting behavior**
+   ```typescript
+   describe('formatDuration', () => {
+     it('handles zero duration', () => {
+       expect(formatDuration(0, "short")).toBe("0s");
+     });
+     
+     it('handles negative duration', () => {
+       expect(formatDuration(-1000, "short")).toBe("-1s");
+     });
+   });
+   ```
+
+2. ✅ **JSDoc for widely-used generic APIs only**
+   - Only if used across multiple services/features
+   - Only if API is complex or non-obvious
+
+**When NOT to document**:
+- ❌ No need for README in `/core/utils`
+- ❌ No need for JSDoc on simple, self-explanatory functions
+- ❌ No need for inline comments explaining obvious logic
+
+---
+
+#### 🗄️ Data Models & Types
+
+When creating or modifying types, **MUST update**:
+
+1. ✅ **Domain documentation** if business concept
+   - Add to `{service}/docs/domain.md` glossary
+   - Document business rules and invariants
+
+2. ✅ **Tests** documenting expected behavior
+   ```typescript
+   describe('Game model', () => {
+     it('validates game status transitions', () => {
+       // Test documents business rules
+     });
+   });
+   ```
+
+**When NOT to document**:
+- ❌ No need for JSDoc on simple types (self-explanatory)
+- ❌ No need for inline comments on type definitions
+
+---
+
+#### 🔄 Refactoring (Breaking Changes)
+
+When refactoring or making breaking changes, **MUST provide**:
+
+1. ✅ **Migration guide** in relevant doc
+   ```markdown
+   ## Migration Guide: Button API v2
+   
+   ### Breaking Changes
+   - `color` prop renamed to `variant`
+   - `onClick` prop renamed to `onPress`
+   
+   ### Before
+   ```tsx
+   <Button color="primary" onClick={handler}>Click</Button>
+   ```
+   
+   ### After
+   ```tsx
+   <Button variant="solid" onPress={handler}>Click</Button>
+   ```
+   
+   ### Codemod Available
+   Run: `npx @chessmate/codemods button-v2`
+   ```
+
+2. ✅ **Update all affected documentation**
+   - Update DLS if UI component
+   - Update API docs if backend
+   - Update feature README if internal
+
+3. ✅ **Update examples** in existing docs
+   - Fix all code examples using old API
+   - Update screenshots if UI changed
+
+**When NOT to document**:
+- ❌ No need for migration doc if non-breaking (just update docs)
+
+---
+
+#### 🧪 Architecture Decisions
+
+When making significant architectural decisions, **MUST provide**:
+
+1. ✅ **Architecture Decision Record (ADR)**
+   ```markdown
+   ---
+   title: ADR-0042: Use WebSocket for Real-Time Game Updates
+   status: accepted
+   date: 2025-12-02
+   ---
+   
+   ## Context
+   Need real-time move synchronization between players.
+   
+   ## Decision
+   Use WebSocket connection with fallback to polling.
+   
+   ## Consequences
+   ### Positive
+   - Low latency for move updates
+   - Better UX with instant feedback
+   
+   ### Negative
+   - More complex infrastructure
+   - Need to handle connection drops
+   
+   ## Alternatives Considered
+   - Server-Sent Events (SSE)
+   - Long polling
+   ```
+
+2. ✅ **Update architecture documentation**
+   - Update `{service}/docs/ARCHITECTURE.md`
+   - Update system `ARCHITECTURE.md` if cross-service
+
+**When NOT to document**:
+- ❌ No need for ADR for routine implementation choices
+
+---
+
+### 📦 Documentation Deliverables Matrix
+
+| Change Type | Required Documentation | Location |
+|-------------|------------------------|----------|
+| **New UI Component** | DLS update + tests | `docs/design-language-system.md` |
+| **New API Endpoint** | api.md update + Bruno collection | `{service}/docs/api.md` + `bruno/collections/` |
+| **New Feature** | Feature README + overview update | `features/{feature}/README.md` + `overview.md` |
+| **New Utility** | Tests | `__tests__/` |
+| **New Type** | Domain doc (if business concept) | `{service}/docs/domain.md` |
+| **Breaking Change** | Migration guide + updated examples | Relevant doc + migration section |
+| **Architecture Decision** | ADR + architecture doc update | `docs/decisions/ADR-XXXX.md` |
+| **Bug Fix** | Updated tests | `__tests__/{component}.test.ts` |
+| **Tracking** | Changelog, TODO, Status | `{service}/docs/CHANGELOG.md`, `TODO.md`, `status/` |
+| **Migration Phase** | Phase documentation | `{service}/docs/migrations/phase-{N}.md` |
+
+---
+
+### 🚨 Documentation Enforcement
+
+**Before submitting code, agents MUST verify:**
+
+1. ✅ All new APIs documented in api.md + Bruno
+2. ✅ All new UI patterns documented in DLS
+3. ✅ All tests document expected behavior
+4. ✅ All breaking changes have migration guide
+5. ✅ All exports have public API in index.ts
+6. ✅ `last_reviewed` date updated in modified docs
+7. ✅ Tracking files (TODO, CHANGELOG) updated if needed
+
+**Agent self-check prompt:**
+```
+Have I provided:
+- [ ] Code implementation ✅
+- [ ] Tests ✅
+- [ ] Architectural documentation ✅
+- [ ] Examples (in docs, not code) ✅
+- [ ] Migration guide (if breaking) ✅
+```
+
+---
+
+### 💡 Documentation Best Practices
+
+**DO**:
+- ✅ Write documentation **while coding**, not after
+- ✅ Include runnable code examples **in docs**, not inline
+- ✅ Document the "why", not just the "what"
+- ✅ Keep examples up-to-date with code changes
+- ✅ Use tests as documentation for behavior
+- ✅ Link to related documentation
+
+**DON'T**:
+- ❌ Write documentation as separate task
+- ❌ Include broken or outdated examples
+- ❌ Document obvious behavior with inline comments
+- ❌ Duplicate information across files
+- ❌ Skip documentation for architectural changes
+- ❌ Create orphaned documentation files
 
 ---
 
