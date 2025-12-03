@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { Card } from '@/ui/primitives/Card';
 import { Panel } from '@/ui/primitives/Panel';
-import { VStack, HStack } from '@/ui';
+import { VStack, HStack, Icon } from '@/ui';
 import { StatCard } from '@/ui/components/StatCard';
 import { SegmentedControl } from '@/ui/components/SegmentedControl';
 import { usePuzzle } from '@/contexts/PuzzleContext';
@@ -92,8 +92,9 @@ export default function PuzzleHubScreen() {
                     />
                   </HStack>
                   <HStack gap={3}>
-                    <StatCard 
-                      value={`🔥 ${puzzleStats.currentStreak}`} 
+                    <StatCard
+                      icon="flame"
+                      value={puzzleStats.currentStreak.toString()} 
                       label={t('puzzle.streak')} 
                     />
                     <StatCard 
@@ -112,7 +113,7 @@ export default function PuzzleHubScreen() {
               <Panel variant="glass" padding={24} style={[styles.dailyPuzzlePanel, { shadowColor: colors.accent.primary }]}>
                 <VStack gap={3} style={{ alignItems: 'center' }}>
                   <View style={styles.dailyBadge}>
-                    <Text style={styles.dailyIcon}>⭐</Text>
+                    <Icon name="star" size={40} color={colors.accent.primary} />
                   </View>
                   <VStack gap={1} style={{ alignItems: 'center' }}>
                     <Text style={[styles.dailyTitle, { color: colors.foreground.primary }]}>

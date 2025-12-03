@@ -9,7 +9,7 @@ import React from 'react';
 import type { ViewStyle } from 'react-native';
 import { View, StyleSheet, Platform } from 'react-native';
 import { BlurView } from 'expo-blur';
-import { useThemeTokens } from '@/ui';
+import { useThemeTokens } from '@/ui/hooks/useThemeTokens';
 
 type PanelVariant = 'glass' | 'solid' | 'translucent';
 type PanelDensity = 'light' | 'medium' | 'dark';

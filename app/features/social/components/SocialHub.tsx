@@ -5,10 +5,10 @@
  * Minimalist Pro Design - Glassmorphic social hub
  */
 
-import { SafeAreaView, ScrollView, StyleSheet, Text, Pressable, View, ActivityIndicator } from 'react-native';
+import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View, ActivityIndicator } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
-import { Panel } from '@/ui/primitives/Panel';
-import { VStack, HStack } from '@/ui';
+import { Card } from '@/ui/primitives/Card';
+import { VStack, HStack, Icon } from '@/ui';
 import { StatCard } from '@/ui/components/StatCard';
 import { useSocialStats } from '../hooks';
 import type { SocialMode } from '../types';
@@ -48,9 +48,9 @@ export function SocialHub({ onNavigate, userId }: SocialHubProps) {
             </VStack>
           </Animated.View>
 
-          {/* Glassmorphic Stats Panel */}
+          {/* Stats Panel */}
           <Animated.View entering={FadeInDown.delay(200).duration(400)}>
-            <Panel variant="glass" padding={20}>
+            <Card variant="gradient" size="md" style={{ padding: 20 }}>
               <VStack gap={4}>
                 <Text style={[styles.sectionTitle, { color: colors.foreground.primary }]}>
                   Your Network
@@ -66,8 +66,9 @@ export function SocialHub({ onNavigate, userId }: SocialHubProps) {
                   />
                 </HStack>
                 <HStack gap={3}>
-                  <StatCard 
-                    value={`💬 ${stats.unreadMessages}`} 
+                  <StatCard
+                    icon="chat"
+                    value={stats.unreadMessages.toString()} 
                     label={t('social.unread')} 
                   />
                   <StatCard 
@@ -76,90 +77,83 @@ export function SocialHub({ onNavigate, userId }: SocialHubProps) {
                   />
                 </HStack>
               </VStack>
-            </Panel>
+            </Card>
           </Animated.View>
 
           {/* Feature Cards */}
           <VStack gap={4}>
             <Animated.View entering={FadeInDown.delay(300).duration(400)}>
-              <Pressable onPress={() => onNavigate('friends')}>
-                <Panel variant="glass" padding={20}>
-                  <HStack gap={4} style={styles.featureCard}>
-                    <View style={styles.iconBadge}>
-                      <Text style={styles.cardIcon}>👥</Text>
-                    </View>
-                    <VStack gap={1} style={{ flex: 1 }}>
-                      <Text style={[styles.cardTitle, { color: colors.foreground.primary }]}>
-                        {t('social.friends')}
-                      </Text>
-                      <Text style={[styles.cardDescription, { color: colors.foreground.secondary }]}>
-                        {t('social.friends_description')}
-                      </Text>
-                      <Text style={[styles.cardProgress, { color: colors.accent.primary }]}>
-                        {ti('social.friend_count', { count: stats.totalFriends })} • {ti('social.online_count', { count: stats.onlineFriends })}
-                      </Text>
-                    </VStack>
-                    <Text style={[styles.arrow, { color: colors.foreground.tertiary }]}>→</Text>
-                  </HStack>
-                </Panel>
-              </Pressable>
+              <Card variant="default" size="md" style={styles.card}>
+                <TouchableOpacity style={styles.cardInner} onPress={() => onNavigate('friends')}>
+                  <View style={[styles.iconBadge, { backgroundColor: colors.accent.primary + '15' }]}>
+                    <Icon name="friends" size={32} color={colors.accent.primary} />
+                  </View>
+                  <VStack gap={1} style={{ flex: 1 }}>
+                    <Text style={[styles.cardTitle, { color: colors.foreground.primary }]}>
+                      {t('social.friends')}
+                    </Text>
+                    <Text style={[styles.cardDescription, { color: colors.foreground.secondary }]}>
+                      {t('social.friends_description')}
+                    </Text>
+                    <Text style={[styles.cardProgress, { color: colors.accent.primary }]}>
+                      {ti('social.friend_count', { count: stats.totalFriends })} • {ti('social.online_count', { count: stats.onlineFriends })}
+                    </Text>
+                  </VStack>
+                  <Text style={[styles.arrow, { color: colors.accent.primary }]}>→</Text>
+                </TouchableOpacity>
+              </Card>
             </Animated.View>
 
             <Animated.View entering={FadeInDown.delay(400).duration(400)}>
-              <Pressable onPress={() => onNavigate('clubs')}>
-                <Panel variant="glass" padding={20}>
-                  <HStack gap={4} style={styles.featureCard}>
-                    <View style={styles.iconBadge}>
-                      <Text style={styles.cardIcon}>🏆</Text>
-                    </View>
-                    <VStack gap={1} style={{ flex: 1 }}>
-                      <Text style={[styles.cardTitle, { color: colors.foreground.primary }]}>
-                        {t('social.clubs')}
-                      </Text>
-                      <Text style={[styles.cardDescription, { color: colors.foreground.secondary }]}>
-                        {t('social.clubs_description')}
-                      </Text>
-                      <Text style={[styles.cardProgress, { color: colors.accent.primary }]}>
-                        {ti('social.member_of_clubs', { count: stats.clubs })}
-                      </Text>
-                    </VStack>
-                    <Text style={[styles.arrow, { color: colors.foreground.tertiary }]}>→</Text>
-                  </HStack>
-                </Panel>
-              </Pressable>
+              <Card variant="default" size="md" style={styles.card}>
+                <TouchableOpacity style={styles.cardInner} onPress={() => onNavigate('clubs')}>
+                  <View style={[styles.iconBadge, { backgroundColor: colors.accent.primary + '15' }]}>
+                    <Icon name="clubs" size={32} color={colors.accent.primary} />
+                  </View>
+                  <VStack gap={1} style={{ flex: 1 }}>
+                    <Text style={[styles.cardTitle, { color: colors.foreground.primary }]}>
+                      {t('social.clubs')}
+                    </Text>
+                    <Text style={[styles.cardDescription, { color: colors.foreground.secondary }]}>
+                      {t('social.clubs_description')}
+                    </Text>
+                    <Text style={[styles.cardProgress, { color: colors.accent.primary }]}>
+                      {ti('social.member_of_clubs', { count: stats.clubs })}
+                    </Text>
+                  </VStack>
+                  <Text style={[styles.arrow, { color: colors.accent.primary }]}>→</Text>
+                </TouchableOpacity>
+              </Card>
             </Animated.View>
 
             <Animated.View entering={FadeInDown.delay(500).duration(400)}>
-              <Pressable onPress={() => onNavigate('messages')}>
-                <Panel variant="glass" padding={20}>
-                  <HStack gap={4} style={styles.featureCard}>
-                    <View style={styles.iconBadge}>
-                      <Text style={styles.cardIcon}>💬</Text>
-                    </View>
-                    <VStack gap={1} style={{ flex: 1 }}>
-                      <Text style={[styles.cardTitle, { color: colors.foreground.primary }]}>
-                        {t('social.messages')}
-                      </Text>
-                      <Text style={[styles.cardDescription, { color: colors.foreground.secondary }]}>
-                        {t('social.messages_description')}
-                      </Text>
-                      <Text style={[styles.cardProgress, { color: colors.accent.primary }]}>
-                        {ti('social.unread_messages', { count: stats.unreadMessages })}
-                      </Text>
-                    </VStack>
-                    <Text style={[styles.arrow, { color: colors.foreground.tertiary }]}>→</Text>
-                  </HStack>
-                </Panel>
-              </Pressable>
+              <Card variant="default" size="md" style={styles.card}>
+                <TouchableOpacity style={styles.cardInner} onPress={() => onNavigate('messages')}>
+                  <View style={[styles.iconBadge, { backgroundColor: colors.accent.primary + '15' }]}>
+                    <Icon name="message" size={32} color={colors.accent.primary} />
+                  </View>
+                  <VStack gap={1} style={{ flex: 1 }}>
+                    <Text style={[styles.cardTitle, { color: colors.foreground.primary }]}>
+                      {t('social.messages')}
+                    </Text>
+                    <Text style={[styles.cardDescription, { color: colors.foreground.secondary }]}>
+                      {t('social.messages_description')}
+                    </Text>
+                    <Text style={[styles.cardProgress, { color: colors.accent.primary }]}>
+                      {ti('social.unread_messages', { count: stats.unreadMessages })}
+                    </Text>
+                  </VStack>
+                  <Text style={[styles.arrow, { color: colors.accent.primary }]}>→</Text>
+                </TouchableOpacity>
+              </Card>
             </Animated.View>
 
             <Animated.View entering={FadeInDown.delay(600).duration(400)}>
-              <Pressable onPress={() => onNavigate('leaderboard')}>
-                <Panel variant="glass" padding={20}>
-                  <HStack gap={4} style={styles.featureCard}>
-                    <View style={styles.iconBadge}>
-                      <Text style={styles.cardIcon}>📊</Text>
-                    </View>
+              <Card variant="default" size="md" style={styles.card}>
+                <TouchableOpacity style={styles.cardInner} onPress={() => onNavigate('leaderboard')}>
+                  <View style={[styles.iconBadge, { backgroundColor: colors.accent.primary + '15' }]}>
+                    <Icon name="leaderboard" size={32} color={colors.accent.primary} />
+                  </View>
                     <VStack gap={1} style={{ flex: 1 }}>
                       <Text style={[styles.cardTitle, { color: colors.foreground.primary }]}>
                         {t('social.leaderboards')}
@@ -171,11 +165,10 @@ export function SocialHub({ onNavigate, userId }: SocialHubProps) {
                         {ti('social.ranked_globally', { rank: stats.globalRank || 'N/A' })}
                       </Text>
                     </VStack>
-                    <Text style={[styles.arrow, { color: colors.foreground.tertiary }]}>→</Text>
-                  </HStack>
-                </Panel>
-              </Pressable>
-            </Animated.View>
+                    <Text style={[styles.arrow, { color: colors.accent.primary }]}>→</Text>
+                  </TouchableOpacity>
+                </Card>
+              </Animated.View>
           </VStack>
         </VStack>
       </ScrollView>
@@ -188,10 +181,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
+    paddingHorizontal: 20,
     paddingBottom: 40,
   },
   content: {
-    paddingHorizontal: 24,
     paddingTop: 24,
     maxWidth: 600,
     alignSelf: 'center',
@@ -218,19 +211,21 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     letterSpacing: -0.3,
   },
-  featureCard: {
+  card: {
+    marginBottom: 12,
+  },
+  cardInner: {
+    flexDirection: 'row',
     alignItems: 'center',
+    gap: 16,
+    padding: 16,
   },
   iconBadge: {
     width: 56,
     height: 56,
     borderRadius: 16,
-    backgroundColor: 'rgba(102, 126, 234, 0.1)',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  cardIcon: {
-    fontSize: 28,
   },
   cardTitle: {
     fontSize: 20,

@@ -12,7 +12,7 @@ import Animated, {
   withSpring,
   useSharedValue,
 } from 'react-native-reanimated';
-import { useColors } from '@/ui';
+import { useColors } from '@/ui/hooks/useThemeTokens';
 
 export type CardVariant = 'default' | 'elevated' | 'glass' | 'gradient' | 'outline';
 export type CardSize = 'sm' | 'md' | 'lg' | 'xl';

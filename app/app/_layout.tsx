@@ -16,6 +16,7 @@ import {
   SocialProvider 
 } from '@/contexts';
 import { I18nProvider } from '@/i18n/I18nContext';
+import { useAppFonts } from '@/config/fonts';
 
 export const unstable_settings = {
   anchor: '(tabs)',
@@ -23,6 +24,12 @@ export const unstable_settings = {
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
+  const [fontsLoaded, fontError] = useAppFonts();
+
+  // Keep splash screen visible while fonts load
+  if (!fontsLoaded && !fontError) {
+    return null;
+  }
 
   return (
     <I18nProvider defaultLocale="en">

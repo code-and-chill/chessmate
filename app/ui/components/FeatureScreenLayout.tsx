@@ -31,7 +31,9 @@
 import type { ReactNode } from 'react';
 import { StyleSheet, View, Text, SafeAreaView, Platform, Dimensions } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
-import { VStack, useColors, typographyTokens } from '@/ui';
+import { VStack } from '@/ui/primitives/Stack';
+import { useColors } from '@/ui/hooks/useThemeTokens';
+import { typographyTokens } from '@/ui/tokens/typography';
 
 const { width } = Dimensions.get('window');
 const isDesktop = Platform.OS === 'web' && width >= 1024;

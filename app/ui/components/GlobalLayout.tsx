@@ -2,9 +2,9 @@ import type { ReactNode } from 'react';
 import { View, StyleSheet, Platform, TouchableOpacity } from 'react-native';
 import { usePathname } from 'expo-router';
 import { useState } from 'react';
-import { IconSymbol } from '@/ui';
+import { IconSymbol } from '@/ui/primitives/icon-symbol';
 import { Sidebar, type SidebarItem } from './Sidebar';
-import { useThemeTokens } from '@/ui';
+import { useThemeTokens } from '@/ui/hooks/useThemeTokens';
 
 const sidebarItems: SidebarItem[] = [
   {
