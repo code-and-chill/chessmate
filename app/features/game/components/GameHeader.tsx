@@ -33,8 +33,18 @@ export const GameHeader: React.FC<GameHeaderProps> = ({
       {/* Metadata Line */}
       <HStack gap={spacingTokens[2]} alignItems="center">
         <StatusBadge status={status} size="sm" />
-        <Text variant="label" color={colors.foreground.secondary} style={{ fontSize: 14 }}>
-          {isRated ? 'Rated' : 'Casual'} {gameMode}
+        <Text 
+          variant="label" 
+          style={{ 
+            fontSize: 14, 
+            fontWeight: '600',
+            color: isRated ? colors.accent.primary : colors.foreground.secondary 
+          }}
+        >
+          {isRated ? '⭐ Rated' : '🎮 Casual'}
+        </Text>
+        <Text variant="body" color={colors.foreground.secondary} style={{ fontSize: 14 }}>
+          {gameMode}
         </Text>
         <Text variant="body" color={colors.foreground.muted} style={{ fontSize: 14 }}>
           •

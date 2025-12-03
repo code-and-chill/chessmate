@@ -317,7 +317,7 @@ export default function GameScreen() {
           status={gameState.status === 'in_progress' ? 'live' : 'ended'}
           gameMode="Local Play"
           timeControl={`${gameState.timeControl.initialMs / 60000}+${gameState.timeControl.incrementMs / 1000}`}
-          isRated={false}
+          isRated={gameState.rated !== false}
         />
 
         {/* Main Game Area */}
@@ -334,6 +334,7 @@ export default function GameScreen() {
                 remainingMs={gameState.blackPlayer?.remainingMs || 600000}
                 capturedPieces={capturedPieces.black}
                 gameStatus={gameState.status}
+                showRating={gameState.rated !== false}
               />
             </Animated.View>
 
@@ -372,6 +373,7 @@ export default function GameScreen() {
                 remainingMs={gameState.whitePlayer?.remainingMs || 600000}
                 capturedPieces={capturedPieces.white}
                 gameStatus={gameState.status}
+                showRating={gameState.rated !== false}
               />
             </Animated.View>
 

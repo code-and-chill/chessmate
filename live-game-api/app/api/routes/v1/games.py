@@ -32,27 +32,192 @@ async def create_game(
     current_user: UUID = Depends(get_current_user),
     game_service: GameService = Depends(get_game_service),
 ):
-    """Create a new game challenge."""
+    """Create a new game challenge.
+    
+    The rated status may be automatically overridden based on game configuration:
+    - Local games are always unrated
+    - Custom starting positions force unrated
+    - Odds/handicap games force unrated
+    - Large rating gaps force unrated
+    
+    The response includes the authoritative rated status and decision_reason.
+    """
     try:
         time_control = TimeControl(
             initial_seconds=request.time_control.initial_seconds,
             increment_seconds=request.time_control.increment_seconds,
         )
 
+        # TODO: Fetch player ratings from rating-api for rating gap check
+        # For now, we pass None which skips the rating gap check
         game = await game_service.create_challenge(
             creator_id=current_user,
             time_control=time_control,
             opponent_account_id=request.opponent_account_id,
             color_preference=request.color_preference,
             rated=request.rated,
+            is_local_game=request.is_local_game,
+            starting_fen=request.starting_fen,
+            is_odds_game=request.is_odds_game,
+            creator_rating=None,  # TODO: Fetch from rating-api
+            opponent_rating=None,  # TODO: Fetch from rating-api
         )
 
         return GameSummaryResponse(
             id=game.id,
             status=game.status,
             rated=game.rated,
+            decision_reason=game.decision_reason,
             white_account_id=game.white_account_id,
             black_account_id=game.black_account_id,
+            result=game.result,
+            end_reason=game.end_reason,
+            created_at=game.created_at,
+            started_at=game.started_at,
+            ended_at=game.ended_at,
+        )
+    except ApplicationException as e:
+        raise HTTPException(status_code=e.status_code, detail=e.message)
+
+
+@router.post("/games/{game_id}/takeback", response_model=GameResponse)
+async def request_takeback(
+    game_id: UUID,
+    current_user: UUID = Depends(get_current_user),
+    game_service: GameService = Depends(get_game_service),
+):
+    """Request a takeback. Allowed only for unrated games.
+
+    Rated games will receive 403 via domain exception mapping.
+    """
+    try:
+        game = await game_service.request_takeback(game_id=game_id, player_id=current_user)
+        return GameResponse(
+            id=game.id,
+            status=game.status,
+            rated=game.rated,
+            decision_reason=game.decision_reason,
+            variant_code=game.variant_code,
+            white_account_id=game.white_account_id,
+            black_account_id=game.black_account_id,
+            white_remaining_ms=game.white_clock_ms,
+            black_remaining_ms=game.black_clock_ms,
+            side_to_move=game.side_to_move,
+            fen=game.fen,
+            moves=[
+                {
+                    "ply": m.ply,
+                    "move_number": m.move_number,
+                    "color": m.color,
+                    "from_square": m.from_square,
+                    "to_square": m.to_square,
+                    "promotion": m.promotion,
+                    "san": m.san,
+                    "played_at": m.played_at,
+                    "elapsed_ms": m.elapsed_ms,
+                }
+                for m in game.moves
+            ],
+            result=game.result,
+            end_reason=game.end_reason,
+            created_at=game.created_at,
+            started_at=game.started_at,
+            ended_at=game.ended_at,
+        )
+    except ApplicationException as e:
+        raise HTTPException(status_code=e.status_code, detail=e.message)
+
+
+@router.post("/games/{game_id}/position", response_model=GameResponse)
+async def set_position(
+    game_id: UUID,
+    body: dict,
+    current_user: UUID = Depends(get_current_user),
+    game_service: GameService = Depends(get_game_service),
+):
+    """Set a custom board position (FEN). Allowed only before start in unrated games."""
+    fen = body.get("fen")
+    if not fen:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Missing 'fen' in request body")
+    try:
+        game = await game_service.set_position(game_id=game_id, player_id=current_user, fen=fen)
+        return GameResponse(
+            id=game.id,
+            status=game.status,
+            rated=game.rated,
+            decision_reason=game.decision_reason,
+            variant_code=game.variant_code,
+            white_account_id=game.white_account_id,
+            black_account_id=game.black_account_id,
+            white_remaining_ms=game.white_clock_ms,
+            black_remaining_ms=game.black_clock_ms,
+            side_to_move=game.side_to_move,
+            fen=game.fen,
+            moves=[
+                {
+                    "ply": m.ply,
+                    "move_number": m.move_number,
+                    "color": m.color,
+                    "from_square": m.from_square,
+                    "to_square": m.to_square,
+                    "promotion": m.promotion,
+                    "san": m.san,
+                    "played_at": m.played_at,
+                    "elapsed_ms": m.elapsed_ms,
+                }
+                for m in game.moves
+            ],
+            result=game.result,
+            end_reason=game.end_reason,
+            created_at=game.created_at,
+            started_at=game.started_at,
+            ended_at=game.ended_at,
+        )
+    except ApplicationException as e:
+        raise HTTPException(status_code=e.status_code, detail=e.message)
+
+
+@router.patch("/games/{game_id}/rated", response_model=GameResponse)
+async def update_rated_status(
+    game_id: UUID,
+    body: dict,
+    current_user: UUID = Depends(get_current_user),
+    game_service: GameService = Depends(get_game_service),
+):
+    """Update the rated flag before the game starts.
+
+    Domain will enforce immutability once started and may auto-override.
+    """
+    if "rated" not in body:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Missing 'rated' in request body")
+    try:
+        game = await game_service.update_rated_status(game_id=game_id, player_id=current_user, rated=bool(body["rated"]))
+        return GameResponse(
+            id=game.id,
+            status=game.status,
+            rated=game.rated,
+            decision_reason=game.decision_reason,
+            variant_code=game.variant_code,
+            white_account_id=game.white_account_id,
+            black_account_id=game.black_account_id,
+            white_remaining_ms=game.white_clock_ms,
+            black_remaining_ms=game.black_clock_ms,
+            side_to_move=game.side_to_move,
+            fen=game.fen,
+            moves=[
+                {
+                    "ply": m.ply,
+                    "move_number": m.move_number,
+                    "color": m.color,
+                    "from_square": m.from_square,
+                    "to_square": m.to_square,
+                    "promotion": m.promotion,
+                    "san": m.san,
+                    "played_at": m.played_at,
+                    "elapsed_ms": m.elapsed_ms,
+                }
+                for m in game.moves
+            ],
             result=game.result,
             end_reason=game.end_reason,
             created_at=game.created_at,
@@ -79,6 +244,7 @@ async def get_game(
             id=game.id,
             status=game.status,
             rated=game.rated,
+            decision_reason=game.decision_reason,
             variant_code=game.variant_code,
             white_account_id=game.white_account_id,
             black_account_id=game.black_account_id,
@@ -129,6 +295,7 @@ async def join_game(
             id=game.id,
             status=game.status,
             rated=game.rated,
+            decision_reason=game.decision_reason,
             variant_code=game.variant_code,
             white_account_id=game.white_account_id,
             black_account_id=game.black_account_id,
@@ -181,6 +348,7 @@ async def play_move(
             id=game.id,
             status=game.status,
             rated=game.rated,
+            decision_reason=game.decision_reason,
             variant_code=game.variant_code,
             white_account_id=game.white_account_id,
             black_account_id=game.black_account_id,
@@ -226,6 +394,7 @@ async def resign(
             id=game.id,
             status=game.status,
             rated=game.rated,
+            decision_reason=game.decision_reason,
             variant_code=game.variant_code,
             white_account_id=game.white_account_id,
             black_account_id=game.black_account_id,

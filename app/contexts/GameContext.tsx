@@ -35,6 +35,9 @@ interface FriendGameOptions {
   timeControl: string;
   playerColor: 'white' | 'black';
   creatorId: string;
+  rated?: boolean;
+  starting_fen?: string;
+  is_odds_game?: boolean;
 }
 
 interface FriendChallenge {
@@ -114,10 +117,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
       const gameState = await playApi.createGame({
         timeControl: options.timeControl,
         colorPreference: options.colorPreference,
-        rated: false,
+        rated: false, // Always unrated for local games
+        is_local_game: true,
         opponentAccountId: options.opponentAccountId,
       });
       
+      // Note: Backend will enforce decision_reason='LOCAL_AUTO'
       return gameState;
     } finally {
       setIsCreatingGame(false);
@@ -129,11 +134,19 @@ export function GameProvider({ children }: { children: ReactNode }) {
     
     setIsCreatingGame(true);
     try {
-      const { gameId, inviteCode } = await liveGameApi.createFriendGame(
+      const { gameId, inviteCode, rated, decision_reason } = await liveGameApi.createFriendGame(
         options.creatorId,
         options.timeControl,
-        options.playerColor
+        options.playerColor,
+        options.rated ?? true, // Default to rated
+        {
+          starting_fen: options.starting_fen,
+          is_odds_game: options.is_odds_game,
+        }
       );
+      
+      // Note: Backend may override rated flag based on automatic rules
+      // decision_reason indicates why (LOCAL_AUTO, RATING_GAP_AUTO, etc.)
       
       const mockGame: GameState = {
         id: gameId,

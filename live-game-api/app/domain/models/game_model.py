@@ -6,6 +6,7 @@ from uuid import UUID
 from pydantic import Field
 
 from .base_entity import BaseEntity
+from .decision_reason import DecisionReason
 from .end_reason import EndReason
 from .game_result import GameResult
 from .game_status import GameStatus
@@ -22,7 +23,12 @@ class Game(BaseEntity):
 
     status: GameStatus = GameStatus.WAITING_FOR_OPPONENT
     rated: bool = True
+    decision_reason: Optional[DecisionReason] = None
     variant_code: str = "standard"
+
+    # Custom game settings
+    starting_fen: Optional[str] = None  # If None, uses standard starting position
+    is_odds_game: bool = False  # True if pieces were removed for handicap
 
     time_control: TimeControl
     white_clock_ms: int
@@ -62,6 +68,17 @@ class Game(BaseEntity):
     def is_player_in_game(self, account_id: UUID) -> bool:
         """Check if account is participating in this game."""
         return self.get_player_by_id(account_id) is not None
+
+    def can_change_rated_status(self) -> bool:
+        """Check if rated status can still be changed.
+        
+        Rated status is immutable once the game has started.
+        """
+        return self.status == GameStatus.WAITING_FOR_OPPONENT
+
+    def is_using_custom_position(self) -> bool:
+        """Check if game uses a custom starting position."""
+        return self.starting_fen is not None
 
     def can_join(self, account_id: UUID) -> bool:
         """Check if account can join this game."""

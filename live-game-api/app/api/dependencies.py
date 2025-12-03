@@ -33,7 +33,22 @@ async def get_game_service(
     """Get game service with dependencies."""
     from app.domain.repositories.game_repository import GameRepositoryInterface
     from app.domain.services.game_service import GameService
+    from app.domain.services.rating_decision_engine import RatingDecisionEngine, RulesConfig
     from app.infrastructure.database.repository import GameRepository
+    import os
 
     repository: GameRepositoryInterface = GameRepository(db)
-    return GameService(repository)
+
+    # Configure decision engine from environment (with sensible defaults)
+    max_gap = int(os.getenv("RATED_MAX_RATING_DIFFERENCE", "500"))
+    allow_custom_fen = os.getenv("ALLOW_CUSTOM_FEN_RATED", "false").lower() == "true"
+    allow_odds = os.getenv("ALLOW_ODDS_RATED", "false").lower() == "true"
+
+    rules = RulesConfig(
+        MAX_RATED_RATING_DIFFERENCE=max_gap,
+        ALLOW_CUSTOM_FEN_RATED=allow_custom_fen,
+        ALLOW_ODDS_RATED=allow_odds,
+    )
+    decision_engine = RatingDecisionEngine(rules)
+
+    return GameService(repository, decision_engine)

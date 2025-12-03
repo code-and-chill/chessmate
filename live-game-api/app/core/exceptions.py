@@ -94,6 +94,42 @@ class NotPlayersTurnError(ApplicationException):
         )
 
 
+class TakebackNotAllowedError(ApplicationException):
+    """Takeback not allowed in rated games."""
+
+    def __init__(self, game_id: str, reason: str = "Takebacks are not allowed in rated games"):
+        super().__init__(
+            message=reason,
+            status_code=status.HTTP_403_FORBIDDEN,
+            error_code="TAKEBACK_NOT_ALLOWED",
+            details={"game_id": game_id},
+        )
+
+
+class BoardEditNotAllowedError(ApplicationException):
+    """Board editing not allowed in rated games."""
+
+    def __init__(self, game_id: str):
+        super().__init__(
+            message="Board editing is not allowed in rated games",
+            status_code=status.HTTP_403_FORBIDDEN,
+            error_code="BOARD_EDIT_NOT_ALLOWED",
+            details={"game_id": game_id},
+        )
+
+
+class RatedStatusImmutableError(ApplicationException):
+    """Rated status cannot be changed after game starts."""
+
+    def __init__(self, game_id: str):
+        super().__init__(
+            message="Rated status cannot be changed once the game has started",
+            status_code=status.HTTP_400_BAD_REQUEST,
+            error_code="RATED_STATUS_IMMUTABLE",
+            details={"game_id": game_id},
+        )
+
+
 def setup_exception_handlers(app: FastAPI) -> None:
     """Setup exception handlers for the application."""
 

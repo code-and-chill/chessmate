@@ -39,6 +39,7 @@ export interface PlayerCardProps {
   gameStatus?: 'in_progress' | 'ended' | 'draw' | 'resigned';
   onTimeExpire?: () => void;
   style?: ViewStyle;
+  showRating?: boolean; // Hide ratings for casual/local games
 }
 
 const PIECE_SYMBOLS: Record<string, string> = {
@@ -68,6 +69,7 @@ export const PlayerCard = React.memo<PlayerCardProps>(({
   gameStatus = 'in_progress',
   onTimeExpire,
   style,
+  showRating = true, // Default to showing ratings
 }) => {
   const [displayTime, setDisplayTime] = useState(remainingMs);
   const { colors, isDark } = useThemeTokens();
@@ -195,7 +197,7 @@ export const PlayerCard = React.memo<PlayerCardProps>(({
               )}
             </HStack>
             
-            {rating && (
+            {showRating && rating && (
               <Text variant="body" color={colors.foreground.muted} style={{ fontSize: typographyTokens.fontSize.xs }}>
                 {rating}
               </Text>

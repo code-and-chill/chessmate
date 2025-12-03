@@ -140,6 +140,12 @@ export { Icon, type IconName, type IconProps } from './icons';
 // Re-export enhanced components
 export { EmptyState as EnhancedEmptyState, type EmptyStateProps as EnhancedEmptyStateProps } from './components/EmptyState';
 export { Skeleton, SkeletonCard, SkeletonList } from './primitives/SkeletonLoader';
+export { FeatureScreenLayout } from './components/FeatureScreenLayout';
+export { FeatureCard } from './components/FeatureCard';
+export { StatCard } from './components/StatCard';
+export { GlobalLayout } from './components/GlobalLayout';
+export { SegmentedControl } from './components/SegmentedControl';
+export { RatedToggle } from './components/RatedToggle';
 
 // Re-export style utilities
 export { safeStyles, safeStyleArray } from './utilities/safeStyles';

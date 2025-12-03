@@ -6,6 +6,7 @@ import type { LiveGameMove } from './types';
 import type { WebSocketMessage } from './websocket';
 import { apiClient } from './client';
 import { GameState } from '../../features/game/types/GameState';
+import type { DecisionReason } from '../../features/game/types/DecisionReason';
 
 export class LiveGameApiClient {
   private baseUrl: string;
@@ -96,12 +97,21 @@ export class LiveGameApiClient {
   async createFriendGame(
     creatorId: string,
     timeControl: string,
-    playerColor: 'white' | 'black'
-  ): Promise<{ gameId: string; inviteCode: string }> {
-    return this.request<{ gameId: string; inviteCode: string }>('POST', '/v1/games/friend', {
+    playerColor: 'white' | 'black',
+    rated: boolean = true,
+    options?: {
+      starting_fen?: string;
+      is_odds_game?: boolean;
+    }
+  ): Promise<{ gameId: string; inviteCode: string; rated: boolean; decision_reason?: DecisionReason }> {
+    return this.request<{ gameId: string; inviteCode: string; rated: boolean; decision_reason?: DecisionReason }>('POST', '/v1/games/friend', {
       creatorId,
       timeControl,
       playerColor,
+      rated,
+      is_local_game: false,
+      starting_fen: options?.starting_fen,
+      is_odds_game: options?.is_odds_game,
     });
   }
 
@@ -113,5 +123,26 @@ export class LiveGameApiClient {
       userId,
       inviteCode,
     });
+  }
+
+  /**
+   * Request a takeback (unrated games only)
+   */
+  async requestTakeback(gameId: string): Promise<GameState> {
+    return this.request<GameState>('POST', `/v1/games/${gameId}/takeback`, {});
+  }
+
+  /**
+   * Set custom board position (unrated games only, before start)
+   */
+  async setPosition(gameId: string, fen: string): Promise<GameState> {
+    return this.request<GameState>('POST', `/v1/games/${gameId}/position`, { fen });
+  }
+
+  /**
+   * Update rated status (only before game starts)
+   */
+  async updateRatedStatus(gameId: string, rated: boolean): Promise<GameState> {
+    return this.request<GameState>('PATCH', `/v1/games/${gameId}/rated`, { rated });
   }
 }

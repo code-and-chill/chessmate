@@ -90,6 +90,21 @@ async def ingest_game_result(
     white = await get_or_init(body.white_user_id)
     black = await get_or_init(body.black_user_id)
 
+    # ENFORCEMENT RULE: Skip rating calculation for unrated games
+    # Still log the game for statistics, but don't update ratings
+    if not body.rated:
+        # Log unrated game without rating changes
+        ingestion.white_rating_after = white.rating  # Keep current rating
+        ingestion.black_rating_after = black.rating  # Keep current rating
+        await db.commit()
+        
+        return GameResultOut(
+            game_id=body.game_id,
+            white_rating_after=white.rating,
+            black_rating_after=black.rating,
+        )
+
+    # For rated games: Calculate rating updates using Glicko-2
     engine = Glicko2Engine(tau=pool.glicko_tau or settings.GLICKO_TAU)
 
     if body.result == "white_win":

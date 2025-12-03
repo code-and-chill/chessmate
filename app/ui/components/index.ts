@@ -9,3 +9,4 @@ export { FeatureCard } from './FeatureCard';
 export { StatCard } from './StatCard';
 export { GlobalLayout } from './GlobalLayout';
 export { SegmentedControl } from './SegmentedControl';
+export { RatedToggle } from './RatedToggle';

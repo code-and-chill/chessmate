@@ -13,4 +13,7 @@ class CreateGameRequest(BaseModel):
     opponent_account_id: Optional[UUID] = None
     color_preference: str = Field(default="random", pattern=r"^(white|black|random)$")
     time_control: TimeControlRequest
-    rated: bool = True
+    rated: bool = True  # Requested rated status (may be overridden by automatic rules)
+    is_local_game: bool = False  # Local pass-and-play game
+    starting_fen: Optional[str] = None  # Custom starting position
+    is_odds_game: bool = False  # Odds/handicap game

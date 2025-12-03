@@ -5,6 +5,7 @@ from uuid import UUID
 
 from pydantic import BaseModel
 
+from app.domain.models.decision_reason import DecisionReason
 from app.domain.models.end_reason import EndReason
 from app.domain.models.game_result import GameResult
 from app.domain.models.game_status import GameStatus
@@ -16,6 +17,7 @@ class GameSummaryResponse(BaseModel):
     id: UUID
     status: GameStatus
     rated: bool
+    decision_reason: Optional[DecisionReason]
 
     white_account_id: Optional[UUID]
     black_account_id: Optional[UUID]

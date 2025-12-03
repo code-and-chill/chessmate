@@ -3,7 +3,7 @@ import { StyleSheet, View, TouchableOpacity, Text, SafeAreaView, ScrollView, Tex
 import { useRouter } from 'expo-router';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { Panel } from '@/ui/primitives/Panel';
-import { VStack, HStack } from '@/ui';
+import { VStack, HStack, RatedToggle } from '@/ui';
 import { useAuth } from '@/contexts/AuthContext';
 import { useGame } from '@/contexts/GameContext';
 import { useThemeTokens, useFonts } from '@/ui';
@@ -24,6 +24,7 @@ export default function FriendChallengeScreen() {
   const [joinCode, setJoinCode] = useState<string>('');
   const [timeControl, setTimeControl] = useState<string>('10+0');
   const [playerColor, setPlayerColor] = useState<'white' | 'black' | 'random'>('random');
+  const [rated, setRated] = useState<boolean>(true);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -55,6 +56,7 @@ export default function FriendChallengeScreen() {
         timeControl,
         playerColor: playerColor === 'random' ? (Math.random() > 0.5 ? 'white' : 'black') : playerColor,
         creatorId: user?.id || '',
+        rated,
       });
       
       const link = `chessmate://game/${challenge.gameId}?code=${challenge.inviteCode}`;
@@ -260,8 +262,23 @@ export default function FriendChallengeScreen() {
               </Panel>
             </Animated.View>
 
-            {/* Start Game Button */}
-            <Animated.View entering={FadeInUp.delay(600).duration(400)}>
+            {/* Rated/Casual Toggle */}
+            <Animated.View entering={FadeInDown.delay(450).duration(400)}>
+              <Panel variant="glass" padding={20}>
+                <VStack gap={3} style={{ alignItems: 'center' }}>
+                  <Text style={[styles.sectionTitle, { color: colors.foreground.primary }]}>
+                    Game Type
+                  </Text>
+                  <RatedToggle
+                    value={rated}
+                    onChange={setRated}
+                  />
+                </VStack>
+              </Panel>
+            </Animated.View>
+
+            {/* Create Button */}
+            <Animated.View entering={FadeInUp.delay(500).duration(400)}>
               <TouchableOpacity
                 style={[styles.button, { backgroundColor: colors.accent.primary }]}
                 onPress={handleCreateLocalGame}

@@ -1,4 +1,5 @@
 """Game domain models re-exports for backward compatibility."""
+from .decision_reason import DecisionReason
 from .end_reason import EndReason
 from .game_created_event import GameCreatedEvent
 from .game_ended_event import GameEndedEvent
@@ -14,6 +15,7 @@ from .time_control import TimeControl
 __all__ = [
     "GameStatus",
     "GameResult",
+    "DecisionReason",
     "EndReason",
     "TimeControl",
     "Player",

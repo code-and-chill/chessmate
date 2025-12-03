@@ -1,12 +1,8 @@
 import React, { useState } from 'react';
 import { ScrollView, Pressable } from 'react-native';
-import { Surface } from '@/ui/primitives/Surface';
 import { Box } from '@/ui/primitives/Box';
 import { Text } from '@/ui/primitives/Text';
 import { useThemeTokens } from '@/ui/hooks/useThemeTokens';
-import { radiusTokens } from '@/ui/tokens/radii';
-import { spacingTokens } from '@/ui/tokens/spacing';
-import { shadowTokens } from '@/ui/tokens/shadows';
 
 export interface Move {
   moveNumber: number;
