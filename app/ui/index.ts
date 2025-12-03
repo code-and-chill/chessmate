@@ -5,6 +5,42 @@ export { spacingTokens, spacingScale } from './tokens/spacing';
 export { radiusTokens, radiusScale } from './tokens/radii';
 export { shadowTokens } from './tokens/shadows';
 export { motionTokens, microInteractions } from './tokens/motion';
+export {
+  feedbackColorTokens,
+  getMoveQualityColor,
+  getAccuracyColor,
+  getGamePhaseColor,
+  getCoachFeedbackColor,
+  getEvaluationColor,
+  moveQualitySymbols,
+  moveQualityLabels,
+} from './tokens/feedback';
+export {
+  elevationTokens,
+  componentElevation,
+  elevationBlur,
+  elevationTransition,
+  getElevation,
+  getElevationBlur,
+  getElevationTransition,
+  type ElevationLevel,
+} from './tokens/elevation';
+export {
+  materialTokens,
+  svgPatterns,
+  pieceShadow,
+  squareGlow,
+  boardBorder,
+  getMaterial,
+  getMaterialDataUri,
+  getPieceShadow,
+  getSquareGlow,
+  getBoardBorder,
+  type MaterialType,
+  type PieceShadowLevel,
+  type SquareGlowLevel,
+  type BoardBorderStyle,
+} from './tokens/materials';
 export { boardThemes, defaultTheme, getBoardTheme, getAllThemes, getAllThemeIds, type BoardTheme, type BoardThemeId } from './tokens/board-themes';
 export {
   breakpointValues,
@@ -94,6 +130,24 @@ export type { Move } from './components/chess/MoveList';
 export { GameClock } from './components/chess/GameClock';
 export { ResultDialog } from './components/chess/ResultDialog';
 export type { GameResult as ResultType, ResultReason } from './components/chess/ResultDialog';
+export { MoveQualityBadge, MoveQualityList, useMoveQualityCounts } from './components/chess/MoveQualityBadge';
+export type { MoveQualityBadgeProps, MoveQualityListProps, MoveQuality, BadgeSize as MoveQualityBadgeSize, BadgeVariant as MoveQualityBadgeVariant } from './components/chess/MoveQualityBadge';
+export { AccuracyGraph, useAccuracyCalculation } from './components/chess/AccuracyGraph';
+export type { AccuracyGraphProps, AccuracyDataPoint } from './components/chess/AccuracyGraph';
+export { EvalGraph, useCriticalMomentDetection } from './components/chess/EvalGraph';
+export type { EvalGraphProps, EvalDataPoint, GamePhases } from './components/chess/EvalGraph';
+
+// Re-export coach components
+export { CoachTooltip, useCoachTooltip } from './components/coach/CoachTooltip';
+export type { CoachTooltipProps, CoachSentiment, TooltipPosition, TooltipVariant } from './components/coach/CoachTooltip';
+export { CoachAvatar, useExpressionCycle, useExpressionForSentiment, useExpressionForMoveQuality } from './components/coach/CoachAvatar';
+export type { CoachAvatarProps, CoachExpression, AvatarSize } from './components/coach/CoachAvatar';
+
+// Re-export new chess components (production enhancements)
+export { EvalBar } from './components/chess/EvalBar';
+export type { EvalBarProps } from './components/chess/EvalBar';
+export { GameReviewPanel } from './components/chess/GameReviewPanel';
+export type { GameReviewPanelProps, GraphType } from './components/chess/GameReviewPanel';
 
 // Re-export theme system
 export { ThemeProvider } from './theme/ThemeProvider';
@@ -114,6 +168,23 @@ export {
 // Re-export animation utilities
 export { animations } from './utilities/animations';
 export type { AnimationOptions } from './utilities/animations';
+
+// Re-export animation presets
+export {
+  animationPresets,
+  timingConfigs,
+  springConfigs,
+  entranceAnimations,
+  exitAnimations,
+  attentionAnimations,
+  interactionAnimations,
+  feedbackAnimations,
+  chessAnimations,
+  celebrationAnimations,
+  getStaggerDelay,
+  getSequenceDelay,
+  loopConfig,
+} from './animations/presets';
 
 // Re-export layouts
 export { ResponsiveGameLayout } from './layouts/ResponsiveGameLayout';

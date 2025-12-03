@@ -5,16 +5,19 @@
  * Enhanced with animations, variants, and modern interactions
  */
 
-import React from 'react';
-import { View, StyleSheet, Platform, ViewStyle } from 'react-native';
+import type React from 'react';
+import { View, StyleSheet, Platform } from 'react-native';
+import type { ViewStyle } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   withSpring,
   useSharedValue,
 } from 'react-native-reanimated';
-import { useColors } from '@/ui/hooks/useThemeTokens';
+import { BlurView } from 'expo-blur';
+import { useColors, useIsDark } from '@/ui/hooks/useThemeTokens';
+import { getElevation, getElevationBlur } from '@/ui/tokens/elevation';
 
-export type CardVariant = 'default' | 'elevated' | 'glass' | 'gradient' | 'outline';
+export type CardVariant = 'default' | 'elevated' | 'glass' | 'gradient' | 'outline' | 'surfaceElevated' | 'surfaceFloating' | 'surfaceModal';
 export type CardSize = 'sm' | 'md' | 'lg' | 'xl';
 
 export type CardProps = {
@@ -44,16 +47,13 @@ export const Card: React.FC<CardProps> = ({
   variant = 'default',
   size = 'md',
   padding,
-  shadow,
-  borderColor,
-  borderWidth,
   gradient,
-  hoverable = false,
   pressable = false,
   animated = false,
   style,
 }) => {
   const colors = useColors();
+  const isDark = useIsDark();
   const scale = useSharedValue(1);
   const opacity = useSharedValue(1);
 
@@ -82,6 +82,17 @@ export const Card: React.FC<CardProps> = ({
 
   const { padding: sizePadding, radius } = sizeConfig[size];
   const finalPadding = padding ?? sizePadding;
+  // Elevation-based variants using new elevation tokens
+  const getElevationStyle = (level: 'surface8' | 'surface16' | 'surface24') => {
+    const elevation = getElevation(level);
+    return {
+      backgroundColor: colors.background.secondary,
+      ...Platform.select({
+        ios: elevation.shadow,
+        android: { elevation: elevation.zIndex },
+      }),
+    };
+  };
 
   const variantStyles = {
     default: { ...styles.default, backgroundColor: colors.background.secondary },
@@ -89,22 +100,57 @@ export const Card: React.FC<CardProps> = ({
     glass: styles.glass,
     gradient: styles.gradient,
     outline: { ...styles.outline, borderColor: colors.background.tertiary },
+    surfaceElevated: getElevationStyle('surface8'),
+    surfaceFloating: getElevationStyle('surface16'),
+    surfaceModal: getElevationStyle('surface24'),
   };
+  
+  const CardWrapper = animated ? Animated.View : View;
+  
+  // Use BlurView for glass and elevated surface variants
+  const useBlur = (variant === 'glass' || variant === 'surfaceElevated' || variant === 'surfaceFloating' || variant === 'surfaceModal') && Platform.OS !== 'web';
+  
+  const blurIntensity = variant === 'glass' ? (isDark ? 40 : 60) :
+                        variant === 'surfaceElevated' ? getElevationBlur('surface8') :
+                        variant === 'surfaceFloating' ? getElevationBlur('surface16') :
+                        variant === 'surfaceModal' ? getElevationBlur('surface24') : 0;
 
   const cardStyle = [
     styles.card,
     variantStyles[variant],
-    {
-      padding: finalPadding,
-      borderRadius: radius,
-    },
-    borderColor && { borderColor },
-    borderWidth !== undefined && { borderWidth },
+    { borderRadius: radius, padding: finalPadding },
     animated && animatedStyle,
     style,
-  ].filter(Boolean);
+  ];
 
-  const CardWrapper = animated ? Animated.View : View;
+  if (useBlur) {
+    return (
+      <CardWrapper
+        style={[cardStyle, { overflow: 'hidden' }]}
+        onTouchStart={animated ? handlePressIn : undefined}
+        onTouchEnd={animated ? handlePressOut : undefined}
+      >
+        <BlurView
+          intensity={blurIntensity}
+          tint={isDark ? 'dark' : 'light'}
+          style={StyleSheet.absoluteFill}
+        />
+        {gradient && gradient.length > 0 && (
+          <View
+            style={[
+              StyleSheet.absoluteFill,
+              {
+                borderRadius: radius,
+                backgroundColor: gradient[0],
+                opacity: 0.8,
+              },
+            ]}
+          />
+        )}
+        <View style={styles.content}>{children}</View>
+      </CardWrapper>
+    );
+  }
 
   return (
     <CardWrapper

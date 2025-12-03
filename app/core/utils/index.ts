@@ -25,3 +25,6 @@
 // Chess utilities
 export * from './chess/engine';
 export * from './chess/move-validation';
+
+// Coach utilities
+export * from './coach/feedback-generator';
