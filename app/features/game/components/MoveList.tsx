@@ -3,7 +3,7 @@ import { ScrollView, Pressable } from 'react-native';
 import { Surface } from '@/ui/primitives/Surface';
 import { Box } from '@/ui/primitives/Box';
 import { Text } from '@/ui/primitives/Text';
-import { useThemeTokens, useFonts } from '@/ui/hooks/useThemeTokens';
+import { useThemeTokens } from '@/ui/hooks/useThemeTokens';
 import { radiusTokens } from '@/ui/tokens/radii';
 import { spacingTokens } from '@/ui/tokens/spacing';
 import { shadowTokens } from '@/ui/tokens/shadows';
@@ -26,7 +26,7 @@ export interface MoveListProps {
 export const MoveList = React.memo(
   React.forwardRef<ScrollView, MoveListProps>(
   ({ moves = [], onMoveSelect }, ref) => {
-    const { colors } = useThemeTokens();
+    const { colors, typography } = useThemeTokens();
     const [selectedMoveIndex, setSelectedMoveIndex] = useState<number | null>(null);
     
     // Group moves by move number
@@ -151,7 +151,7 @@ export const MoveList = React.memo(
                       variant="body" 
                       color={isWhiteSelected ? colors.accentForeground.primary : colors.foreground.primary} 
                       weight="medium"
-                      style={{ fontFamily: fonts.mono, fontSize: 14 }}
+                      style={{ fontFamily: typography.fontFamily.mono, fontSize: 14 }}
                     >
                       {group.white?.san || '...'}
                     </Text>
@@ -176,7 +176,7 @@ export const MoveList = React.memo(
                         variant="body" 
                         color={isBlackSelected ? colors.accentForeground.primary : colors.foreground.primary} 
                         weight="medium"
-                        style={{ fontFamily: fonts.mono, fontSize: 14 }}
+                        style={{ fontFamily: typography.fontFamily.mono, fontSize: 14 }}
                       >
                         {group.black.san}
                       </Text>

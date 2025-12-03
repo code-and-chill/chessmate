@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import { StyleSheet, View, TouchableOpacity, Text, SafeAreaView, TextInput, Share } from 'react-native';
+import { StyleSheet, View, TouchableOpacity, Text, SafeAreaView, ScrollView, TextInput, Share } from 'react-native';
 import { useRouter } from 'expo-router';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
-import { Card } from '@/ui/primitives/Card';
-import { VStack } from '@/ui';
+import { Panel } from '@/ui/primitives/Panel';
+import { VStack, HStack } from '@/ui';
 import { useAuth } from '@/contexts/AuthContext';
 import { useGame } from '@/contexts/GameContext';
 import { useThemeTokens, useFonts } from '@/ui';
@@ -85,228 +85,336 @@ export default function FriendChallengeScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background.primary }]}>
-      <VStack style={styles.content} gap={6}>
-        <VStack gap={2} style={{ alignItems: 'center' }}>
-          <Text style={[styles.title, { color: colors.foreground.primary }]}>{t('game_modes.friend_challenge')}</Text>
-          <Text style={[styles.subtitle, { color: colors.foreground.secondary }]}>{t('game_modes.play_with_friends')}</Text>
-        </VStack>
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <VStack style={styles.content} gap={6}>
+          {/* Header */}
+          <Animated.View entering={FadeInUp.delay(100).duration(400)}>
+            <VStack gap={2} style={{ alignItems: 'center' }}>
+              <Text style={[styles.title, { color: colors.accent.primary }]}>
+                {t('game_modes.friend_challenge')}
+              </Text>
+              <Text style={[styles.subtitle, { color: colors.foreground.secondary }]}>
+                {t('game_modes.play_with_friends')}
+              </Text>
+            </VStack>
+          </Animated.View>
 
-        {/* Mode Selector */}
-        <View style={styles.modeSelectorGrid}>
-          <TouchableOpacity
-            style={[
-              styles.modeButton, 
-              { backgroundColor: colors.background.secondary, borderColor: 'transparent' },
-              mode === 'local' && { backgroundColor: colors.background.tertiary, borderColor: colors.accent.primary }
-            ]}
-            onPress={() => setMode('local')}
-          >
-            <Text style={[styles.modeButtonText, { color: mode === 'local' ? colors.foreground.primary : colors.foreground.secondary }]}>
-              📱 Local Play
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.modeButton, 
-              { backgroundColor: colors.background.secondary, borderColor: 'transparent' },
-              mode === 'create' && { backgroundColor: colors.background.tertiary, borderColor: colors.accent.primary }
-            ]}
-            onPress={() => setMode('create')}
-          >
-            <Text style={[styles.modeButtonText, { color: mode === 'create' ? colors.foreground.primary : colors.foreground.secondary }]}>
-              {t('game_modes.create_challenge')}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.modeButton,
-              { backgroundColor: colors.background.secondary, borderColor: 'transparent' },
-              mode === 'join' && { backgroundColor: colors.background.tertiary, borderColor: colors.accent.primary }
-            ]}
-            onPress={() => setMode('join')}
-          >
-            <Text style={[styles.modeButtonText, { color: mode === 'join' ? colors.foreground.primary : colors.foreground.secondary }]}>
-              {t('game_modes.join_challenge')}
-            </Text>
-          </TouchableOpacity>
-        </View>
+          {/* Mode Selector */}
+          <Animated.View entering={FadeInDown.delay(200).duration(400)}>
+            <Panel variant="glass" padding={16}>
+              <HStack gap={2}>
+                <TouchableOpacity
+                  style={[
+                    styles.modeTab,
+                    mode === 'local' && [styles.modeTabActive, { backgroundColor: colors.accent.primary }],
+                  ]}
+                  onPress={() => setMode('local')}
+                  activeOpacity={0.7}
+                >
+                  <Text
+                    style={[
+                      styles.modeTabText,
+                      { color: mode === 'local' ? '#FFFFFF' : colors.foreground.secondary },
+                    ]}
+                  >
+                    📱
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.modeTab,
+                    mode === 'create' && [styles.modeTabActive, { backgroundColor: colors.accent.primary }],
+                  ]}
+                  onPress={() => setMode('create')}
+                  activeOpacity={0.7}
+                >
+                  <Text
+                    style={[
+                      styles.modeTabText,
+                      { color: mode === 'create' ? '#FFFFFF' : colors.foreground.secondary },
+                    ]}
+                  >
+                    ➕
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.modeTab,
+                    mode === 'join' && [styles.modeTabActive, { backgroundColor: colors.accent.primary }],
+                  ]}
+                  onPress={() => setMode('join')}
+                  activeOpacity={0.7}
+                >
+                  <Text
+                    style={[
+                      styles.modeTabText,
+                      { color: mode === 'join' ? '#FFFFFF' : colors.foreground.secondary },
+                    ]}
+                  >
+                    🔗
+                  </Text>
+                </TouchableOpacity>
+              </HStack>
+            </Panel>
+          </Animated.View>
 
         {mode === 'local' ? (
-          <Animated.View entering={FadeInDown.duration(400)} style={{ flex: 1 }}>
-            <VStack gap={4}>
-              <Card variant="default" size="md">
-                <VStack gap={2} style={{ padding: 16 }}>
-                  <Text style={[styles.label, { color: colors.foreground.primary }]}>📱 Pass & Play</Text>
-                  <Text style={[styles.hint, { color: colors.foreground.secondary }]}>
+          <>
+            {/* Info Panel */}
+            <Animated.View entering={FadeInDown.delay(300).duration(400)}>
+              <Panel variant="glass" padding={20}>
+                <VStack gap={2}>
+                  <Text style={[styles.sectionTitle, { color: colors.foreground.primary }]}>
+                    📱 Pass & Play
+                  </Text>
+                  <Text style={[styles.description, { color: colors.foreground.secondary }]}>
                     Play offline with a friend on the same device. After each move, pass the device to your opponent.
                   </Text>
                 </VStack>
-              </Card>
+              </Panel>
+            </Animated.View>
 
-              {/* Time Control */}
-              <VStack gap={2}>
-                <Text style={[styles.label, { color: colors.foreground.primary }]}>{t('game_modes.time_control')}</Text>
-                <View style={styles.timeControlGrid}>
-                  {['1+0', '3+0', '5+0', '10+0', '15+10', '30+0'].map((tc) => (
-                    <TouchableOpacity
-                      key={tc}
-                      style={[
-                        styles.timeControlChip,
-                        { backgroundColor: colors.background.secondary, borderColor: 'transparent' },
-                        timeControl === tc && { backgroundColor: colors.background.tertiary, borderColor: colors.accent.primary },
-                      ]}
-                      onPress={() => setTimeControl(tc)}
-                    >
-                      <Text
+            {/* Time Control */}
+            <Animated.View entering={FadeInDown.delay(400).duration(400)}>
+              <Panel variant="glass" padding={20}>
+                <VStack gap={3}>
+                  <Text style={[styles.sectionTitle, { color: colors.foreground.primary }]}>
+                    {t('game_modes.time_control')}
+                  </Text>
+                  <View style={styles.timeControlGrid}>
+                    {['1+0', '3+0', '5+0', '10+0', '15+10', '30+0'].map((tc) => (
+                      <TouchableOpacity
+                        key={tc}
                         style={[
-                          styles.timeControlChipText,
-                          { color: timeControl === tc ? colors.foreground.primary : colors.foreground.secondary },
+                          styles.timeControlChip,
+                          {
+                            backgroundColor: timeControl === tc
+                              ? 'rgba(102, 126, 234, 0.15)'
+                              : colors.background.secondary,
+                            borderColor: timeControl === tc ? colors.accent.primary : 'transparent',
+                          },
                         ]}
+                        onPress={() => setTimeControl(tc)}
+                        activeOpacity={0.7}
                       >
-                        {tc}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </VStack>
+                        <Text
+                          style={[
+                            styles.timeControlChipText,
+                            {
+                              color: timeControl === tc
+                                ? colors.accent.primary
+                                : colors.foreground.secondary,
+                            },
+                          ]}
+                        >
+                          {tc}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </VStack>
+              </Panel>
+            </Animated.View>
 
-              {/* Color Selection */}
-              <VStack gap={2}>
-                <Text style={[styles.label, { color: colors.foreground.primary }]}>Player 1 plays as:</Text>
-                <View style={styles.colorSelector}>
-                  {(['white', 'black', 'random'] as const).map((color) => (
-                    <TouchableOpacity
-                      key={color}
-                      style={[
-                        styles.colorButton,
-                        { backgroundColor: colors.background.secondary, borderColor: 'transparent' },
-                        playerColor === color && { backgroundColor: colors.background.tertiary, borderColor: colors.accent.primary },
-                      ]}
-                      onPress={() => setPlayerColor(color)}
-                    >
-                      <Text
+            {/* Color Selection */}
+            <Animated.View entering={FadeInDown.delay(500).duration(400)}>
+              <Panel variant="glass" padding={20}>
+                <VStack gap={3}>
+                  <Text style={[styles.sectionTitle, { color: colors.foreground.primary }]}>
+                    Player 1 plays as
+                  </Text>
+                  <HStack gap={3}>
+                    {(['white', 'black', 'random'] as const).map((color) => (
+                      <TouchableOpacity
+                        key={color}
                         style={[
-                          styles.colorButtonText,
-                          { color: playerColor === color ? colors.foreground.primary : colors.foreground.secondary },
+                          styles.colorButton,
+                          {
+                            backgroundColor: playerColor === color
+                              ? 'rgba(102, 126, 234, 0.15)'
+                              : colors.background.secondary,
+                            borderColor: playerColor === color ? colors.accent.primary : 'transparent',
+                          },
                         ]}
+                        onPress={() => setPlayerColor(color)}
+                        activeOpacity={0.7}
                       >
-                        {color === 'white' && `⚪ ${t('game_modes.white')}`}
-                        {color === 'black' && `⚫ ${t('game_modes.black')}`}
-                        {color === 'random' && `🎲 ${t('game_modes.random')}`}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </VStack>
+                        <Text
+                          style={[
+                            styles.colorButtonText,
+                            {
+                              color: playerColor === color
+                                ? colors.accent.primary
+                                : colors.foreground.secondary,
+                            },
+                          ]}
+                        >
+                          {color === 'white' && `⚪ ${t('game_modes.white')}`}
+                          {color === 'black' && `⚫ ${t('game_modes.black')}`}
+                          {color === 'random' && `🎲 ${t('game_modes.random')}`}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </HStack>
+                </VStack>
+              </Panel>
+            </Animated.View>
 
-              {/* Start Game Button */}
+            {/* Start Game Button */}
+            <Animated.View entering={FadeInUp.delay(600).duration(400)}>
               <TouchableOpacity
                 style={[styles.button, { backgroundColor: colors.accent.primary }]}
                 onPress={handleCreateLocalGame}
+                activeOpacity={0.8}
               >
-                <Text style={[styles.buttonText, { color: colors.accentForeground.primary }]}>
-                  {t('game_modes.start_game')}
-                </Text>
+                <Text style={styles.buttonText}>{t('game_modes.start_game')}</Text>
               </TouchableOpacity>
-            </VStack>
-          </Animated.View>
+            </Animated.View>
+          </>
         ) : mode === 'create' ? (
-          <Animated.View entering={FadeInDown.duration(400)} style={{ flex: 1 }}>
-            <VStack gap={4}>
-              {/* Time Control */}
-              <VStack gap={2}>
-                <Text style={[styles.label, { color: colors.foreground.primary }]}>{t('game_modes.time_control')}</Text>
-                <View style={styles.timeControlGrid}>
-                  {['1+0', '3+0', '5+0', '10+0', '15+10', '30+0'].map((tc) => (
-                    <TouchableOpacity
-                      key={tc}
-                      style={[
-                        styles.timeControlChip,
-                        { backgroundColor: colors.background.secondary, borderColor: 'transparent' },
-                        timeControl === tc && { backgroundColor: colors.background.tertiary, borderColor: colors.accent.primary },
-                      ]}
-                      onPress={() => setTimeControl(tc)}
-                    >
-                      <Text
+          <>
+            {/* Time Control */}
+            <Animated.View entering={FadeInDown.delay(300).duration(400)}>
+              <Panel variant="glass" padding={20}>
+                <VStack gap={3}>
+                  <Text style={[styles.sectionTitle, { color: colors.foreground.primary }]}>
+                    {t('game_modes.time_control')}
+                  </Text>
+                  <View style={styles.timeControlGrid}>
+                    {['1+0', '3+0', '5+0', '10+0', '15+10', '30+0'].map((tc) => (
+                      <TouchableOpacity
+                        key={tc}
                         style={[
-                          styles.timeControlChipText,
-                          { color: timeControl === tc ? colors.foreground.primary : colors.foreground.secondary },
+                          styles.timeControlChip,
+                          {
+                            backgroundColor: timeControl === tc
+                              ? 'rgba(102, 126, 234, 0.15)'
+                              : colors.background.secondary,
+                            borderColor: timeControl === tc ? colors.accent.primary : 'transparent',
+                          },
                         ]}
+                        onPress={() => setTimeControl(tc)}
+                        activeOpacity={0.7}
                       >
-                        {tc}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </VStack>
+                        <Text
+                          style={[
+                            styles.timeControlChipText,
+                            {
+                              color: timeControl === tc
+                                ? colors.accent.primary
+                                : colors.foreground.secondary,
+                            },
+                          ]}
+                        >
+                          {tc}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </VStack>
+              </Panel>
+            </Animated.View>
 
-              {/* Color Selection */}
-              <VStack gap={2}>
-                <Text style={[styles.label, { color: colors.foreground.primary }]}>{t('game_modes.play_as')}</Text>
-                <View style={styles.colorSelector}>
-                  {(['white', 'black', 'random'] as const).map((color) => (
-                    <TouchableOpacity
-                      key={color}
-                      style={[
-                        styles.colorButton,
-                        { backgroundColor: colors.background.secondary, borderColor: 'transparent' },
-                        playerColor === color && { backgroundColor: colors.background.tertiary, borderColor: colors.accent.primary },
-                      ]}
-                      onPress={() => setPlayerColor(color)}
-                    >
-                      <Text
+            {/* Color Selection */}
+            <Animated.View entering={FadeInDown.delay(400).duration(400)}>
+              <Panel variant="glass" padding={20}>
+                <VStack gap={3}>
+                  <Text style={[styles.sectionTitle, { color: colors.foreground.primary }]}>
+                    {t('game_modes.play_as')}
+                  </Text>
+                  <HStack gap={3}>
+                    {(['white', 'black', 'random'] as const).map((color) => (
+                      <TouchableOpacity
+                        key={color}
                         style={[
-                          styles.colorButtonText,
-                          { color: playerColor === color ? colors.foreground.primary : colors.foreground.secondary },
+                          styles.colorButton,
+                          {
+                            backgroundColor: playerColor === color
+                              ? 'rgba(102, 126, 234, 0.15)'
+                              : colors.background.secondary,
+                            borderColor: playerColor === color ? colors.accent.primary : 'transparent',
+                          },
                         ]}
+                        onPress={() => setPlayerColor(color)}
+                        activeOpacity={0.7}
                       >
-                        {color === 'white' && `⚪ ${t('game_modes.white')}`}
-                        {color === 'black' && `⚫ ${t('game_modes.black')}`}
-                        {color === 'random' && `🎲 ${t('game_modes.random')}`}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </VStack>
+                        <Text
+                          style={[
+                            styles.colorButtonText,
+                            {
+                              color: playerColor === color
+                                ? colors.accent.primary
+                                : colors.foreground.secondary,
+                            },
+                          ]}
+                        >
+                          {color === 'white' && `⚪ ${t('game_modes.white')}`}
+                          {color === 'black' && `⚫ ${t('game_modes.black')}`}
+                          {color === 'random' && `🎲 ${t('game_modes.random')}`}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </HStack>
+                </VStack>
+              </Panel>
+            </Animated.View>
 
-              {/* Create Button */}
+            {/* Create Button */}
+            <Animated.View entering={FadeInUp.delay(500).duration(400)}>
               <TouchableOpacity
-                style={[styles.button, { backgroundColor: colors.accent.primary, opacity: isCreatingGame ? 0.5 : 1 }]}
+                style={[
+                  styles.button,
+                  { backgroundColor: colors.accent.primary, opacity: isCreatingGame ? 0.6 : 1 },
+                ]}
                 onPress={handleCreateChallenge}
                 disabled={isCreatingGame}
+                activeOpacity={0.8}
               >
-                <Text style={[styles.buttonText, { color: colors.accentForeground.primary }]}>
+                <Text style={styles.buttonText}>
                   {isCreatingGame ? t('game_modes.creating') : t('game_modes.create_share_link')}
                 </Text>
               </TouchableOpacity>
+            </Animated.View>
 
-              {gameLink && (
-                <Card variant="default" size="md">
-                  <VStack gap={2} style={{ padding: 16 }}>
-                    <Text style={[styles.label, { color: colors.foreground.primary }]}>{t('game_modes.challenge_link_created')}</Text>
-                    <Text style={[styles.linkText, { fontFamily: fonts.mono, color: colors.accent.primary }]} numberOfLines={1}>
+            {gameLink && (
+              <Animated.View entering={FadeInDown.delay(100).duration(400)}>
+                <Panel variant="glass" padding={20}>
+                  <VStack gap={2}>
+                    <Text style={[styles.sectionTitle, { color: colors.foreground.primary }]}>
+                      {t('game_modes.challenge_link_created')}
+                    </Text>
+                    <Text
+                      style={[styles.linkText, { fontFamily: fonts.mono, color: colors.accent.primary }]}
+                      numberOfLines={1}
+                    >
                       {gameLink}
                     </Text>
-                    <Text style={[styles.hint, { color: colors.foreground.muted }]}>
+                    <Text style={[styles.description, { color: colors.foreground.muted }]}>
                       {t('game_modes.share_link_hint')}
                     </Text>
                   </VStack>
-                </Card>
-              )}
-            </VStack>
-          </Animated.View>
+                </Panel>
+              </Animated.View>
+            )}
+          </>
         ) : (
-          <Animated.View entering={FadeInDown.duration(400)} style={{ flex: 1 }}>
-            <VStack gap={4}>
-              <Card variant="default" size="md">
-                <VStack gap={3} style={{ padding: 16 }}>
-                  <Text style={[styles.label, { color: colors.foreground.primary }]}>{t('game_modes.enter_challenge_code')}</Text>
+          <>
+            {/* Join Code Input */}
+            <Animated.View entering={FadeInDown.delay(300).duration(400)}>
+              <Panel variant="glass" padding={20}>
+                <VStack gap={3}>
+                  <Text style={[styles.sectionTitle, { color: colors.foreground.primary }]}>
+                    {t('game_modes.enter_challenge_code')}
+                  </Text>
                   <TextInput
-                    style={[styles.input, { 
-                      backgroundColor: colors.background.secondary, 
-                      color: colors.foreground.primary,
-                      borderColor: colors.background.tertiary,
-                    }]}
+                    style={[
+                      styles.input,
+                      {
+                        backgroundColor: colors.background.secondary,
+                        color: colors.foreground.primary,
+                        borderColor: colors.background.tertiary,
+                      },
+                    ]}
                     placeholder={t('game_modes.paste_code_placeholder')}
                     placeholderTextColor={colors.foreground.muted}
                     value={joinCode}
@@ -314,25 +422,36 @@ export default function FriendChallengeScreen() {
                     autoCapitalize="none"
                     autoCorrect={false}
                   />
-                  <Text style={[styles.hint, { color: colors.foreground.muted }]}>
+                  <Text style={[styles.description, { color: colors.foreground.muted }]}>
                     Your friend will share a code or link with you
                   </Text>
                 </VStack>
-              </Card>
+              </Panel>
+            </Animated.View>
 
+            {/* Join Button */}
+            <Animated.View entering={FadeInUp.delay(400).duration(400)}>
               <TouchableOpacity
-                style={[styles.button, { backgroundColor: colors.accent.primary, opacity: (!joinCode.trim() || isCreatingGame) ? 0.5 : 1 }]}
+                style={[
+                  styles.button,
+                  {
+                    backgroundColor: colors.accent.primary,
+                    opacity: !joinCode.trim() || isCreatingGame ? 0.6 : 1,
+                  },
+                ]}
                 onPress={handleJoinChallenge}
                 disabled={!joinCode.trim() || isCreatingGame}
+                activeOpacity={0.8}
               >
-                <Text style={[styles.buttonText, { color: colors.accentForeground.primary }]}>
+                <Text style={styles.buttonText}>
                   {isCreatingGame ? 'Joining...' : 'Join Game'}
                 </Text>
               </TouchableOpacity>
-            </VStack>
-          </Animated.View>
+            </Animated.View>
+          </>
         )}
-      </VStack>
+        </VStack>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -341,41 +460,56 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  scrollContent: {
+    paddingBottom: 40,
+  },
   content: {
-    flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 20,
+    paddingHorizontal: 24,
+    paddingTop: 24,
+    maxWidth: 600,
+    alignSelf: 'center',
+    width: '100%',
   },
   title: {
-    fontSize: 32,
-    fontWeight: 'bold',
+    fontSize: 36,
+    fontWeight: '800',
     textAlign: 'center',
+    letterSpacing: -0.5,
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 17,
     textAlign: 'center',
+    marginTop: 6,
+    fontWeight: '500',
+    lineHeight: 24,
   },
-  modeSelectorGrid: {
-    flexDirection: 'row',
-    gap: 8,
-    marginTop: 8,
-    flexWrap: 'wrap',
-  },
-  modeButton: {
+  modeTab: {
     flex: 1,
-    minWidth: '30%',
-    padding: 14,
-    borderRadius: 10,
+    padding: 12,
+    borderRadius: 8,
     alignItems: 'center',
-    borderWidth: 2,
+    justifyContent: 'center',
   },
-  modeButtonText: {
-    fontSize: 16,
+  modeTabActive: {
+    shadowColor: '#667EEA',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  modeTabText: {
+    fontSize: 24,
     fontWeight: '600',
   },
-  label: {
-    fontSize: 16,
+  sectionTitle: {
+    fontSize: 18,
     fontWeight: '600',
+    letterSpacing: -0.3,
+  },
+  description: {
+    fontSize: 15,
+    fontWeight: '500',
+    lineHeight: 20,
   },
   timeControlGrid: {
     flexDirection: 'row',
@@ -392,43 +526,37 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
   },
-  colorSelector: {
-    flexDirection: 'row',
-    gap: 8,
-  },
   colorButton: {
     flex: 1,
-    padding: 12,
-    borderRadius: 8,
+    padding: 14,
+    borderRadius: 10,
     alignItems: 'center',
     borderWidth: 2,
   },
   colorButtonText: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '600',
   },
   button: {
     padding: 18,
     borderRadius: 12,
     alignItems: 'center',
-    marginTop: 16,
+    marginTop: 8,
   },
   buttonText: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
   input: {
     padding: 14,
-    borderRadius: 8,
+    borderRadius: 10,
     fontSize: 16,
     borderWidth: 1,
-  },
-  hint: {
-    fontSize: 14,
-    textAlign: 'center',
+    fontWeight: '500',
   },
   linkText: {
-    fontSize: 12,
-    // fontFamily from theme
+    fontSize: 13,
+    fontWeight: '500',
   },
 });

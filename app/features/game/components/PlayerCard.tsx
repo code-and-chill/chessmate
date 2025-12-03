@@ -36,6 +36,7 @@ export interface PlayerCardProps {
   isActive?: boolean;
   remainingMs: number;
   capturedPieces?: string[];
+  gameStatus?: 'in_progress' | 'ended' | 'draw' | 'resigned';
   onTimeExpire?: () => void;
   style?: ViewStyle;
 }
@@ -64,6 +65,7 @@ export const PlayerCard = React.memo<PlayerCardProps>(({
   isActive = false,
   remainingMs,
   capturedPieces = [],
+  gameStatus = 'in_progress',
   onTimeExpire,
   style,
 }) => {
@@ -82,7 +84,8 @@ export const PlayerCard = React.memo<PlayerCardProps>(({
   }, [remainingMs]);
 
   useEffect(() => {
-    if (!isActive || displayTime <= 0) {
+    // Stop clock if game is not in progress
+    if (gameStatus !== 'in_progress' || !isActive || displayTime <= 0) {
       if (displayTime === 0 && isActive && onTimeExpire) {
         onTimeExpire();
       }
@@ -92,7 +95,7 @@ export const PlayerCard = React.memo<PlayerCardProps>(({
       setDisplayTime(prev => Math.max(0, prev - 1000));
     }, 1000);
     return () => clearInterval(interval);
-  }, [isActive, displayTime, onTimeExpire]);
+  }, [isActive, displayTime, gameStatus, onTimeExpire]);
 
   // Active turn glow animation
   useEffect(() => {

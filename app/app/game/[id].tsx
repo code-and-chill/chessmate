@@ -65,8 +65,10 @@ export default function GameScreen() {
     try {
       setLoading(true);
       setError(null);
+      const game = await playApi.getGameById(id!);
       setGameState(game);
     } catch (err) {
+      console.error('Failed to load game:', err);
       setError('Failed to load game');
     } finally {
       setLoading(false);
@@ -237,6 +239,51 @@ export default function GameScreen() {
     );
   }
 
+  // Calculate captured pieces from FEN
+  const getCapturedPieces = (fen: string): { white: string[], black: string[] } => {
+    const position = fen.split(' ')[0];
+    
+    const startingPieces: Record<string, number> = {
+      P: 8, N: 2, B: 2, R: 2, Q: 1,
+      p: 8, n: 2, b: 2, r: 2, q: 1,
+    };
+    
+    const currentPieces: Record<string, number> = {
+      P: 0, N: 0, B: 0, R: 0, Q: 0,
+      p: 0, n: 0, b: 0, r: 0, q: 0,
+    };
+    
+    // Count pieces on the board
+    for (const char of position) {
+      if (currentPieces.hasOwnProperty(char)) {
+        currentPieces[char]++;
+      }
+    }
+    
+    // Calculate captured pieces
+    const whiteCaptured: string[] = []; // White captured black pieces
+    const blackCaptured: string[] = []; // Black captured white pieces
+    
+    // White captured black pieces (lowercase)
+    for (const piece of ['q', 'r', 'b', 'n', 'p']) {
+      const captured = startingPieces[piece] - currentPieces[piece];
+      for (let i = 0; i < captured; i++) {
+        whiteCaptured.push(piece);
+      }
+    }
+    
+    // Black captured white pieces (uppercase -> lowercase for display)
+    for (const piece of ['Q', 'R', 'B', 'N', 'P']) {
+      const captured = startingPieces[piece] - currentPieces[piece];
+      for (let i = 0; i < captured; i++) {
+        blackCaptured.push(piece.toLowerCase());
+      }
+    }
+    
+    return { white: whiteCaptured, black: blackCaptured };
+  };
+
+  const capturedPieces = getCapturedPieces(gameState.fen);
   const boardOrientation = gameState.sideToMove === 'w' ? 'white' : 'black';
   const boardKey = `${gameState.fen}-${gameState.sideToMove}`;
   
@@ -285,6 +332,8 @@ export default function GameScreen() {
                 isSelf={false}
                 isActive={gameState.sideToMove === 'b'}
                 remainingMs={gameState.blackPlayer?.remainingMs || 600000}
+                capturedPieces={capturedPieces.black}
+                gameStatus={gameState.status}
               />
             </Animated.View>
 
@@ -321,6 +370,8 @@ export default function GameScreen() {
                 isSelf={true}
                 isActive={gameState.sideToMove === 'w'}
                 remainingMs={gameState.whitePlayer?.remainingMs || 600000}
+                capturedPieces={capturedPieces.white}
+                gameStatus={gameState.status}
               />
             </Animated.View>
 

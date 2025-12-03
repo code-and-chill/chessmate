@@ -26,6 +26,7 @@ export { GameResultModal } from './components/GameResultModal';
 export { PawnPromotionModal, type PieceType } from './components/PawnPromotionModal';
 export { GameHeader as GameHeaderCard } from './components/GameHeader';
 export type { GameHeaderProps } from './components/GameHeader';
+export { CapturedPieces } from './components/CapturedPieces';
 
 // Zone Layout Components
 export { 

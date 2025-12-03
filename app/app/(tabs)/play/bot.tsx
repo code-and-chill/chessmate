@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import { StyleSheet, View, TouchableOpacity, Text, SafeAreaView, ActivityIndicator } from 'react-native';
+import { StyleSheet, View, TouchableOpacity, Text, SafeAreaView, ScrollView, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
-import { Card } from '@/ui/primitives/Card';
-import { VStack } from '@/ui';
+import { Panel } from '@/ui/primitives/Panel';
+import { VStack, HStack } from '@/ui';
 import { useAuth } from '@/contexts/AuthContext';
 import { useGame } from '@/contexts/GameContext';
 import { useThemeTokens } from '@/ui';
@@ -23,8 +23,8 @@ export default function BotPlayScreen() {
     { id: 'easy' as BotDifficulty, label: `😊 ${t('game_modes.easy')}`, rating: 800, description: t('game_modes.casual_play') },
     { id: 'medium' as BotDifficulty, label: `🎯 ${t('game_modes.intermediate')}`, rating: 1200, description: t('game_modes.good_challenge') },
     { id: 'hard' as BotDifficulty, label: `💪 ${t('game_modes.advanced')}`, rating: 1600, description: t('game_modes.strong_opponent') },
-    { id: 'expert' as BotDifficulty, label: `🔥 ${t('game_modes.expert')}`, rating: 2000, description: t('game_modes.very_difficult') },
-    { id: 'master' as BotDifficulty, label: `🏆 ${t('game_modes.master')}`, rating: 2400, description: t('game_modes.grandmaster_level') },
+    { id: 'expert' as BotDifficulty, label: `🔥 ${t('game_modes.master')}`, rating: 2000, description: t('game_modes.very_difficult') },
+    { id: 'master' as BotDifficulty, label: `🏆 ${t('game_modes.grandmaster')}`, rating: 2400, description: t('game_modes.grandmaster_level') },
   ];
   
   const [difficulty, setDifficulty] = useState<BotDifficulty>('medium');
@@ -54,7 +54,9 @@ export default function BotPlayScreen() {
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background.primary }]}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.accent.primary} />
-          <Text style={[styles.loadingText, { color: colors.foreground.secondary }]}>{t('game_modes.preparing_game')}</Text>
+          <Text style={[styles.loadingText, { color: colors.foreground.secondary }]}>
+            {t('game_modes.preparing_game')}
+          </Text>
         </View>
       </SafeAreaView>
     );
@@ -62,86 +64,120 @@ export default function BotPlayScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background.primary }]}>
-      <VStack style={styles.content} gap={6}>
-        <VStack gap={2} style={{ alignItems: 'center' }}>
-          <Text style={[styles.title, { color: colors.foreground.primary }]}>{t('game_modes.play_vs_bot')}</Text>
-          <Text style={[styles.subtitle, { color: colors.foreground.secondary }]}>{t('game_modes.choose_opponent_strength')}</Text>
-        </VStack>
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <VStack style={styles.content} gap={6}>
+          {/* Header */}
+          <Animated.View entering={FadeInUp.delay(100).duration(400)}>
+            <VStack gap={2} style={{ alignItems: 'center' }}>
+              <Text style={[styles.title, { color: colors.accent.primary }]}>
+                {t('game_modes.play_vs_bot')}
+              </Text>
+              <Text style={[styles.subtitle, { color: colors.foreground.secondary }]}>
+                {t('game_modes.choose_opponent_strength')}
+              </Text>
+            </VStack>
+          </Animated.View>
 
-        <VStack gap={3} style={{ marginTop: 8 }}>
-          {BOT_LEVELS.map((bot, idx) => (
-            <Animated.View
-              key={bot.id}
-              entering={FadeInDown.delay(idx * 80).duration(400).springify()}
-            >
-              <Card
-                variant={difficulty === bot.id ? 'gradient' : 'default'}
-                size="md"
-                hoverable
-                pressable
-                animated
+          {/* Bot Levels */}
+          <VStack gap={3} style={{ marginTop: 8 }}>
+            {BOT_LEVELS.map((bot, idx) => (
+              <Animated.View
+                key={bot.id}
+                entering={FadeInDown.delay(200 + idx * 80).duration(400)}
               >
                 <TouchableOpacity
-                  style={styles.botButton}
                   onPress={() => setDifficulty(bot.id)}
                   activeOpacity={0.9}
                 >
-                  <View style={styles.botInfo}>
-                    <Text style={[styles.botLabel, { color: colors.foreground.primary }]}>
-                      {bot.label}
-                    </Text>
-                    <Text style={[styles.botDescription, { color: colors.foreground.secondary }]}>
-                      {bot.description}
-                    </Text>
-                  </View>
-                  <Text style={[styles.botRating, { color: colors.foreground.muted }]}>
-                    {bot.rating}
-                  </Text>
-                </TouchableOpacity>
-              </Card>
-            </Animated.View>
-          ))}
-        </VStack>
-
-        <Animated.View entering={FadeInUp.delay(600).duration(400).springify()}>
-          <VStack gap={2} style={{ marginTop: 16 }}>
-            <Text style={[styles.sectionLabel, { color: colors.foreground.secondary }]}>{t('game_modes.play_as')}</Text>
-            <View style={styles.colorSelector}>
-              {(['white', 'black', 'random'] as const).map((color) => (
-                <TouchableOpacity
-                  key={color}
-                  style={[
-                    styles.colorButton,
-                    { 
-                      backgroundColor: colors.background.secondary,
-                      borderColor: playerColor === color ? colors.accent.primary : 'transparent',
-                    },
-                    playerColor === color && { backgroundColor: colors.background.tertiary },
-                  ]}
-                  onPress={() => setPlayerColor(color)}
-                >
-                  <Text
+                  <Panel
+                    variant="glass"
+                    padding={20}
                     style={[
-                      styles.colorButtonText,
-                      { color: playerColor === color ? colors.foreground.primary : colors.foreground.secondary },
+                      styles.botCard,
+                      difficulty === bot.id && styles.selectedCard,
                     ]}
                   >
-                    {color === 'white' && `⚪ ${t('game_modes.white')}`}
-                    {color === 'black' && `⚫ ${t('game_modes.black')}`}
-                    {color === 'random' && `🎲 ${t('game_modes.random')}`}
-                  </Text>
+                    <HStack gap={4} style={{ alignItems: 'center' }}>
+                      <View style={[styles.botBadge, { backgroundColor: 'rgba(102, 126, 234, 0.1)' }]}>
+                        <Text style={styles.botIcon}>{bot.label.split(' ')[0]}</Text>
+                      </View>
+                      <VStack gap={1} style={{ flex: 1 }}>
+                        <Text style={[styles.botTitle, { color: colors.foreground.primary }]}>
+                          {bot.label}
+                        </Text>
+                        <Text style={[styles.botDescription, { color: colors.foreground.secondary }]}>
+                          {bot.description}
+                        </Text>
+                        <Text style={[styles.botRating, { color: colors.foreground.muted }]}>
+                          Rating: {bot.rating}
+                        </Text>
+                      </VStack>
+                      {difficulty === bot.id && (
+                        <Text style={[styles.checkmark, { color: colors.accent.primary }]}>✓</Text>
+                      )}
+                    </HStack>
+                  </Panel>
                 </TouchableOpacity>
-              ))}
-            </View>
+              </Animated.View>
+            ))}
           </VStack>
-        </Animated.View>
 
-        <Animated.View entering={FadeInUp.delay(700).duration(400).springify()}>
-          <TouchableOpacity style={[styles.button, { backgroundColor: colors.accent.primary }]} onPress={handleStartGame}>
-            <Text style={[styles.buttonText, { color: colors.accentForeground.primary }]}>{t('game_modes.start_game')}</Text>
-          </TouchableOpacity>
-        </Animated.View>
-      </VStack>
+          {/* Color Selection */}
+          <Animated.View entering={FadeInDown.delay(700).duration(400)}>
+            <Panel variant="glass" padding={20}>
+              <VStack gap={3}>
+                <Text style={[styles.sectionTitle, { color: colors.foreground.primary }]}>
+                  {t('game_modes.play_as')}
+                </Text>
+                <HStack gap={3}>
+                  {(['white', 'black', 'random'] as const).map((color) => (
+                    <TouchableOpacity
+                      key={color}
+                      style={[
+                        styles.colorButton,
+                        {
+                          backgroundColor: playerColor === color
+                            ? 'rgba(102, 126, 234, 0.15)'
+                            : colors.background.secondary,
+                          borderColor: playerColor === color ? colors.accent.primary : 'transparent',
+                        },
+                      ]}
+                      onPress={() => setPlayerColor(color)}
+                      activeOpacity={0.7}
+                    >
+                      <Text
+                        style={[
+                          styles.colorButtonText,
+                          {
+                            color: playerColor === color
+                              ? colors.accent.primary
+                              : colors.foreground.secondary,
+                          },
+                        ]}
+                      >
+                        {color === 'white' && `⚪ ${t('game_modes.white')}`}
+                        {color === 'black' && `⚫ ${t('game_modes.black')}`}
+                        {color === 'random' && `🎲 ${t('game_modes.random')}`}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </HStack>
+              </VStack>
+            </Panel>
+          </Animated.View>
+
+          {/* Start Game Button */}
+          <Animated.View entering={FadeInUp.delay(800).duration(400)}>
+            <TouchableOpacity
+              style={[styles.button, { backgroundColor: colors.accent.primary }]}
+              onPress={handleStartGame}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.buttonText}>{t('game_modes.start_game')}</Text>
+            </TouchableOpacity>
+          </Animated.View>
+        </VStack>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -150,69 +186,96 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  scrollContent: {
+    paddingBottom: 40,
+  },
   content: {
-    flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 20,
+    paddingHorizontal: 24,
+    paddingTop: 24,
+    maxWidth: 600,
+    alignSelf: 'center',
+    width: '100%',
   },
   title: {
-    fontSize: 32,
-    fontWeight: 'bold',
+    fontSize: 36,
+    fontWeight: '800',
     textAlign: 'center',
+    letterSpacing: -0.5,
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 17,
     textAlign: 'center',
+    marginTop: 6,
+    fontWeight: '500',
+    lineHeight: 24,
   },
-  botButton: {
-    padding: 16,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  botCard: {
+    shadowColor: '#667EEA',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 4,
+  },
+  selectedCard: {
+    borderWidth: 2,
+    borderColor: '#667EEA',
+  },
+  botBadge: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: 'center',
     alignItems: 'center',
   },
-  botInfo: {
-    flex: 1,
+  botIcon: {
+    fontSize: 28,
   },
-  botLabel: {
-    fontSize: 18,
-    fontWeight: '600',
+  botTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    letterSpacing: -0.4,
   },
   botDescription: {
-    fontSize: 14,
-    marginTop: 4,
+    fontSize: 15,
+    fontWeight: '500',
+    lineHeight: 20,
+    marginTop: 2,
   },
   botRating: {
-    fontSize: 16,
+    fontSize: 13,
+    fontWeight: '600',
+    marginTop: 4,
+  },
+  checkmark: {
+    fontSize: 24,
     fontWeight: 'bold',
   },
-  sectionLabel: {
-    fontSize: 16,
+  sectionTitle: {
+    fontSize: 18,
     fontWeight: '600',
-  },
-  colorSelector: {
-    flexDirection: 'row',
-    gap: 8,
+    letterSpacing: -0.3,
   },
   colorButton: {
     flex: 1,
-    padding: 12,
-    borderRadius: 8,
+    padding: 14,
+    borderRadius: 10,
     alignItems: 'center',
     borderWidth: 2,
   },
   colorButtonText: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '600',
   },
   button: {
     padding: 18,
     borderRadius: 12,
     alignItems: 'center',
-    marginTop: 16,
+    marginTop: 8,
   },
   buttonText: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
   loadingContainer: {
     flex: 1,
@@ -220,7 +283,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   loadingText: {
-    fontSize: 18,
-    marginTop: 16,
+    fontSize: 17,
+    marginTop: 20,
+    fontWeight: '500',
   },
 });

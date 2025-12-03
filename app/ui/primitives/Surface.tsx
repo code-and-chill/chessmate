@@ -18,7 +18,7 @@
 
 import type { ViewStyle } from 'react-native';
 import { Box } from './Box';
-import { useColors } from '../theme/ThemeProvider';
+import { useColors } from '../hooks/useThemeTokens';
 
 type SurfaceVariant = 'default' | 'accent' | 'subtle' | 'elevated';
 
