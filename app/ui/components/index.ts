@@ -5,6 +5,7 @@
  */
 
 export { FeatureScreenLayout } from './FeatureScreenLayout';
+export { DetailScreenLayout } from './DetailScreenLayout';
 export { FeatureCard } from './FeatureCard';
 export { StatCard } from './StatCard';
 export { GlobalLayout } from './GlobalLayout';

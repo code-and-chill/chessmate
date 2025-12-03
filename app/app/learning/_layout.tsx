@@ -7,7 +7,7 @@ export default function LearningLayout() {
   return (
     <Stack
       screenOptions={{
-        headerShown: true,
+        headerShown: false, // Using DetailScreenLayout's built-in header
         headerStyle: {
           backgroundColor: colors.background.secondary,
         },
@@ -19,12 +19,31 @@ export default function LearningLayout() {
         name="index" 
         options={{ 
           title: 'Learning',
+          headerShown: true,
         }} 
       />
       <Stack.Screen 
         name="lesson" 
         options={{ 
           title: 'Lesson',
+        }} 
+      />
+      <Stack.Screen 
+        name="tactics" 
+        options={{ 
+          title: 'Tactics',
+        }} 
+      />
+      <Stack.Screen 
+        name="review" 
+        options={{ 
+          title: 'Game Review',
+        }} 
+      />
+      <Stack.Screen 
+        name="openings" 
+        options={{ 
+          title: 'Openings',
         }} 
       />
     </Stack>

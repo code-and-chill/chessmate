@@ -4,7 +4,7 @@ import { useThemeTokens } from '@/ui/hooks/useThemeTokens';
 
 export type IconName = 
   // Navigation
-  | 'globe' | 'robot' | 'users' | 'book' | 'trophy' | 'settings'
+  | 'globe' | 'robot' | 'users' | 'book' | 'book-open' | 'trophy' | 'settings'
   | 'message' | 'leaderboard' | 'clubs' | 'friends'
   // Actions
   | 'play' | 'pause' | 'stop' | 'refresh' | 'search' | 'add'
@@ -26,6 +26,7 @@ const iconMap: Record<IconName, keyof typeof MaterialIcons.glyphMap> = {
   robot: 'smart-toy',
   users: 'group',
   book: 'menu-book',
+  'book-open': 'import-contacts',
   trophy: 'emoji-events',
   settings: 'settings',
   message: 'chat-bubble',

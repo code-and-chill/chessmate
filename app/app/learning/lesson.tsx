@@ -3,7 +3,7 @@ import { StyleSheet, View, Text, TouchableOpacity, SafeAreaView, ScrollView, Ale
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import { Card } from '@/ui/primitives/Card';
-import { VStack, useFonts } from '@/ui';
+import { VStack, useFonts, useColors } from '@/ui';
 import { useLearning } from '@/contexts/LearningContext';
 import type { Lesson, Quiz } from '@/contexts/LearningContext';
 import { useI18n } from '@/i18n/I18nContext';
@@ -11,6 +11,7 @@ import { useI18n } from '@/i18n/I18nContext';
 export default function LessonViewerScreen() {
   const router = useRouter();
   const fonts = useFonts();
+  const colors = useColors();
   const { t, ti } = useI18n();
   const { lessonId } = useLocalSearchParams<{ lessonId: string }>();
   const { startLesson, completeLesson, getQuiz, submitQuiz, isLoading } = useLearning();
@@ -104,9 +105,9 @@ export default function LessonViewerScreen() {
 
   if (isLoading || !lesson) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.background.primary }]}>
         <View style={styles.loader}>
-          <Text style={styles.loaderText}>{t('learn.loading_lesson')}</Text>
+          <Text style={[styles.loaderText, { color: colors.foreground.secondary }]}>{t('learn.loading_lesson')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -116,20 +117,20 @@ export default function LessonViewerScreen() {
   const progress = ((currentSection + 1) / lesson.content.length) * 100;
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background.primary }]}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <VStack style={styles.content} gap={6}>
           {/* Header */}
           <Animated.View entering={FadeIn.duration(500)}>
-            <Text style={styles.title}>{lesson.title}</Text>
+            <Text style={[styles.title, { color: colors.foreground.primary }]}>{lesson.title}</Text>
             
             {/* Progress Bar */}
             {!showQuiz && (
               <View style={styles.progressContainer}>
-                <View style={styles.progressBarContainer}>
-                  <View style={[styles.progressBar, { width: `${progress}%` }]} />
+                <View style={[styles.progressBarContainer, { backgroundColor: colors.background.tertiary }]}>
+                  <View style={[styles.progressBar, { width: `${progress}%`, backgroundColor: colors.accent.primary }]} />
                 </View>
-                <Text style={styles.progressText}>
+                <Text style={[styles.progressText, { color: colors.foreground.secondary }]}>
                   {ti('learn.section_progress', { current: currentSection + 1, total: lesson.content.length })}
                 </Text>
               </View>
@@ -143,37 +144,37 @@ export default function LessonViewerScreen() {
                 <VStack gap={4} style={{ padding: 20 }}>
                   {currentContent.type === 'text' && (
                     <View>
-                      <Text style={styles.contentTitle}>{currentContent.title}</Text>
-                      <Text style={styles.contentText}>{currentContent.content}</Text>
+                      <Text style={[styles.contentTitle, { color: colors.foreground.primary }]}>{currentContent.title}</Text>
+                      <Text style={[styles.contentText, { color: colors.foreground.secondary }]}>{currentContent.content}</Text>
                     </View>
                   )}
 
                   {currentContent.type === 'video' && (
                     <View>
-                      <Text style={styles.contentTitle}>{currentContent.title}</Text>
-                      <View style={styles.videoPlaceholder}>
-                        <Text style={styles.videoText}>{t('learn.video_player')}</Text>
-                        <Text style={[styles.videoUrl, { fontFamily: fonts.mono }]}>{currentContent.content}</Text>
+                      <Text style={[styles.contentTitle, { color: colors.foreground.primary }]}>{currentContent.title}</Text>
+                      <View style={[styles.videoPlaceholder, { backgroundColor: colors.background.secondary }]}>
+                        <Text style={[styles.videoText, { color: colors.foreground.secondary }]}>{t('learn.video_player')}</Text>
+                        <Text style={[styles.videoUrl, { fontFamily: fonts.mono, color: colors.foreground.muted }]}>{currentContent.content}</Text>
                       </View>
                     </View>
                   )}
 
                   {currentContent.type === 'diagram' && (
                     <View>
-                      <Text style={styles.contentTitle}>{currentContent.title}</Text>
-                      <View style={styles.diagramPlaceholder}>
-                        <Text style={styles.diagramText}>{t('learn.chess_diagram')}</Text>
-                        <Text style={[styles.fenText, { fontFamily: fonts.mono }]}>{currentContent.content}</Text>
+                      <Text style={[styles.contentTitle, { color: colors.foreground.primary }]}>{currentContent.title}</Text>
+                      <View style={[styles.diagramPlaceholder, { backgroundColor: colors.background.secondary }]}>
+                        <Text style={[styles.diagramText, { color: colors.foreground.secondary }]}>{t('learn.chess_diagram')}</Text>
+                        <Text style={[styles.fenText, { fontFamily: fonts.mono, color: colors.foreground.muted }]}>{currentContent.content}</Text>
                       </View>
                     </View>
                   )}
 
                   {currentContent.type === 'interactive' && (
                     <View>
-                      <Text style={styles.contentTitle}>{currentContent.title}</Text>
-                      <View style={styles.interactivePlaceholder}>
-                        <Text style={styles.interactiveText}>{t('learn.interactive_exercise')}</Text>
-                        <Text style={styles.instructionText}>{currentContent.content}</Text>
+                      <Text style={[styles.contentTitle, { color: colors.foreground.primary }]}>{currentContent.title}</Text>
+                      <View style={[styles.interactivePlaceholder, { backgroundColor: colors.background.secondary }]}>
+                        <Text style={[styles.interactiveText, { color: colors.foreground.secondary }]}>{t('learn.interactive_exercise')}</Text>
+                        <Text style={[styles.instructionText, { color: colors.foreground.secondary }]}>{currentContent.content}</Text>
                       </View>
                     </View>
                   )}
@@ -186,8 +187,8 @@ export default function LessonViewerScreen() {
               <VStack gap={4}>
                 <Card variant="gradient" size="md">
                   <View style={{ padding: 16 }}>
-                    <Text style={styles.quizTitle}>{t('learn.quiz_time')}</Text>
-                    <Text style={styles.quizSubtitle}>
+                    <Text style={[styles.quizTitle, { color: colors.foreground.primary }]}>{t('learn.quiz_time')}</Text>
+                    <Text style={[styles.quizSubtitle, { color: colors.foreground.secondary }]}>
                       {ti('learn.quiz_info', { count: quiz?.questions.length, score: quiz?.passingScore })}
                     </Text>
                   </View>
@@ -196,8 +197,8 @@ export default function LessonViewerScreen() {
                 {quiz?.questions.map((question, qIndex) => (
                   <Card key={question.id} variant="default" size="md">
                     <VStack gap={3} style={{ padding: 16 }}>
-                      <Text style={styles.questionNumber}>{ti('learn.question_number', { number: qIndex + 1 })}</Text>
-                      <Text style={styles.questionText}>{question.question}</Text>
+                      <Text style={[styles.questionNumber, { color: colors.accent.primary }]}>{ti('learn.question_number', { number: qIndex + 1 })}</Text>
+                      <Text style={[styles.questionText, { color: colors.foreground.primary }]}>{question.question}</Text>
                       
                       {question.options.map((option, optIndex) => {
                         const isSelected = selectedAnswers[question.id] === optIndex;
@@ -209,9 +210,13 @@ export default function LessonViewerScreen() {
                             key={optIndex}
                             style={[
                               styles.optionButton,
-                              isSelected && styles.optionButtonSelected,
-                              showResult && isCorrect && styles.optionButtonCorrect,
-                              showResult && isSelected && !isCorrect && styles.optionButtonWrong,
+                              { 
+                                backgroundColor: colors.background.secondary,
+                                borderColor: colors.background.tertiary 
+                              },
+                              isSelected && { borderColor: colors.accent.primary, backgroundColor: colors.background.tertiary },
+                              showResult && isCorrect && { borderColor: colors.success, backgroundColor: `${colors.success}20` },
+                              showResult && isSelected && !isCorrect && { borderColor: colors.error, backgroundColor: `${colors.error}20` },
                             ]}
                             onPress={() => handleAnswerSelect(question.id, optIndex)}
                             disabled={quizSubmitted}
@@ -219,20 +224,21 @@ export default function LessonViewerScreen() {
                             <Text
                               style={[
                                 styles.optionText,
-                                isSelected && styles.optionTextSelected,
+                                { color: colors.foreground.secondary },
+                                isSelected && { color: colors.foreground.primary, fontWeight: '600' },
                               ]}
                             >
                               {option}
                             </Text>
-                            {showResult && isCorrect && <Text style={styles.checkmark}>✓</Text>}
-                            {showResult && isSelected && !isCorrect && <Text style={styles.cross}>✗</Text>}
+                            {showResult && isCorrect && <Text style={[styles.checkmark, { color: colors.success }]}>✓</Text>}
+                            {showResult && isSelected && !isCorrect && <Text style={[styles.cross, { color: colors.error }]}>✗</Text>}
                           </TouchableOpacity>
                         );
                       })}
 
                       {quizSubmitted && (
-                        <View style={styles.explanationBox}>
-                          <Text style={styles.explanationText}>{question.explanation}</Text>
+                        <View style={[styles.explanationBox, { backgroundColor: colors.background.secondary, borderLeftColor: colors.accent.primary }]}>
+                          <Text style={[styles.explanationText, { color: colors.foreground.secondary }]}>{question.explanation}</Text>
                         </View>
                       )}
                     </VStack>
@@ -242,11 +248,11 @@ export default function LessonViewerScreen() {
                 {quizSubmitted && (
                   <Card variant="gradient" size="md">
                     <VStack gap={3} style={{ padding: 20, alignItems: 'center' }}>
-                      <Text style={styles.scoreTitle}>
+                      <Text style={[styles.scoreTitle, { color: colors.foreground.primary }]}>
                         {t('learn.quiz_score_title')}
                       </Text>
-                      <Text style={styles.scoreValue}>{quizScore}%</Text>
-                      <Text style={styles.scoreText}>
+                      <Text style={[styles.scoreValue, { color: colors.accent.primary }]}>{quizScore}%</Text>
+                      <Text style={[styles.scoreText, { color: colors.foreground.secondary }]}>
                         {quizScore >= (quiz?.passingScore || 70)
                           ? t('learn.quiz_passed')
                           : t('learn.quiz_failed')}
@@ -263,15 +269,22 @@ export default function LessonViewerScreen() {
             <Animated.View entering={FadeInDown.delay(200).duration(500)}>
               <View style={styles.navigationButtons}>
                 <TouchableOpacity
-                  style={[styles.navButton, currentSection === 0 && styles.navButtonDisabled]}
+                  style={[
+                    styles.navButton,
+                    { backgroundColor: colors.accent.primary },
+                    currentSection === 0 && styles.navButtonDisabled
+                  ]}
                   onPress={handlePrevious}
                   disabled={currentSection === 0}
                 >
-                  <Text style={styles.navButtonText}>{t('learn.previous')}</Text>
+                  <Text style={[styles.navButtonText, { color: '#FFFFFF' }]}>{t('learn.previous')}</Text>
                 </TouchableOpacity>
                 
-                <TouchableOpacity style={styles.navButton} onPress={handleNext}>
-                  <Text style={styles.navButtonText}>
+                <TouchableOpacity 
+                  style={[styles.navButton, { backgroundColor: colors.accent.primary }]} 
+                  onPress={handleNext}
+                >
+                  <Text style={[styles.navButtonText, { color: '#FFFFFF' }]}>
                     {currentSection < lesson.content.length - 1 ? t('learn.next_section') : t('learn.complete_lesson')}
                   </Text>
                 </TouchableOpacity>
@@ -286,23 +299,27 @@ export default function LessonViewerScreen() {
                 <TouchableOpacity
                   style={[
                     styles.submitButton,
+                    { backgroundColor: colors.accent.primary },
                     Object.keys(selectedAnswers).length !== quiz?.questions.length &&
                       styles.submitButtonDisabled,
                   ]}
                   onPress={handleQuizSubmit}
                   disabled={Object.keys(selectedAnswers).length !== quiz?.questions.length}
                 >
-                  <Text style={styles.submitButtonText}>{t('learn.submit_quiz')}</Text>
+                  <Text style={[styles.submitButtonText, { color: '#FFFFFF' }]}>{t('learn.submit_quiz')}</Text>
                 </TouchableOpacity>
               ) : (
                 <VStack gap={2}>
                   {quizScore < (quiz?.passingScore || 70) && (
-                    <TouchableOpacity style={styles.retryButton} onPress={handleQuizRetry}>
-                      <Text style={styles.retryButtonText}>{t('learn.retry_quiz')}</Text>
+                    <TouchableOpacity style={[styles.retryButton, { backgroundColor: colors.warning }]} onPress={handleQuizRetry}>
+                      <Text style={[styles.retryButtonText, { color: '#FFFFFF' }]}>{t('learn.retry_quiz')}</Text>
                     </TouchableOpacity>
                   )}
-                  <TouchableOpacity style={styles.continueButton} onPress={() => router.back()}>
-                    <Text style={styles.continueButtonText}>{t('common.continue')}</Text>
+                  <TouchableOpacity 
+                    style={[styles.continueButton, { borderColor: colors.accent.primary }]} 
+                    onPress={() => router.back()}
+                  >
+                    <Text style={[styles.continueButtonText, { color: colors.accent.primary }]}>{t('common.continue')}</Text>
                   </TouchableOpacity>
                 </VStack>
               )}
@@ -317,7 +334,6 @@ export default function LessonViewerScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0F172A',
   },
   scrollContent: {
     paddingBottom: 40,
@@ -329,7 +345,6 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#FFFFFF',
     textAlign: 'center',
     marginBottom: 16,
   },
@@ -338,34 +353,28 @@ const styles = StyleSheet.create({
   },
   progressBarContainer: {
     height: 8,
-    backgroundColor: '#1E293B',
     borderRadius: 4,
     overflow: 'hidden',
   },
   progressBar: {
     height: '100%',
-    backgroundColor: '#667EEA',
   },
   progressText: {
     fontSize: 12,
-    color: '#94A3B8',
     textAlign: 'center',
     marginTop: 8,
   },
   contentTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#FFFFFF',
     marginBottom: 12,
   },
   contentText: {
     fontSize: 16,
-    color: '#CBD5E1',
     lineHeight: 24,
   },
   videoPlaceholder: {
     height: 200,
-    backgroundColor: '#1E293B',
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
@@ -373,17 +382,13 @@ const styles = StyleSheet.create({
   },
   videoText: {
     fontSize: 24,
-    color: '#94A3B8',
     marginBottom: 8,
   },
   videoUrl: {
     fontSize: 12,
-    color: '#64748B',
-    // fontFamily from theme
   },
   diagramPlaceholder: {
     height: 240,
-    backgroundColor: '#1E293B',
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
@@ -391,29 +396,23 @@ const styles = StyleSheet.create({
   },
   diagramText: {
     fontSize: 24,
-    color: '#94A3B8',
     marginBottom: 8,
   },
   fenText: {
     fontSize: 10,
-    color: '#64748B',
-    // fontFamily from theme
   },
   interactivePlaceholder: {
     minHeight: 200,
-    backgroundColor: '#1E293B',
     borderRadius: 12,
     padding: 20,
   },
   interactiveText: {
     fontSize: 20,
-    color: '#94A3B8',
     marginBottom: 16,
     textAlign: 'center',
   },
   instructionText: {
     fontSize: 14,
-    color: '#CBD5E1',
     lineHeight: 20,
   },
   navigationButtons: {
@@ -422,40 +421,33 @@ const styles = StyleSheet.create({
   },
   navButton: {
     flex: 1,
-    backgroundColor: '#667EEA',
     padding: 16,
     borderRadius: 12,
     alignItems: 'center',
   },
   navButtonDisabled: {
-    backgroundColor: '#1E293B',
     opacity: 0.5,
   },
   navButtonText: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#FFFFFF',
   },
   quizTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#FFFFFF',
   },
   quizSubtitle: {
     fontSize: 14,
-    color: '#94A3B8',
     marginTop: 4,
   },
   questionNumber: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#667EEA',
     textTransform: 'uppercase',
   },
   questionText: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#FFFFFF',
     lineHeight: 22,
   },
   optionButton: {
@@ -463,69 +455,41 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 14,
-    backgroundColor: '#1E293B',
     borderRadius: 10,
     borderWidth: 2,
-    borderColor: '#334155',
-  },
-  optionButtonSelected: {
-    borderColor: '#667EEA',
-    backgroundColor: '#334155',
-  },
-  optionButtonCorrect: {
-    borderColor: '#10B981',
-    backgroundColor: '#065F46',
-  },
-  optionButtonWrong: {
-    borderColor: '#EF4444',
-    backgroundColor: '#7F1D1D',
   },
   optionText: {
     fontSize: 14,
-    color: '#94A3B8',
     flex: 1,
-  },
-  optionTextSelected: {
-    color: '#FFFFFF',
-    fontWeight: '600',
   },
   checkmark: {
     fontSize: 20,
-    color: '#10B981',
   },
   cross: {
     fontSize: 20,
-    color: '#EF4444',
   },
   explanationBox: {
     padding: 12,
-    backgroundColor: '#1E293B',
     borderRadius: 8,
     borderLeftWidth: 3,
-    borderLeftColor: '#667EEA',
   },
   explanationText: {
     fontSize: 14,
-    color: '#CBD5E1',
     lineHeight: 20,
   },
   scoreTitle: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#FFFFFF',
   },
   scoreValue: {
     fontSize: 48,
     fontWeight: 'bold',
-    color: '#667EEA',
   },
   scoreText: {
     fontSize: 16,
-    color: '#94A3B8',
     textAlign: 'center',
   },
   submitButton: {
-    backgroundColor: '#667EEA',
     padding: 18,
     borderRadius: 12,
     alignItems: 'center',
@@ -536,10 +500,8 @@ const styles = StyleSheet.create({
   submitButtonText: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#FFFFFF',
   },
   retryButton: {
-    backgroundColor: '#F59E0B',
     padding: 16,
     borderRadius: 12,
     alignItems: 'center',
@@ -547,7 +509,6 @@ const styles = StyleSheet.create({
   retryButtonText: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#FFFFFF',
   },
   continueButton: {
     backgroundColor: 'transparent',
@@ -555,12 +516,10 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: '#667EEA',
   },
   continueButtonText: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#667EEA',
   },
   loader: {
     flex: 1,
@@ -569,6 +528,5 @@ const styles = StyleSheet.create({
   },
   loaderText: {
     fontSize: 16,
-    color: '#94A3B8',
   },
 });
