@@ -1,35 +1,63 @@
 /**
- * Surface Primitive Component (Gradient backdrop for AI aesthetic)
- * app/ui/primitives/Surface.tsx
+ * Surface Primitive Component
+ * 
+ * Gradient backdrop for AI aesthetic with theme-aware styling.
+ * Use for elevated content sections, hero areas, or feature showcases.
+ * 
+ * @example
+ * ```tsx
+ * <Surface variant="default">
+ *   <Text>Main content</Text>
+ * </Surface>
+ * 
+ * <Surface variant="accent">
+ *   <Text>Highlighted section</Text>
+ * </Surface>
+ * ```
  */
 
 import type { ViewStyle } from 'react-native';
 import { Box } from './Box';
+import { useColors } from '../theme/ThemeProvider';
 
-type SurfaceVariant = 'default' | 'accent' | 'subtle';
+type SurfaceVariant = 'default' | 'accent' | 'subtle' | 'elevated';
 
 type SurfaceProps = {
+  /** Content to render inside the surface */
   children: React.ReactNode;
+  /** Visual style variant */
   variant?: SurfaceVariant;
+  /** Padding size (token index) */
+  padding?: number;
+  /** Border radius size */
+  radius?: number;
+  /** Additional styles */
   style?: ViewStyle;
-};
-
-const variantGradients: Record<SurfaceVariant, string> = {
-  default: '#FAFAFA',
-  accent: 'rgba(59, 130, 246, 0.05)',
-  subtle: 'rgba(255, 255, 255, 0.4)',
 };
 
 export const Surface: React.FC<SurfaceProps> = ({
   children,
   variant = 'default',
+  padding = 6,
+  radius = 12,
   style,
 }) => {
+  const colors = useColors();
+
+  // Theme-aware variant backgrounds
+  const variantBackgrounds: Record<SurfaceVariant, string> = {
+    default: colors.background.secondary,
+    accent: colors.background.accentSubtle,
+    subtle: colors.background.tertiary,
+    elevated: colors.background.elevated,
+  };
+
   return (
     <Box
-      backgroundColor={variantGradients[variant]}
-      padding={6}
-      radius="lg"
+      backgroundColor={variantBackgrounds[variant]}
+      padding={padding}
+      radius={radius}
+      shadow="card"
       style={style}
     >
       {children}

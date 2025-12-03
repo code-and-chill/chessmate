@@ -2,7 +2,7 @@
 title: App Documentation Index
 service: app
 status: active
-last_reviewed: 2025-12-02
+last_reviewed: 2025-12-03
 type: overview
 ---
 
@@ -85,6 +85,65 @@ Quick decision tree for AI-assisted development:
 - Responsive design
 - Accessibility (WCAG 2.1 AA)
 - Implementation guide
+
+### DLS Compliance & Quality (NEW)
+
+**[dls-audit-dashboard.md](./dls-audit-dashboard.md)** — Visual compliance dashboard
+- Quick stats and progress bars
+- Critical issues and recommendations
+- Component verification status
+- Action items by priority
+- **Overall Score: 92% (A-)** 🟢
+
+**[dls-audit-summary.md](./dls-audit-summary.md)** — Executive summary
+- What's working well
+- Issues found (critical, medium, low)
+- Quick action checklist
+- Key recommendations
+
+**[dls-compliance-audit.md](./dls-compliance-audit.md)** — Comprehensive audit report
+- Token system analysis (colors, typography, spacing, radius, shadows, motion)
+- Primitive component compliance (Box, Text, Button, Card, Panel, etc.)
+- Chess component verification
+- Missing components and documentation gaps
+- **Audit Date: December 3, 2025**
+
+**[component-verification-checklist.md](./component-verification-checklist.md)** — Audit tool
+- Per-component verification checklists
+- Red flags and green flags
+- Priority queue for audits
+- Quick audit commands
+
+**[dls-improvements-completed.md](./dls-improvements-completed.md)** — ✅ Milestone Report
+- Input, Tag, Avatar improvements completed (Dec 3, 2025)
+- 70% → 92% compliance achieved
+- Implementation details and lessons learned
+- **Status: COMPLETED** 🎉
+
+**[primitive-improvements.md](./primitive-improvements.md)** — Action plan (archived)
+- Original improvement roadmap
+- Code examples and checklists
+- Now superseded by completion report
+
+**[storybook-showcase.md](./storybook-showcase.md)** — 📚 Storybook Component Guide
+- Complete Storybook stories for 7 components
+- Theme testing and visual regression
+- Interactive examples and documentation
+- **Status: Implementation guide** 📖
+
+**[storybook-implementation-summary.md](./storybook-implementation-summary.md)** — ✅ Storybook Complete
+- **12 components with 68 stories** (Dec 3, 2025)
+- 100% primitive coverage (8/8 components)
+- Interactive development environment
+- Theme-aware testing with light/dark mode
+- **Status: COMPLETED** 🎉
+
+**[phase-8-completion.md](./phase-8-completion.md)** — ✅ Phase 8: Audit & Storybook Expansion
+- **3 components audited & documented** (Divider, Surface, Modal)
+- **20 new stories added** (88 total stories)
+- **DLS score improved: 92% → 94% (A grade)**
+- Zero critical issues remaining
+- **Status: COMPLETED** 🎉
 
 ### [component-index.md](./component-index.md)
 Component catalog and reference:
