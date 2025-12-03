@@ -106,10 +106,75 @@ export const semanticColors = (isDark: boolean) => ({
 ```typescript
 // app/ui/tokens/typography.ts
 
+/**
+ * EXPO FONT SYSTEM (PRODUCTION)
+ * 
+ * Using Expo Google Fonts for reliable cross-platform rendering:
+ * 
+ * Installation:
+ * ```bash
+ * npx expo install expo-font \
+ *   @expo-google-fonts/outfit \
+ *   @expo-google-fonts/inter \
+ *   @expo-google-fonts/jetbrains-mono
+ * ```
+ * 
+ * Font Loading (App.tsx):
+ * ```tsx
+ * import { useFonts } from 'expo-font';
+ * import {
+ *   Outfit_500Medium,
+ *   Outfit_600SemiBold,
+ *   Outfit_700Bold,
+ * } from '@expo-google-fonts/outfit';
+ * import {
+ *   Inter_400Regular,
+ *   Inter_500Medium,
+ *   Inter_600SemiBold,
+ *   Inter_700Bold,
+ * } from '@expo-google-fonts/inter';
+ * import {
+ *   JetBrainsMono_400Regular,
+ *   JetBrainsMono_500Medium,
+ *   JetBrainsMono_700Bold,
+ * } from '@expo-google-fonts/jetbrains-mono';
+ * 
+ * const [fontsLoaded] = useFonts({
+ *   Outfit_500Medium,
+ *   Outfit_600SemiBold,
+ *   Outfit_700Bold,
+ *   Inter_400Regular,
+ *   Inter_500Medium,
+ *   Inter_600SemiBold,
+ *   Inter_700Bold,
+ *   JetBrainsMono_400Regular,
+ *   JetBrainsMono_500Medium,
+ *   JetBrainsMono_700Bold,
+ * });
+ * ```
+ * 
+ * Font Roles:
+ * - Outfit: Display & Headings (geometric, modern)
+ * - Inter: Body & UI text (excellent readability)
+ * - JetBrains Mono: Chess notation & code
+ */
 export const typographyTokens = {
   fontFamily: {
-    primary: 'Inter',
-    mono: 'Monaco',
+    // Display & Headings
+    display: 'Outfit_700Bold',
+    displayMedium: 'Outfit_600SemiBold',
+    displayLight: 'Outfit_500Medium',
+    
+    // Body & UI
+    primary: 'Inter_400Regular',
+    primaryMedium: 'Inter_500Medium',
+    primarySemiBold: 'Inter_600SemiBold',
+    primaryBold: 'Inter_700Bold',
+    
+    // Code & Notation
+    mono: 'JetBrainsMono_400Regular',
+    monoMedium: 'JetBrainsMono_500Medium',
+    monoBold: 'JetBrainsMono_700Bold',
   },
   fontSize: {
     xs: 12,
@@ -152,21 +217,25 @@ export const textVariants = {
 ```typescript
 // app/ui/tokens/spacing.ts
 
+/**
+ * Production spacing scale: 4px base unit
+ * 
+ * Rationale: 4px base provides better mobile UX with touch-friendly spacing.
+ * Updated Dec 2025 to match implementation.
+ */
 export const spacingTokens = {
   0: 0,
-  1: 2,
-  2: 4,
-  3: 6,
-  4: 8,
-  5: 12,
-  6: 16,
-  7: 24,
-  8: 32,
-  9: 40,
-  10: 48,
-  12: 64,
-  14: 80,
-  16: 96,
+  1: 4,   // 4px - xs, tight spacing
+  2: 8,   // 8px - sm, compact spacing
+  3: 12,  // 12px - md, comfortable spacing
+  4: 16,  // 16px - lg, relaxed spacing
+  5: 24,  // 24px - xl, spacious
+  6: 32,  // 32px - 2xl, very spacious
+  7: 40,  // 40px - 3xl, generous
+  8: 48,  // 48px - 4xl, large gaps
+  9: 64,  // 64px - 5xl, section dividers
+  10: 80, // 80px - 6xl, hero spacing
+  12: 96, // 96px - 7xl, mega spacing
 };
 
 // Semantic spacing helpers
@@ -187,14 +256,20 @@ export const spacingScale = {
 ```typescript
 // app/ui/tokens/radii.ts
 
+/**
+ * Production radius scale: Tight, modern radii
+ * 
+ * Rationale: Tighter radii (4/8/12) provide modern aesthetic.
+ * Verified Dec 2025 via component usage audit - widely adopted.
+ */
 export const radiusTokens = {
   none: 0,
-  sm: 6,
-  md: 10,
-  lg: 16,
-  xl: 24,
-  '2xl': 32,
-  full: 9999,
+  sm: 4,   // 4px - small elements (badges, tags)
+  md: 8,   // 8px - buttons, inputs
+  lg: 12,  // 12px - cards, panels
+  xl: 16,  // 16px - modals, drawers
+  '2xl': 20, // 20px - hero cards
+  full: 9999, // circular avatars
 };
 
 // Semantic radius for different component types

@@ -29,6 +29,7 @@ import { radiusTokens } from '../tokens/radii';
 import { shadowTokens } from '../tokens/shadows';
 import { motionTokens } from '../tokens/motion';
 import { colorTokens, getColor } from '../tokens/colors';
+import { useColors } from '../theme/ThemeProvider';
 
 export type ModalSize = 'sm' | 'md' | 'lg' | 'full';
 export type ModalPlacement = 'center' | 'bottom' | 'top';
@@ -69,6 +70,7 @@ export const Modal: React.FC<ModalProps> = ({
   backdropOpacity = 0.5,
   animationDuration = motionTokens.duration.moderate,
 }) => {
+  const colors = useColors();
   const backdropOpacityValue = useSharedValue(0);
   const modalScale = useSharedValue(0.9);
   const modalTranslateY = useSharedValue(placement === 'bottom' ? 100 : 0);
@@ -149,7 +151,7 @@ export const Modal: React.FC<ModalProps> = ({
         >
           {/* Header */}
           {(title || showCloseButton) && (
-            <View style={styles.header}>
+            <View style={[styles.header, { borderBottomColor: colors.border.default }]}>
               {title && (
                 <Text size="xl" weight="semibold">
                   {title}
@@ -180,7 +182,7 @@ export const Modal: React.FC<ModalProps> = ({
           )}
 
           {/* Footer */}
-          {footer && <View style={styles.footer}>{footer}</View>}
+          {footer && <View style={[styles.footer, { borderTopColor: colors.border.default }]}>{footer}</View>}
         </Animated.View>
       </KeyboardAvoidingView>
     </RNModal>
@@ -197,7 +199,7 @@ const styles = StyleSheet.create({
   },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: '#000',
+    backgroundColor: '#000', // Backdrop is always black for overlay effect
   },
   modal: {
     width: '90%',
@@ -227,7 +229,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: spacingScale.lg,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    // borderBottomColor applied dynamically via colors.border.default
   },
   closeButton: {
     width: 32,
@@ -244,7 +246,7 @@ const styles = StyleSheet.create({
   footer: {
     padding: spacingScale.lg,
     borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
+    // borderTopColor applied dynamically via colors.border.default
     flexDirection: 'row',
     justifyContent: 'flex-end',
     gap: spacingTokens[3],

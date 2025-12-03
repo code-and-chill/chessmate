@@ -5,6 +5,7 @@
   "version": "1.0.0",
   "scripts": {
     "start": "expo start",
+    "start:storybook": "STORYBOOK_ENABLED=1 expo start",
     "reset-project": "node ./scripts/reset-project.js",
     "android": "expo start --android",
     "ios": "expo start --ios",
@@ -55,6 +56,9 @@
     "zustand": "^5.0.8"
   },
   "devDependencies": {
+    "@storybook/addon-ondevice-actions": "^10.1.0",
+    "@storybook/addon-ondevice-controls": "^10.1.0",
+    "@storybook/react-native": "^7.6.20",
     "@types/react": "~19.1.0",
     "eslint": "^9.25.0",
     "eslint-config-expo": "~10.0.0",

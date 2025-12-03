@@ -8,9 +8,16 @@ import { PlayScreen } from './features/play';
 import { MatchesScreen, SettingsScreen, AnimationsScreen, FontTestScreen } from './features/demo';
 import { HStack, Button, useColors, ThemeProvider, Text } from './ui';
 import { useAppFonts } from './config/fonts';
+import { ENABLE_STORYBOOK } from './.storybook/config';
 
 // Keep splash screen visible while fonts load
 SplashScreen.preventAutoHideAsync();
+
+// Storybook import (lazy loaded)
+let StorybookUI: any = null;
+if (ENABLE_STORYBOOK) {
+  StorybookUI = require('./.storybook').default;
+}
 
 type Screen = 'play' | 'matches' | 'settings' | 'animations' | 'fonts';
 
@@ -89,6 +96,15 @@ export default function App() {
       SplashScreen.hideAsync();
     }
   }, [fontsLoaded, fontError]);
+
+  // Show Storybook if enabled (dev only)
+  if (ENABLE_STORYBOOK && StorybookUI) {
+    return (
+      <ThemeProvider defaultMode="light">
+        <StorybookUI />
+      </ThemeProvider>
+    );
+  }
 
   // Show loading state while fonts are loading
   if (!fontsLoaded && !fontError) {

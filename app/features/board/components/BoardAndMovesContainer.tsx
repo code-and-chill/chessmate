@@ -1,13 +1,3 @@
-/**
- * BoardAndMovesContainer Component
- * app/features/board/components/BoardAndMovesContainer.tsx
- * 
- * Container that displays board and move list side-by-side
- * - Board is fixed square size (BOARD_SIZE)
- * - Move list matches board height
- * - Both in single horizontal container
- */
-
 import * as React from 'react';
 import { View, Dimensions } from 'react-native';
 import { ChessBoard, type ChessBoardProps } from '@/features/board/components/ChessBoard';
@@ -55,8 +45,7 @@ export const BoardAndMovesContainer: React.FC<BoardAndMovesContainerProps> = Rea
           squareSize={SQUARE_SIZE}
         />
       </Card>
-
-      {/* Move List - Matches Board Height */}
+      {/* Moves List View */}
       <Card
         variant="default"
         size="md"

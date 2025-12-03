@@ -33,6 +33,34 @@ pnpm android
 pnpm web
 ```
 
+### 🎨 **NEW: Storybook Component Explorer**
+
+Interactive component development and documentation:
+
+```bash
+# 1. Enable Storybook
+# Edit .storybook/config.ts: ENABLE_STORYBOOK = true
+
+# 2. Start Expo (normal command)
+pnpm start
+
+# 3. Choose platform: i (iOS) | a (Android) | w (Web)
+# Storybook will load inside the app!
+```
+
+**Important:** React Native Storybook runs **inside your app**, not as a separate server.  
+**Don't run:** `npm run storybook` ❌
+
+**Features:**
+- 12 components with 68 interactive stories
+- Light/dark theme testing
+- Live prop controls
+- 100% primitive coverage
+
+**How to Use:** `.storybook/HOW_TO_USE.md` ← **START HERE**  
+**Quick Reference:** `.storybook/QUICK_REFERENCE.md`  
+**Full Guide:** `.storybook/SETUP_COMPLETE.md`
+
 ## 📚 Documentation
 
 **Complete documentation is in [`docs/`](./docs/)**
