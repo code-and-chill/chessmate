@@ -1,5 +1,6 @@
 import { View, StyleSheet } from 'react-native';
 import { SocialScreen } from '@/features/social';
+import { useColors } from '@/ui';
 
 /**
  * Social Tab - Integrated with account-api and rating-api services
@@ -13,9 +14,10 @@ import { SocialScreen } from '@/features/social';
 export default function SocialTab() {
   // TODO: Get userId from auth context
   const userId = 'current-user-id';
+  const colors = useColors();
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background.primary }]}>
       <SocialScreen userId={userId} />
     </View>
   );
@@ -24,6 +26,5 @@ export default function SocialTab() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
   },
 });

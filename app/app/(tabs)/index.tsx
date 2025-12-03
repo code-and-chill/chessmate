@@ -5,7 +5,7 @@ import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { PlayScreen } from '@/features/board';
 import { Panel } from '@/ui/primitives/Panel';
 import { StatCard } from '@/ui/components/StatCard';
-import { VStack, HStack, useThemeTokens } from '@/ui';
+import { VStack, HStack, useThemeTokens, Icon } from '@/ui';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 type PlayMode = 'hub' | 'game';
@@ -46,8 +46,8 @@ export default function PlayTab() {
                   Your Stats
                 </Text>
                 <HStack gap={3}>
-                  <StatCard value="⚡ 1450" label="Rating" />
-                  <StatCard value="🔥 7" label="Streak" />
+                  <StatCard icon="bolt" value="1450" label="Rating" />
+                  <StatCard icon="flame" value="7" label="Streak" />
                 </HStack>
                 <HStack gap={3}>
                   <StatCard value="34" label="Games" />
@@ -65,7 +65,7 @@ export default function PlayTab() {
                 <Panel variant="glass" padding={20} style={styles.modeCard}>
                   <HStack gap={4} style={{ alignItems: 'center' }}>
                     <View style={styles.modeBadge}>
-                      <Text style={styles.modeIcon}>🌐</Text>
+                      <Icon name="globe" size={32} color={colors.accent.primary} />
                     </View>
                     <VStack gap={1} style={{ flex: 1 }}>
                       <Text style={[styles.modeTitle, { color: colors.foreground.primary }]}>
@@ -90,7 +90,7 @@ export default function PlayTab() {
                 <Panel variant="glass" padding={20} style={styles.modeCard}>
                   <HStack gap={4} style={{ alignItems: 'center' }}>
                     <View style={styles.modeBadge}>
-                      <Text style={styles.modeIcon}>🤖</Text>
+                      <Icon name="robot" size={32} color={colors.accent.primary} />
                     </View>
                     <VStack gap={1} style={{ flex: 1 }}>
                       <Text style={[styles.modeTitle, { color: colors.foreground.primary }]}>
@@ -115,7 +115,7 @@ export default function PlayTab() {
                 <Panel variant="glass" padding={20} style={styles.modeCard}>
                   <HStack gap={4} style={{ alignItems: 'center' }}>
                     <View style={styles.modeBadge}>
-                      <Text style={styles.modeIcon}>👥</Text>
+                      <Icon name="users" size={32} color={colors.accent.primary} />
                     </View>
                     <VStack gap={1} style={{ flex: 1 }}>
                       <Text style={[styles.modeTitle, { color: colors.foreground.primary }]}>

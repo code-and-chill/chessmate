@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Pressable, Platfo
 import { useRouter } from 'expo-router';
 import { IconSymbol } from '@/ui/primitives/icon-symbol';
 import { Colors, Spacing, ZIndex } from '@/core/constants';
-import { useFonts } from '@/ui';
+import { useFonts } from '@/ui/hooks/useThemeTokens';
 
 export interface NavigationSidebarProps {
   currentRoute?: string;

@@ -9,7 +9,7 @@
  * @example
  * ```tsx
  * <FeatureCard
- *   icon="🌐"
+ *   icon="globe"
  *   title="Online Play"
  *   description="Find opponents worldwide"
  *   progress="1245 rating • 34 games"
@@ -19,14 +19,19 @@
  * ```
  */
 
-import { StyleSheet, TouchableOpacity, Text } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Card } from '@/ui/primitives/Card';
-import { VStack, useColors, typographyTokens } from '@/ui';
+import { InteractivePressable } from '@/ui/primitives/InteractivePressable';
+import { Icon, type IconName } from '@/ui/icons';
+import { VStack } from '@/ui/primitives/Stack';
+import { useColors } from '@/ui/hooks/useThemeTokens';
+import { typographyTokens } from '@/ui/tokens/typography';
+import { spacingTokens } from '@/ui/tokens/spacing';
 
 interface FeatureCardProps {
-  /** Emoji icon (e.g., "🌐", "🤖", "📚") */
-  icon: string;
+  /** Icon name from icon library (e.g., "globe", "robot", "book") */
+  icon: IconName;
   
   /** Card title (e.g., "Online Play") */
   title: string;
@@ -67,18 +72,24 @@ export function FeatureCard({
         pressable
         style={styles.card}
       >
-        <TouchableOpacity
-          style={styles.cardInner}
+        <InteractivePressable
           onPress={onPress}
-          activeOpacity={0.9}
+          scaleOnPress={true}
+          pressScale={0.98}
+          hapticFeedback={true}
+          hapticStyle="light"
+          style={styles.cardInner}
         >
-          <Text style={styles.icon}>{icon}</Text>
+          <View style={[styles.iconBadge, { backgroundColor: colors.accent.primary + '15' }]}>
+            <Icon name={icon} size={32} color={colors.accent.primary} />
+          </View>
           <VStack gap={1} style={styles.contentContainer}>
             <Text style={[styles.title, { color: colors.foreground.primary }]}>{title}</Text>
             <Text style={[styles.description, { color: colors.foreground.secondary }]}>{description}</Text>
             {progress && <Text style={[styles.progress, { color: colors.accent.primary }]}>{progress}</Text>}
           </VStack>
-        </TouchableOpacity>
+          <Text style={[styles.arrow, { color: colors.accent.primary }]}>→</Text>
+        </InteractivePressable>
       </Card>
     </Animated.View>
   );
@@ -91,11 +102,15 @@ const styles = StyleSheet.create({
   cardInner: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 20,
-    padding: 4,
+    gap: spacingTokens[4],
+    padding: spacingTokens[1],
   },
-  icon: {
-    fontSize: typographyTokens.fontSize['4xl'],
+  iconBadge: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   contentContainer: {
     flex: 1,
@@ -104,7 +119,8 @@ const styles = StyleSheet.create({
     fontFamily: typographyTokens.fontFamily.displayMedium,
     fontSize: typographyTokens.fontSize.xl,
     fontWeight: typographyTokens.fontWeight.bold,
-    marginBottom: 4,
+    marginBottom: spacingTokens[1],
+    letterSpacing: -0.4,
   },
   description: {
     fontFamily: typographyTokens.fontFamily.primary,
@@ -115,6 +131,10 @@ const styles = StyleSheet.create({
     fontFamily: typographyTokens.fontFamily.primaryMedium,
     fontSize: typographyTokens.fontSize.sm,
     fontWeight: typographyTokens.fontWeight.semibold,
-    marginTop: 4,
+    marginTop: spacingTokens[1],
+  },
+  arrow: {
+    fontSize: 24,
+    fontWeight: '600',
   },
 });

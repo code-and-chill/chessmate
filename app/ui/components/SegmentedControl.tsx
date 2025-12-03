@@ -13,7 +13,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { Text } from '@/ui/primitives/Text';
-import { useThemeTokens } from '@/ui';
+import { useThemeTokens } from '@/ui/hooks/useThemeTokens';
 
 type SegmentedControlProps<T extends string> = {
   segments: T[];

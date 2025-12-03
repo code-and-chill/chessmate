@@ -26,6 +26,8 @@ export { Text } from './primitives/Text';
 export { Button } from './primitives/Button';
 export { Card } from './primitives/Card';
 export { Panel } from './primitives/Panel';
+export { InteractivePressable } from './primitives/InteractivePressable';
+export type { InteractivePressableProps } from './primitives/InteractivePressable';
 export { Input } from './primitives/Input';
 export { Tag } from './primitives/Tag';
 export { Avatar } from './primitives/Avatar';
@@ -61,7 +63,6 @@ export {
   LoadingState,
   ErrorState,
   SkeletonLoader,
-  SkeletonCard,
   ComponentStateManager,
 } from './primitives/ComponentStates';
 export type {
@@ -132,6 +133,13 @@ export type { QuickStartModalProps, TimeControl } from './modals/QuickStartModal
 
 // Re-export IconSymbol
 export { IconSymbol } from './primitives/icon-symbol';
+
+// Re-export icon system
+export { Icon, type IconName, type IconProps } from './icons';
+
+// Re-export enhanced components
+export { EmptyState as EnhancedEmptyState, type EmptyStateProps as EnhancedEmptyStateProps } from './components/EmptyState';
+export { Skeleton, SkeletonCard, SkeletonList } from './primitives/SkeletonLoader';
 
 // Re-export style utilities
 export { safeStyles, safeStyleArray } from './utilities/safeStyles';
