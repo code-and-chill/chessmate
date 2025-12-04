@@ -1,7 +1,6 @@
 import { useState } from 'react';
-import { StyleSheet, View, TextInput, TouchableOpacity, Text, KeyboardAvoidingView, Platform, Alert, Modal, Pressable } from 'react-native';
+import { StyleSheet, View, TextInput, TouchableOpacity, Text, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Stack } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import { useThemeTokens } from '@/ui';
 import { useI18n } from '@/i18n/I18nContext';
@@ -42,23 +41,13 @@ export default function LoginScreen() {
     
     try {
       await login(email, password);
-      router.replace('/(tabs)');
+      router.back(); // Go back to previous screen after successful login
     } catch (error) {
       Alert.alert(t('auth.login_failed'), t('auth.invalid_credentials'));
     }
   };
 
   return (
-    <>
-      <Stack.Screen
-        options={{
-          presentation: 'modal',
-          headerShown: true,
-          title: t('auth.sign_in'),
-          headerStyle: { backgroundColor: colors.background.secondary },
-          headerTintColor: colors.foreground.primary,
-        }}
-      />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={[styles.keyboardView, { backgroundColor: colors.background.primary }]}
@@ -132,7 +121,6 @@ export default function LoginScreen() {
           </Animated.View>
         </VStack>
       </KeyboardAvoidingView>
-    </>
   );
 }
 

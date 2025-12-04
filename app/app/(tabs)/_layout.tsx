@@ -26,7 +26,7 @@ export default function TabLayout() {
   return (
     <Stack
       screenOptions={{
-        headerShown: true,
+        headerShown: false,
         headerRight: () => <HeaderActions />,
         headerStyle: {
           backgroundColor: colors.background.secondary,

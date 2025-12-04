@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { StyleSheet, View, TextInput, TouchableOpacity, Text, KeyboardAvoidingView, Platform, Alert, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Stack } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import { useThemeTokens } from '@/ui';
 import { useI18n } from '@/i18n/I18nContext';
@@ -65,23 +64,13 @@ export default function RegisterScreen() {
     
     try {
       await register(username, email, password);
-      router.replace('/(tabs)');
+      router.back(); // Go back to previous screen after successful registration
     } catch (error: any) {
       Alert.alert(t('auth.registration_failed'), error.message || t('auth.try_again'));
     }
   };
 
   return (
-    <>
-      <Stack.Screen
-        options={{
-          presentation: 'modal',
-          headerShown: true,
-          title: t('auth.create_account'),
-          headerStyle: { backgroundColor: colors.background.secondary },
-          headerTintColor: colors.foreground.primary,
-        }}
-      />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={[styles.keyboardView, { backgroundColor: colors.background.primary }]}
@@ -192,15 +181,12 @@ export default function RegisterScreen() {
               <TouchableOpacity onPress={() => router.push('/login')}>
                 <Text style={[styles.linkTextBold, { color: colors.accent.primary }]}>{t('auth.sign_in')}</Text>
               </TouchableOpacity>
-            </Animated.View>
-          </VStack>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </>
+          </Animated.View>
+        </VStack>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
-}
-
-const styles = StyleSheet.create({
+}const styles = StyleSheet.create({
   keyboardView: {
     flex: 1,
   },

@@ -362,12 +362,12 @@ export default function GameScreen() {
     <>
     <SafeAreaView style={{ flex: 1 }}>
       <Surface gradient="subtle" style={{ flex: 1 }}>
-        <Box flex={1} style={{ paddingHorizontal: spacingTokens[2] }}>
-          <VStack flex={1} gap={spacingTokens[2]}>
+        <Box flex={1} style={{ paddingHorizontal: spacingTokens[2], paddingTop: spacingTokens[4] }}>
+          <VStack flex={1} gap={spacingTokens[4]}>
           {/* Game Header with Actions */}
-          <Card variant="elevated" size="sm" padding={spacingTokens[1]}>
-            <HStack gap={spacingTokens[1]} alignItems="center" justifyContent="space-between">
-              <HStack gap={spacingTokens[1]} alignItems="center" flex={1}>
+          <Card variant="elevated" size="sm" padding={spacingTokens[3]}>
+            <HStack gap={spacingTokens[2]} alignItems="center" justifyContent="space-between">
+              <HStack gap={spacingTokens[2]} alignItems="center" flex={1}>
                 <Text variant="caption" weight="semibold" style={{ color: colors.accent.primary }}>
                   {gameState.status === 'in_progress' ? '● LIVE' : '■ ENDED'}
                 </Text>
@@ -376,7 +376,7 @@ export default function GameScreen() {
                 </Text>
               </HStack>
               {gameState.status === 'in_progress' && (
-                <HStack gap={spacingTokens[1]}>
+                <HStack gap={spacingTokens[2]}>
                   <Text 
                     variant="caption" 
                     weight="semibold" 

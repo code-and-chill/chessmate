@@ -7,7 +7,7 @@ export default function GameLayout() {
   return (
     <Stack
       screenOptions={{
-        headerShown: true,
+        headerShown: false,
         headerStyle: {
           backgroundColor: colors.background.secondary,
         },
@@ -18,7 +18,7 @@ export default function GameLayout() {
       <Stack.Screen 
         name="[id]" 
         options={{ 
-          title: 'Game',
+          headerShown: false,
         }} 
       />
     </Stack>

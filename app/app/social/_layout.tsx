@@ -7,7 +7,7 @@ export default function SocialLayout() {
   return (
     <Stack
       screenOptions={{
-        headerShown: true,
+        headerShown: false,
         headerStyle: {
           backgroundColor: colors.background.secondary,
         },

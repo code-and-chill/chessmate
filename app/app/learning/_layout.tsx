@@ -19,7 +19,6 @@ export default function LearningLayout() {
         name="index" 
         options={{ 
           title: 'Learning',
-          headerShown: true,
         }} 
       />
       <Stack.Screen 

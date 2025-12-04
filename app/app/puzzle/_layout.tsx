@@ -7,7 +7,7 @@ export default function PuzzleLayout() {
   return (
     <Stack
       screenOptions={{
-        headerShown: true,
+        headerShown: false,
         headerStyle: {
           backgroundColor: colors.background.secondary,
         },

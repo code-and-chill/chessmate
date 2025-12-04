@@ -53,12 +53,8 @@ export function GlobalLayout({ children }: GlobalLayoutProps) {
   const pathname = usePathname();
   const [sidebarVisible, setSidebarVisible] = useState(Platform.OS === 'web');
 
-  // Hide sidebar on login/register screens
-  const hideSidebar = pathname === '/login' || pathname === '/register';
-
-  if (hideSidebar) {
-    return <>{children}</>;
-  }
+  // Login/register are now modals, so we always show the sidebar for the main app
+  // (The modal screens will overlay on top)
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background.primary }]}>

@@ -19,7 +19,7 @@ import { I18nProvider } from '@/i18n/I18nContext';
 import { useAppFonts } from '@/config/fonts';
 
 export const unstable_settings = {
-  anchor: '(tabs)',
+  initialRouteName: '(tabs)',
 };
 
 export default function RootLayout() {
@@ -46,12 +46,27 @@ export default function RootLayout() {
                         <Stack screenOptions={{ headerShown: false }}>
                           <Stack.Screen name="(tabs)" />
                           <Stack.Screen name="(drawer)" />
-                          <Stack.Screen name="puzzle" options={{ headerShown: false }} />
-                          <Stack.Screen name="learning" options={{ headerShown: false }} />
-                          <Stack.Screen name="social" options={{ headerShown: false }} />
-                          <Stack.Screen name="login" />
-                          <Stack.Screen name="register" />
-                          <Stack.Screen name="settings" options={{ headerShown: true, title: 'Settings' }} />
+                          <Stack.Screen name="puzzle" />
+                          <Stack.Screen name="learning" />
+                          <Stack.Screen name="social" />
+                          <Stack.Screen name="game" />
+                          <Stack.Screen 
+                            name="login" 
+                            options={{ 
+                              presentation: 'modal',
+                              headerShown: true,
+                              title: 'Sign In',
+                            }} 
+                          />
+                          <Stack.Screen 
+                            name="register" 
+                            options={{ 
+                              presentation: 'modal',
+                              headerShown: true,
+                              title: 'Sign Up',
+                            }} 
+                          />
+                          <Stack.Screen name="settings" />
                         </Stack>
                       </GlobalLayout>
                       <StatusBar style="auto" />

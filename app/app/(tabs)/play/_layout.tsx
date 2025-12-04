@@ -7,7 +7,7 @@ export default function PlayLayout() {
   return (
     <Stack
       screenOptions={{
-        headerShown: true,
+        headerShown: false,
         headerStyle: {
           backgroundColor: colors.background.secondary,
         },
