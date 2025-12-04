@@ -8,7 +8,8 @@
 
 export type ThemeMode = 'light' | 'dark';
 export type BoardTheme = 'classic' | 'blue' | 'brown' | 'marble' | 'green' | 'gray' | 'purple';
-export type PieceTheme = 'alpha' | 'neo' | 'staunton' | 'classic';
+// SVG-based piece themes (8 themes total)
+export type PieceTheme = 'minimal' | 'solid' | 'outline' | 'classic' | 'neon' | 'glass' | 'wood' | 'pixel' | 'sketch';
 
 export interface BoardColors {
   lightSquare: string;
@@ -209,7 +210,7 @@ export const getBoardColors = (theme: BoardTheme, mode: ThemeMode): BoardColors 
 export const defaultThemeConfig: ThemeConfig = {
   mode: 'light',
   boardTheme: 'classic',
-  pieceTheme: 'classic',
+  pieceTheme: 'minimal', // Start with minimal flat theme
 };
 
 /**
@@ -218,5 +219,5 @@ export const defaultThemeConfig: ThemeConfig = {
 export const themeConfigOptions = {
   modes: ['light', 'dark'] as const,
   boardThemes: ['classic', 'blue', 'brown', 'marble', 'green', 'gray', 'purple'] as const,
-  pieceThemes: ['alpha', 'neo', 'staunton', 'classic'] as const,
+  pieceThemes: ['minimal', 'solid', 'outline', 'classic', 'neon', 'glass', 'wood', 'pixel', 'sketch'] as const,
 };
