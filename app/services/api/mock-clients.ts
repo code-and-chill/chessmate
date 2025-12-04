@@ -1016,7 +1016,7 @@ export class MockPlayApiClient {
     return `game-${this.gameCounter}-${Date.now()}`;
   }
 
-  private createInitialGameState(gameId: string, timeControl: any, whitePlayerId: string, blackPlayerId?: string): any {
+  private createInitialGameState(gameId: string, timeControl: any, whitePlayerId: string, blackPlayerId?: string, rated: boolean = false): any {
     return {
       gameId,
       status: blackPlayerId ? 'in_progress' : 'waiting_for_opponent',
@@ -1043,7 +1043,7 @@ export class MockPlayApiClient {
         remainingMs: timeControl.initialMs,
       } : null,
       timeControl,
-      rated: false,
+      rated: rated,
       createdAt: new Date().toISOString(),
       startedAt: blackPlayerId ? new Date().toISOString() : null,
       lastMoveAt: null,
@@ -1066,7 +1066,8 @@ export class MockPlayApiClient {
       gameId,
       request.timeControl,
       whitePlayerId,
-      blackPlayerId
+      blackPlayerId,
+      request.rated ?? false
     );
 
     // Assign colors based on preference

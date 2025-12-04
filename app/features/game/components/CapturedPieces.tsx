@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { useThemeTokens } from '@/ui';
+import { useThemeTokens } from '@/ui/hooks/useThemeTokens';
 
 type PieceType = 'p' | 'n' | 'b' | 'r' | 'q' | 'k';
 type PieceColor = 'w' | 'b';

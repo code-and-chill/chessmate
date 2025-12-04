@@ -8,6 +8,7 @@
 import React from 'react';
 import { HStack, VStack } from '@/ui/primitives/Stack';
 import { Text } from '@/ui/primitives/Text';
+import { Panel } from '@/ui/primitives/Panel';
 import { StatusBadge } from '@/ui/components/StatusBadge';
 import { useThemeTokens } from '@/ui/hooks/useThemeTokens';
 import { spacingTokens } from '@/ui/tokens/spacing';
@@ -29,9 +30,10 @@ export const GameHeader: React.FC<GameHeaderProps> = ({
   const { colors } = useThemeTokens();
 
   return (
-    <VStack gap={spacingTokens[3]}>
-      {/* Metadata Line */}
-      <HStack gap={spacingTokens[2]} alignItems="center">
+    <Panel variant="glass" padding={spacingTokens[3]}>
+      <VStack gap={spacingTokens[3]}>
+        {/* Metadata Line */}
+        <HStack gap={spacingTokens[2]} alignItems="center">
         <StatusBadge status={status} size="sm" />
         <Text 
           variant="label" 
@@ -54,6 +56,7 @@ export const GameHeader: React.FC<GameHeaderProps> = ({
         </Text>
       </HStack>
     </VStack>
+    </Panel>
   );
 };
 

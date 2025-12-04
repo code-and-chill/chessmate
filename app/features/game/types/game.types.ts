@@ -18,6 +18,11 @@ export interface Move {
   moveNumber: number;
   color: Color;
   san: string; // Standard Algebraic Notation
+  isCapture?: boolean; // Move involves capture
+  isCheck?: boolean; // Move puts opponent in check
+  isCheckmate?: boolean; // Move is checkmate
+  annotation?: '!!' | '!' | '!?' | '?!' | '?' | '??'; // Move quality annotation
+  piece?: 'K' | 'Q' | 'R' | 'B' | 'N' | 'P'; // Piece type for icon
 }
 
 export interface PlayerInfo {

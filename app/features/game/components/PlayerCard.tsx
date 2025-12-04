@@ -20,6 +20,7 @@ import { HStack, VStack } from '@/ui/primitives/Stack';
 import { Avatar } from '@/ui/primitives/Avatar';
 import { Badge } from '@/ui/primitives/Badge';
 import { Text } from '@/ui/primitives/Text';
+import { Panel } from '@/ui/primitives/Panel';
 import { useThemeTokens } from '@/ui/hooks/useThemeTokens';
 import { spacingTokens } from '@/ui/tokens/spacing';
 import { colorTokens, getColor } from '@/ui/tokens/colors';
@@ -146,18 +147,17 @@ export const PlayerCard = React.memo<PlayerCardProps>(({
 
   return (
     <Animated.View style={[glowStyle, style]}>
-      <Box
-        as="card"
+      <Panel
+        variant="glass"
+        padding={spacingTokens[2]} // Compact 8px padding
         style={{
-          borderRadius: spacingTokens[2],
-          padding: 8,
           borderWidth: isActive ? 2 : 1,
-          borderColor: isActive ? colors.accent.primary : colors.background.tertiary,
-          backgroundColor: colors.background.secondary,
+          borderColor: isActive ? colors.accent.primary : 'rgba(255, 255, 255, 0.2)',
         }}
       >
-        {/* Line 1: Avatar | Name | Rating */}
-        <HStack gap={8} alignItems="center" style={{ marginBottom: 6 }}>
+        {/* Compact Single Row */}
+        <HStack gap={spacingTokens[2]} alignItems="center" justifyContent="space-between">
+          {/* Left: Avatar with badge */}
           <Box style={{ position: 'relative' }}>
             <Avatar
               name={name}
@@ -165,15 +165,14 @@ export const PlayerCard = React.memo<PlayerCardProps>(({
               backgroundColor={color === 'w' ? colors.background.tertiary : colors.foreground.primary}
               textColor={color === 'w' ? colors.foreground.primary : colors.background.tertiary}
             />
-            {/* Color Badge Overlay */}
             <Box
               style={{
                 position: 'absolute',
                 bottom: -2,
                 right: -2,
-                width: 18,
-                height: 18,
-                borderRadius: 9,
+                width: 14,
+                height: 14,
+                borderRadius: 7,
                 backgroundColor: color === 'w' ? colors.background.tertiary : colors.foreground.primary,
                 borderWidth: 2,
                 borderColor: colors.background.secondary,
@@ -181,93 +180,76 @@ export const PlayerCard = React.memo<PlayerCardProps>(({
                 alignItems: 'center',
               }}
             >
-              <Text style={{ fontSize: typographyTokens.fontSize.xs }}>
+              <Text style={{ fontSize: 7 }}>
                 {color === 'w' ? '⭕' : '⚫'}
               </Text>
             </Box>
           </Box>
 
-          <VStack flex={1} gap={2}>
-            <HStack alignItems="center" gap={6}>
-              <Text variant="titleSmall" weight="semibold" style={{ fontSize: typographyTokens.fontSize.sm }}>
-                {name}
-              </Text>
-              {isSelf && (
-                <Badge variant="info" size="sm">You</Badge>
-              )}
-            </HStack>
-            
+          {/* Middle: Name + Rating */}
+          <HStack flex={1} alignItems="center" gap={spacingTokens[1]}>
+            <Text variant="body" weight="semibold" style={{ fontSize: typographyTokens.fontSize.sm }}>
+              {name}
+            </Text>
             {showRating && rating && (
-              <Text variant="body" color={colors.foreground.muted} style={{ fontSize: typographyTokens.fontSize.xs }}>
-                {rating}
+              <Text variant="caption" color={colors.foreground.muted} style={{ fontSize: 10 }}>
+                ({rating})
               </Text>
             )}
-          </VStack>
-        </HStack>
+          </HStack>
 
-        {/* Line 2: Color badge | Clock */}
-        <HStack justifyContent="space-between" alignItems="center">
-          <HStack gap={8} alignItems="center">
-            <Box
-              style={{
-                paddingHorizontal: 8,
-                paddingVertical: 4,
-                borderRadius: 4,
-                backgroundColor: colors.background.tertiary,
-              }}
-            >
-              <Text variant="caption" weight="semibold" style={{ fontSize: typographyTokens.fontSize.xs }}>
-                {colorName}
-              </Text>
-            </Box>
-            
-            {/* Captured Pieces */}
+          {/* Right: Material + Clock */}
+          <HStack gap={spacingTokens[1]} alignItems="center">
+            {/* Material advantage - max 3 pieces */}
             {capturedPieces.length > 0 && (
-              <HStack gap={4} alignItems="center">
-                {capturedPieces.slice(0, 5).map((piece, idx) => (
-                  <Text key={idx} style={{ fontSize: typographyTokens.fontSize.xs, opacity: 0.7 }}>
+              <HStack gap={2} alignItems="center">
+                {capturedPieces.slice(0, 3).map((piece, idx) => (
+                  <Text key={idx} style={{ fontSize: 11 }}>
                     {PIECE_SYMBOLS[piece]}
                   </Text>
                 ))}
                 {materialValue > 0 && (
                   <Text 
                     variant="caption" 
-                    weight="bold"
-                    color={colors.foreground.secondary}
-                    style={{ fontSize: typographyTokens.fontSize.xs, marginLeft: 4 }}
+                    weight="semibold"
+                    style={{ fontSize: 9, color: colors.accent.primary }}
                   >
                     +{materialValue}
                   </Text>
                 )}
               </HStack>
             )}
-          </HStack>
 
-          <Animated.View style={clockAnimatedStyle}>
-            <Box
-              style={{
-                paddingHorizontal: 12,
-                paddingVertical: 6,
-                borderRadius: 6,
-                backgroundColor: isLowTime 
-                  ? getColor(isDark ? colorTokens.red[900] : colorTokens.red[100], isDark) 
-                  : colors.background.primary,
-                borderWidth: 1,
-                borderColor: isLowTime ? colors.error : colors.background.tertiary,
-              }}
-            >
-              <Text 
-                weight="bold"
-                color={isLowTime ? colors.error : colors.foreground.primary}
-                style={{ fontSize: typographyTokens.fontSize.base, fontVariant: ['tabular-nums'] }}
+            {/* Clock */}
+            <Animated.View style={clockAnimatedStyle}>
+              <Box
+                style={{
+                  paddingHorizontal: spacingTokens[2],
+                  paddingVertical: spacingTokens[1],
+                  borderRadius: 4,
+                  backgroundColor: isLowTime && isActive
+                    ? colors.error
+                    : colors.background.secondary,
+                  minWidth: 52,
+                }}
               >
-                {formatClock(displayTime)}
-              </Text>
-            </Box>
-          </Animated.View>
+                <Text 
+                  weight="bold"
+                  color={isLowTime && isActive ? colors.background.primary : colors.foreground.primary}
+                  style={{ 
+                    fontSize: typographyTokens.fontSize.xs, 
+                    fontVariant: ['tabular-nums'],
+                    textAlign: 'center',
+                  }}
+                >
+                  {formatClock(displayTime)}
+                </Text>
+              </Box>
+            </Animated.View>
+          </HStack>
         </HStack>
 
-      </Box>
+      </Panel>
     </Animated.View>
   );
 });

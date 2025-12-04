@@ -52,6 +52,7 @@ interface LocalGameOptions {
   };
   colorPreference?: 'white' | 'black' | 'random';
   opponentAccountId?: string;
+  rated?: boolean;
 }
 
 interface GameContextType {
@@ -117,7 +118,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       const gameState = await playApi.createGame({
         timeControl: options.timeControl,
         colorPreference: options.colorPreference,
-        rated: false, // Always unrated for local games
+        rated: options.rated ?? false, // Default to unrated, but allow rated local games
         is_local_game: true,
         opponentAccountId: options.opponentAccountId,
       });

@@ -70,8 +70,8 @@ export const GameActions = React.forwardRef<unknown, GameActionsProps>(
           flexDirection: 'row',
           justifyContent: 'center',
           alignItems: 'center',
-          padding: spacingTokens[2],
-          gap: spacingTokens[3],
+          padding: spacingTokens[4], // 16px for consistent cardPadding
+          gap: spacingTokens[3], // 12px gap between buttons
         }}
       >
         {/* Game Status */}
@@ -83,7 +83,7 @@ export const GameActions = React.forwardRef<unknown, GameActionsProps>(
                 size="sm"
                 onPress={onOfferDraw || (() => console.log('Draw offered'))}
                 accessibilityLabel="Offer draw"
-                style={{ minWidth: 100 }}
+                style={{ minWidth: 104 }} // 8px grid: 13 * 8 = 104px
               >
                 🤝 Draw
               </Button>
@@ -92,7 +92,7 @@ export const GameActions = React.forwardRef<unknown, GameActionsProps>(
                 size="sm"
                 onPress={onResign}
                 accessibilityLabel="Resign from game"
-                style={{ minWidth: 100 }}
+                style={{ minWidth: 104 }} // 8px grid: 13 * 8 = 104px
               >
                 🏳️ Resign
               </Button>

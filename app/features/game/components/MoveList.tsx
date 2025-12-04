@@ -3,17 +3,67 @@ import { ScrollView, Pressable } from 'react-native';
 import { Box } from '@/ui/primitives/Box';
 import { Text } from '@/ui/primitives/Text';
 import { useThemeTokens } from '@/ui/hooks/useThemeTokens';
-
-export interface Move {
-  moveNumber: number;
-  color: 'w' | 'b';
-  san: string; // Standard Algebraic Notation
-}
+import type { Move } from '@/features/game/types/game.types';
 
 export interface MoveListProps {
   moves?: Move[];
   onMoveSelect?: (moveIndex: number) => void;
 }
+
+/**
+ * Get piece emoji for move notation
+ */
+const getPieceEmoji = (piece?: 'K' | 'Q' | 'R' | 'B' | 'N' | 'P'): string => {
+  if (!piece || piece === 'P') return ''; // Pawns don't have prefix
+  const pieces = {
+    K: '♔',
+    Q: '♕',
+    R: '♖',
+    B: '♗',
+    N: '♘',
+  };
+  return pieces[piece];
+};
+
+/**
+ * Parse SAN notation to extract piece type and indicators
+ */
+const parseSANNotation = (san: string, move: Move): {
+  piece?: 'K' | 'Q' | 'R' | 'B' | 'N' | 'P';
+  displayText: string;
+  isCapture: boolean;
+  isCheck: boolean;
+  isCheckmate: boolean;
+} => {
+  // Handle castling
+  if (san === 'O-O' || san === 'O-O-O') {
+    return {
+      piece: 'K',
+      displayText: san,
+      isCapture: false,
+      isCheck: san.includes('+'),
+      isCheckmate: san.includes('#'),
+    };
+  }
+  
+  // Detect piece from first character
+  const pieceMap: Record<string, 'K' | 'Q' | 'R' | 'B' | 'N'> = {
+    K: 'K', Q: 'Q', R: 'R', B: 'B', N: 'N',
+  };
+  const firstChar = san[0];
+  const piece = pieceMap[firstChar] || move.piece || 'P';
+  
+  // Remove check/checkmate indicators for display
+  let displayText = san.replace(/[+#]$/, '');
+  
+  return {
+    piece,
+    displayText,
+    isCapture: move.isCapture ?? san.includes('x'),
+    isCheck: move.isCheck ?? san.includes('+'),
+    isCheckmate: move.isCheckmate ?? san.includes('#'),
+  };
+};
 
 /**
  * MoveList Component - Table Format
@@ -140,17 +190,52 @@ export const MoveList = React.memo(
                         ? colors.accent.primary
                         : pressed
                           ? colors.background.tertiary
-                          : colors.background.primary,
+                          : group.number % 2 === 0
+                            ? colors.background.primary
+                            : colors.background.secondary,
                     })}
                   >
-                    <Text 
-                      variant="body" 
-                      color={isWhiteSelected ? colors.accentForeground.primary : colors.foreground.primary} 
-                      weight="medium"
-                      style={{ fontFamily: typography.fontFamily.mono, fontSize: 14 }}
-                    >
-                      {group.white?.san || '...'}
-                    </Text>
+                    {group.white ? (() => {
+                      const parsed = parseSANNotation(group.white.san, group.white);
+                      const pieceIcon = getPieceEmoji(parsed.piece);
+                      
+                      return (
+                        <Box flexDirection="row" alignItems="center" gap={4}>
+                          {/* Piece Icon */}
+                          {pieceIcon && (
+                            <Text style={{ fontSize: 16, opacity: 0.7 }}>
+                              {pieceIcon}
+                            </Text>
+                          )}
+                          
+                          {/* Move Text */}
+                          <Text 
+                            variant="body" 
+                            color={isWhiteSelected ? colors.accentForeground.primary : colors.foreground.primary} 
+                            weight="medium"
+                            style={{ 
+                              fontFamily: typography.fontFamily.mono, 
+                              fontSize: 14,
+                              fontVariant: ['tabular-nums'],
+                            }}
+                          >
+                            {parsed.displayText}
+                            {parsed.isCapture && <Text style={{ opacity: 0.6 }}> ×</Text>}
+                            {parsed.isCheckmate && <Text style={{ color: colors.error, fontWeight: 'bold' }}> #</Text>}
+                            {parsed.isCheck && !parsed.isCheckmate && <Text style={{ opacity: 0.8 }}> +</Text>}
+                          </Text>
+                          
+                          {/* Annotation */}
+                          {group.white.annotation && (
+                            <Text style={{ fontSize: 12, opacity: 0.7, marginLeft: 4 }}>
+                              {group.white.annotation}
+                            </Text>
+                          )}
+                        </Box>
+                      );
+                    })() : (
+                      <Text variant="body" style={{ fontSize: 14, opacity: 0.3 }}>...</Text>
+                    )}
                   </Pressable>
 
                   {/* Black Move */}
@@ -164,22 +249,51 @@ export const MoveList = React.memo(
                         ? colors.accent.primary
                         : pressed
                           ? colors.background.tertiary
-                          : colors.background.primary,
+                          : group.number % 2 === 0
+                            ? colors.background.primary
+                            : colors.background.secondary,
                     })}
                   >
-                    {group.black ? (
-                      <Text 
-                        variant="body" 
-                        color={isBlackSelected ? colors.accentForeground.primary : colors.foreground.primary} 
-                        weight="medium"
-                        style={{ fontFamily: typography.fontFamily.mono, fontSize: 14 }}
-                      >
-                        {group.black.san}
-                      </Text>
-                    ) : (
-                      <Text variant="body" style={{ fontSize: 14, opacity: 0 }}>
-                        ...
-                      </Text>
+                    {group.black ? (() => {
+                      const parsed = parseSANNotation(group.black.san, group.black);
+                      const pieceIcon = getPieceEmoji(parsed.piece);
+                      
+                      return (
+                        <Box flexDirection="row" alignItems="center" gap={4}>
+                          {/* Piece Icon */}
+                          {pieceIcon && (
+                            <Text style={{ fontSize: 16, opacity: 0.7 }}>
+                              {pieceIcon}
+                            </Text>
+                          )}
+                          
+                          {/* Move Text */}
+                          <Text 
+                            variant="body" 
+                            color={isBlackSelected ? colors.accentForeground.primary : colors.foreground.primary} 
+                            weight="medium"
+                            style={{ 
+                              fontFamily: typography.fontFamily.mono, 
+                              fontSize: 14,
+                              fontVariant: ['tabular-nums'],
+                            }}
+                          >
+                            {parsed.displayText}
+                            {parsed.isCapture && <Text style={{ opacity: 0.6 }}> ×</Text>}
+                            {parsed.isCheckmate && <Text style={{ color: colors.error, fontWeight: 'bold' }}> #</Text>}
+                            {parsed.isCheck && !parsed.isCheckmate && <Text style={{ opacity: 0.8 }}> +</Text>}
+                          </Text>
+                          
+                          {/* Annotation */}
+                          {group.black.annotation && (
+                            <Text style={{ fontSize: 12, opacity: 0.7, marginLeft: 4 }}>
+                              {group.black.annotation}
+                            </Text>
+                          )}
+                        </Box>
+                      );
+                    })() : (
+                      <Text variant="body" style={{ fontSize: 14, opacity: 0 }}>...</Text>
                     )}
                   </Pressable>
                 </Box>

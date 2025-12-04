@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { View, StyleSheet, ActivityIndicator, Text, Dimensions } from 'react-native';
+import { View, StyleSheet, ActivityIndicator, Text, Dimensions, useWindowDimensions, ScrollView, SafeAreaView, Modal, Pressable } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useApiClients } from '@/contexts/ApiContext';
 import { useThemeTokens } from '@/ui';
@@ -17,9 +17,13 @@ import {
 import { createPlayScreenConfig, getHydratedBoardProps } from '@/features/board/config';
 import { ChessBoard } from '@/features/board/components/ChessBoard';
 import { Box } from '@/ui/primitives/Box';
-import { VStack } from '@/ui/primitives/Stack';
+import { VStack, HStack } from '@/ui/primitives/Stack';
 import { Card } from '@/ui/primitives/Card';
+import { Panel } from '@/ui/primitives/Panel';
+import { Surface } from '@/ui/primitives/Surface';
+import { Button } from '@/ui/primitives/Button';
 import { spacingTokens } from '@/ui/tokens/spacing';
+import { radiusTokens } from '@/ui/tokens/radii';
 import { applyMoveToFENSimple } from '@/core/utils/chess/engine';
 
 type PieceColor = 'w' | 'b';
@@ -34,6 +38,8 @@ export default function GameScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showResultModal, setShowResultModal] = useState(false);
+  const [showResignModal, setShowResignModal] = useState(false);
+  const [showDrawModal, setShowDrawModal] = useState(false);
   const [promotionState, setPromotionState] = useState<{
     isVisible: boolean;
     move: { from: string; to: string } | null;
@@ -49,7 +55,37 @@ export default function GameScreen() {
   }, [gameState]);
 
   const screenConfig = createPlayScreenConfig();
-  const BOARD_SIZE = Math.min(Dimensions.get('window').width - 48, 420);
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
+  
+  // Responsive breakpoint: 768px for tablet/desktop
+  const isLargeScreen = windowWidth >= 768;
+  
+  // Calculate available space for game area (viewport - header - padding)
+  const HEADER_HEIGHT = 70; // Header card height
+  const VERTICAL_PADDING = spacingTokens[2] * 3; // Top + bottom + gaps
+  const HORIZONTAL_PADDING = spacingTokens[2] * 2; // Left + right
+  const availableHeight = windowHeight - HEADER_HEIGHT - VERTICAL_PADDING;
+  const availableWidth = windowWidth - HORIZONTAL_PADDING;
+  
+  // Calculate board size based on container, not viewport
+  // Goal: Fill vertical space aggressively, maintain square aspect ratio
+  const calculateBoardSize = () => {
+    if (isLargeScreen) {
+      // Desktop: Use full 60% column width, constrained by available height
+      const boardColumnWidth = (availableWidth * 0.6) - spacingTokens[4]; // Account for gap
+      const playerCardsHeight = 70; // Two player cards combined height
+      const gapHeight = spacingTokens[1] * 2; // Gaps between cards and board
+      const maxBoardHeight = availableHeight - playerCardsHeight - gapHeight;
+      
+      // Board must be square - use the constraint that allows maximum size
+      // Remove arbitrary 600px cap to let board grow
+      return Math.min(boardColumnWidth, maxBoardHeight);
+    }
+    // Mobile: Full width minus padding
+    return Math.min(availableWidth, 500);
+  };
+  
+  const BOARD_SIZE = calculateBoardSize();
 
   useEffect(() => {
     if (!id) {
@@ -193,12 +229,25 @@ export default function GameScreen() {
   }, [promotionState, id, gameState]);
 
   const handleResign = useCallback(async () => {
+    setShowResignModal(false);
     try {
       const updatedGame = await playApi.resign(id!);
       setGameState(updatedGame);
       setShowResultModal(true);
     } catch (err) {
       console.error('❌ Failed to resign:', err);
+    }
+  }, [id]);
+
+  const handleOfferDraw = useCallback(async () => {
+    setShowDrawModal(false);
+    try {
+      // TODO: Implement draw offer API when backend is ready
+      console.log('Draw offered');
+      // const updatedGame = await playApi.offerDraw(id!);
+      // setGameState(updatedGame);
+    } catch (err) {
+      console.error('❌ Failed to offer draw:', err);
     }
   }, [id]);
 
@@ -310,113 +359,227 @@ export default function GameScreen() {
   }));
 
   return (
-    <Box flex={1} style={{ backgroundColor: colors.background.primary, padding: spacingTokens[4] }}>
-      <VStack flex={1} gap={spacingTokens[4]}>
-        {/* Game Header */}
-        <GameHeaderCard
-          status={gameState.status === 'in_progress' ? 'live' : 'ended'}
-          gameMode="Local Play"
-          timeControl={`${gameState.timeControl.initialMs / 60000}+${gameState.timeControl.incrementMs / 1000}`}
-          isRated={gameState.rated !== false}
-        />
+    <>
+    <SafeAreaView style={{ flex: 1 }}>
+      <Surface gradient="subtle" style={{ flex: 1 }}>
+        <Box flex={1} style={{ paddingHorizontal: spacingTokens[2] }}>
+          <VStack flex={1} gap={spacingTokens[2]}>
+          {/* Game Header with Actions */}
+          <Card variant="elevated" size="sm" padding={spacingTokens[1]}>
+            <HStack gap={spacingTokens[1]} alignItems="center" justifyContent="space-between">
+              <HStack gap={spacingTokens[1]} alignItems="center" flex={1}>
+                <Text variant="caption" weight="semibold" style={{ color: colors.accent.primary }}>
+                  {gameState.status === 'in_progress' ? '● LIVE' : '■ ENDED'}
+                </Text>
+                <Text variant="caption" color={colors.foreground.secondary}>
+                  {gameState.rated !== false ? 'Rated' : 'Casual'} • {`${gameState.timeControl.initialMs / 60000}+${gameState.timeControl.incrementMs / 1000}`}
+                </Text>
+              </HStack>
+              {gameState.status === 'in_progress' && (
+                <HStack gap={spacingTokens[1]}>
+                  <Text 
+                    variant="caption" 
+                    weight="semibold" 
+                    style={{ color: colors.foreground.secondary }}
+                    onPress={() => setShowDrawModal(true)}
+                  >
+                    ⚖️ Draw
+                  </Text>
+                  <Text variant="caption" color={colors.foreground.muted}>•</Text>
+                  <Text 
+                    variant="caption" 
+                    weight="semibold" 
+                    style={{ color: colors.error }}
+                    onPress={() => setShowResignModal(true)}
+                  >
+                    🏳️ Resign
+                  </Text>
+                </HStack>
+              )}
+            </HStack>
+          </Card>
 
-        {/* Main Game Area */}
-        <Box style={{ flexDirection: 'row', flex: 1, gap: spacingTokens[4] }}>
-          <VStack flex={1} gap={spacingTokens[4]}>
-            {/* Top Player */}
-            <Animated.View entering={FadeInUp.duration(250)}>
+          {/* Main Game Area - Responsive Layout */}
+          <Box style={{ 
+          flexDirection: isLargeScreen ? 'row' : 'column', 
+          flex: 1, 
+          gap: spacingTokens[4],
+          alignItems: 'stretch',
+        }}>
+          {/* Board Column (60% on large screens) */}
+          <VStack 
+            flex={isLargeScreen ? 0.6 : 1} 
+            gap={spacingTokens[1]}
+            style={{ 
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}
+          >
+            {/* Top Player - flips with board orientation */}
+            <Animated.View entering={FadeInUp.duration(250)} style={{ width: BOARD_SIZE }}>
               <PlayerCard
-                color="b"
-                name={gameState.blackPlayer?.username || 'Player 2'}
-                rating={gameState.blackPlayer?.rating || 1500}
-                isSelf={false}
-                isActive={gameState.sideToMove === 'b'}
-                remainingMs={gameState.blackPlayer?.remainingMs || 600000}
-                capturedPieces={capturedPieces.black}
+                color={boardOrientation === 'white' ? 'b' : 'w'}
+                name={boardOrientation === 'white' 
+                  ? (gameState.blackPlayer?.username || 'Player 2')
+                  : (gameState.whitePlayer?.username || 'Player 1')
+                }
+                rating={boardOrientation === 'white'
+                  ? (gameState.blackPlayer?.rating || 1500)
+                  : (gameState.whitePlayer?.rating || 1500)
+                }
+                isSelf={boardOrientation === 'black'}
+                isActive={boardOrientation === 'white' 
+                  ? gameState.sideToMove === 'b'
+                  : gameState.sideToMove === 'w'
+                }
+                remainingMs={boardOrientation === 'white'
+                  ? (gameState.blackPlayer?.remainingMs || 600000)
+                  : (gameState.whitePlayer?.remainingMs || 600000)
+                }
+                capturedPieces={boardOrientation === 'white' ? capturedPieces.black : capturedPieces.white}
                 gameStatus={gameState.status}
-                showRating={gameState.rated !== false}
+                showRating={gameState.rated === true}
               />
             </Animated.View>
 
             {/* Chess Board */}
-            <Animated.View entering={FadeInUp.duration(250).delay(50)} style={{ alignItems: 'center' }}>
-              <Card variant="elevated" size="md" padding={0}>
-                <ChessBoard
-                  key={boardKey}
-                  fen={gameState.fen}
-                  sideToMove={gameState.sideToMove}
-                  myColor={gameState.sideToMove}
-                  orientation={boardOrientation}
-                  lastMove={gameState.moves.length > 0 ? {
-                    from: gameState.moves[gameState.moves.length - 1].from,
-                    to: gameState.moves[gameState.moves.length - 1].to,
-                  } : null}
-                  isInteractive={gameState.status === 'in_progress'}
-                  isLocalGame={true}
-                  onMove={handleMove}
-                  size={BOARD_SIZE}
-                  squareSize={BOARD_SIZE / 8}
-                  boardTheme={screenConfig.boardTheme}
-                  themeMode={screenConfig.themeMode}
-                />
-              </Card>
-            </Animated.View>
-
-            {/* Bottom Player */}
-            <Animated.View entering={FadeInUp.duration(250).delay(150)}>
-              <PlayerCard
-                color="w"
-                name={gameState.whitePlayer?.username || 'Player 1'}
-                rating={gameState.whitePlayer?.rating || 1500}
-                isSelf={true}
-                isActive={gameState.sideToMove === 'w'}
-                remainingMs={gameState.whitePlayer?.remainingMs || 600000}
-                capturedPieces={capturedPieces.white}
-                gameStatus={gameState.status}
-                showRating={gameState.rated !== false}
+            <Animated.View entering={FadeInUp.duration(250).delay(50)} style={{ width: BOARD_SIZE, height: BOARD_SIZE }}>
+              <ChessBoard
+                key={boardKey}
+                fen={gameState.fen}
+                sideToMove={gameState.sideToMove}
+                myColor={gameState.sideToMove}
+                orientation={boardOrientation}
+                lastMove={gameState.moves.length > 0 ? {
+                  from: gameState.moves[gameState.moves.length - 1].from,
+                  to: gameState.moves[gameState.moves.length - 1].to,
+                } : null}
+                isInteractive={gameState.status === 'in_progress'}
+                isLocalGame={true}
+                onMove={handleMove}
+                size={BOARD_SIZE}
+                squareSize={BOARD_SIZE / 8}
+                boardTheme={screenConfig.boardTheme}
+                themeMode={screenConfig.themeMode}
+                animateMovements={true}
               />
             </Animated.View>
 
-            {/* Game Actions */}
-            <Animated.View entering={FadeInUp.duration(250).delay(200)}>
-              <GameActions
-                status={gameState.status}
-                result={gameState.result}
-                endReason={gameState.endReason}
-                sideToMove={gameState.sideToMove}
-                onResign={handleResign}
-                onOfferDraw={() => console.log('Draw offered')}
+            {/* Bottom Player - flips with board orientation */}
+            <Animated.View entering={FadeInUp.duration(250).delay(150)} style={{ width: BOARD_SIZE }}>
+              <PlayerCard
+                color={boardOrientation === 'white' ? 'w' : 'b'}
+                name={boardOrientation === 'white'
+                  ? (gameState.whitePlayer?.username || 'Player 1')
+                  : (gameState.blackPlayer?.username || 'Player 2')
+                }
+                rating={boardOrientation === 'white'
+                  ? (gameState.whitePlayer?.rating || 1500)
+                  : (gameState.blackPlayer?.rating || 1500)
+                }
+                isSelf={boardOrientation === 'white'}
+                isActive={boardOrientation === 'white'
+                  ? gameState.sideToMove === 'w'
+                  : gameState.sideToMove === 'b'}
+                remainingMs={boardOrientation === 'white'
+                  ? (gameState.whitePlayer?.remainingMs || 600000)
+                  : (gameState.blackPlayer?.remainingMs || 600000)
+                }
+                capturedPieces={boardOrientation === 'white' ? capturedPieces.white : capturedPieces.black}
+                gameStatus={gameState.status}
+                showRating={gameState.rated === true}
               />
             </Animated.View>
           </VStack>
 
-          {/* Move List */}
-          <Animated.View entering={FadeInUp.duration(250).delay(100)} style={{ flex: 1 }}>
-            <Card variant="default" size="md" padding={0} style={{ flex: 1 }}>
-              <MoveList moves={formattedMoves} />
-            </Card>
+          {/* Move List - Glassmorphic Panel on large screens (40%) */}
+          <Animated.View 
+            entering={FadeInUp.duration(250).delay(100)} 
+            style={{ 
+              flex: isLargeScreen ? 0.4 : 0,
+              minHeight: isLargeScreen ? 0 : 300,
+              maxHeight: isLargeScreen ? undefined : 400,
+              alignSelf: 'stretch',
+            }}
+          >
+            {isLargeScreen ? (
+              <Panel variant="glass" padding={0} style={{ flex: 1, overflow: 'hidden' }}>
+                <MoveList moves={formattedMoves} />
+              </Panel>
+            ) : (
+              <Card variant="default" size="md" padding={0} style={{ flex: 1 }}>
+                <MoveList moves={formattedMoves} />
+              </Card>
+            )}
           </Animated.View>
         </Box>
-      </VStack>
+          </VStack>
+        </Box>
+      </Surface>
+    </SafeAreaView>    {/* Modals - Outside SafeAreaView to overlay properly */}
+    <PawnPromotionModal
+      visible={promotionState.isVisible}
+      color={gameState.sideToMove}
+      onSelect={handlePawnPromotion}
+      onCancel={() => setPromotionState({ isVisible: false, move: null })}
+    />
 
-      {/* Modals */}
-      <PawnPromotionModal
-        visible={promotionState.isVisible}
-        color={gameState.sideToMove}
-        onSelect={handlePawnPromotion}
-        onCancel={() => setPromotionState({ isVisible: false, move: null })}
+    {gameState.result && (
+      <GameResultModal
+        visible={showResultModal}
+        result={gameState.result}
+        reason={gameState.endReason}
+        isPlayerWhite={true}
+        onClose={() => setShowResultModal(false)}
       />
+    )}
 
-      {gameState.result && (
-        <GameResultModal
-          visible={showResultModal}
-          result={gameState.result}
-          reason={gameState.endReason}
-          isPlayerWhite={true}
-          onClose={() => setShowResultModal(false)}
-        />
-      )}
-    </Box>
+    {/* Resign Confirmation Modal */}
+    <Modal visible={showResignModal} transparent animationType="fade">
+      <Pressable 
+        style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' }}
+        onPress={() => setShowResignModal(false)}
+      >
+        <Pressable onPress={(e) => e.stopPropagation()}>
+          <Box style={{ margin: spacingTokens[4], padding: spacingTokens[6], backgroundColor: colors.background.primary, borderRadius: radiusTokens.lg, minWidth: 280 }}>
+            <VStack gap={spacingTokens[4]}>
+              <Text variant="heading" weight="bold">🏳️ Resign Game?</Text>
+              <Text variant="body" color={colors.foreground.secondary}>
+                Are you sure you want to resign? This will end the game immediately and count as a loss.
+              </Text>
+              <HStack gap={spacingTokens[2]}>
+                <Button variant="outline" onPress={() => setShowResignModal(false)} style={{ flex: 1 }}>Cancel</Button>
+                <Button variant="solid" onPress={handleResign} style={{ flex: 1, backgroundColor: colors.error }}>Resign</Button>
+              </HStack>
+            </VStack>
+          </Box>
+        </Pressable>
+      </Pressable>
+    </Modal>
+
+    {/* Draw Offer Confirmation Modal */}
+    <Modal visible={showDrawModal} transparent animationType="fade">
+      <Pressable 
+        style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' }}
+        onPress={() => setShowDrawModal(false)}
+      >
+        <Pressable onPress={(e) => e.stopPropagation()}>
+          <Box style={{ margin: spacingTokens[4], padding: spacingTokens[6], backgroundColor: colors.background.primary, borderRadius: radiusTokens.lg, minWidth: 280 }}>
+            <VStack gap={spacingTokens[4]}>
+              <Text variant="heading" weight="bold">⚖️ Offer Draw?</Text>
+              <Text variant="body" color={colors.foreground.secondary}>
+                Your opponent will receive a draw offer. They can accept or decline.
+              </Text>
+              <HStack gap={spacingTokens[2]}>
+                <Button variant="outline" onPress={() => setShowDrawModal(false)} style={{ flex: 1 }}>Cancel</Button>
+                <Button variant="solid" onPress={handleOfferDraw} style={{ flex: 1 }}>Offer Draw</Button>
+              </HStack>
+            </VStack>
+          </Box>
+        </Pressable>
+      </Pressable>
+    </Modal>
+  </>
   );
 }
 

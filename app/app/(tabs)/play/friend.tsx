@@ -42,6 +42,7 @@ export default function FriendChallengeScreen() {
         },
         colorPreference: playerColor,
         opponentAccountId: 'local',
+        rated: rated,
       });
       
       router.push(`/game/${gameState.gameId}`);
