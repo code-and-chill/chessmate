@@ -1,0 +1,13 @@
+<svg viewBox="0 0 45 45" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <pattern id="wood-grain-dark" patternUnits="userSpaceOnUse" width="4" height="4">
+      <path d="M 0,2 L 4,2" stroke="currentColor" stroke-width="0.4" opacity="0.3"/>
+      <path d="M 0,0 L 4,4" stroke="currentColor" stroke-width="0.3" opacity="0.2"/>
+    </pattern>
+  </defs>
+  <g fill="url(#wood-grain-dark)" stroke="currentColor" stroke-width="2" stroke-linejoin="round">
+    <path d="M 22,10 C 11,10 9,16 9,26 L 15,28 L 15,36 L 30,36 L 30,30 C 30,30 32,28 32,22 C 32,12 28,10 22,10 Z" />
+    <circle cx="19" cy="17" r="1.5" fill="#fff" />
+    <path d="M 22,10 C 22,10 20,8 18,8 C 16,8 14,10 14,12 C 14,14 15,15 17,15 Z" />
+  </g>
+</svg>

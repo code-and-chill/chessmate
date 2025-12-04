@@ -1,0 +1,18 @@
+<svg viewBox="0 0 45 45" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="neon-glow">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <g fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" filter="url(#neon-glow)">
+    <!-- Pawn filled -->
+    <circle cx="22.5" cy="9" r="4" />
+    <path d="M 19,13 L 26,13 L 26,26 L 19,26 Z" />
+    <path d="M 20,30 L 25,30 L 25,34 L 20,34 Z" />
+    <ellipse cx="22.5" cy="36" rx="7" ry="2" />
+  </g>
+</svg>

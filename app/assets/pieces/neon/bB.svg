@@ -1,0 +1,18 @@
+<svg viewBox="0 0 45 45" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="neon-glow">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <g fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" filter="url(#neon-glow)">
+    <!-- Bishop head filled -->
+    <circle cx="22.5" cy="8" r="2.5" />
+    <path d="M 19,11 L 26,11 L 26,25 L 19,25 Z" />
+    <path d="M 16,25 L 29,25 L 29,30 L 16,30 Z" />
+    <ellipse cx="22.5" cy="35" rx="10" ry="2" />
+  </g>
+</svg>

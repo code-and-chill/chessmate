@@ -1,0 +1,17 @@
+<svg viewBox="0 0 45 45" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="neon-glow">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" filter="url(#neon-glow)">
+    <!-- Knight horse head -->
+    <path d="M 22,10 C 11,10 9,16 9,26 L 15,28 L 15,36 L 30,36 L 30,30 C 30,30 32,28 32,22 C 32,12 28,10 22,10" />
+    <circle cx="19" cy="17" r="1.5" fill="currentColor" />
+    <path d="M 22,10 C 22,10 20,8 18,8 C 16,8 14,10 14,12 C 14,14 15,15 17,15" />
+  </g>
+</svg>

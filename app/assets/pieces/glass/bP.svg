@@ -1,0 +1,14 @@
+<svg viewBox="0 0 45 45" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="glass-gradient-dark" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:currentColor;stop-opacity:0.6" />
+      <stop offset="100%" style="stop-color:currentColor;stop-opacity:0.9" />
+    </linearGradient>
+  </defs>
+  <g fill="url(#glass-gradient-dark)" stroke="currentColor" stroke-width="1.5" opacity="0.9">
+    <circle cx="22.5" cy="9" r="4" />
+    <path d="M 19,13 L 26,13 L 26,26 L 19,26 Z" />
+    <path d="M 20,30 L 25,30 L 25,34 L 20,34 Z" />
+    <ellipse cx="22.5" cy="36" rx="7" ry="2" />
+  </g>
+</svg>

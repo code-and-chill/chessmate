@@ -1,0 +1,9 @@
+<svg viewBox="0 0 45 45" xmlns="http://www.w3.org/2000/svg">
+  <g fill="currentColor" stroke="currentColor" stroke-width="1" shape-rendering="crispEdges">
+    <!-- Head and body filled -->
+    <rect x="19" y="7" width="7" height="23"/>
+    <rect x="18" y="26" width="9" height="4"/>
+    <rect x="20" y="30" width="5" height="4"/>
+    <ellipse cx="22.5" cy="36" rx="7" ry="2"/>
+  </g>
+</svg>

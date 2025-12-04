@@ -1,0 +1,16 @@
+<svg viewBox="0 0 45 45" xmlns="http://www.w3.org/2000/svg">
+  <g fill="currentColor" shape-rendering="crispEdges">
+    <!-- Battlements -->
+    <rect x="11" y="9" width="4" height="5"/>
+    <rect x="20" y="9" width="5" height="2"/>
+    <rect x="30" y="9" width="4" height="5"/>
+    <rect x="15" y="10" width="5" height="2"/>
+    <rect x="25" y="10" width="5" height="2"/>
+    <!-- Tower body -->
+    <rect x="12" y="14" width="21" height="14"/>
+    <rect x="14" y="17" width="17" height="10" fill="none" stroke="currentColor" stroke-width="2"/>
+    <!-- Base -->
+    <rect x="9" y="31" width="27" height="3"/>
+    <rect x="9" y="34" width="27" height="5"/>
+  </g>
+</svg>

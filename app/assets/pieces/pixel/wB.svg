@@ -1,0 +1,14 @@
+<svg viewBox="0 0 45 45" xmlns="http://www.w3.org/2000/svg">
+  <g fill="currentColor" shape-rendering="crispEdges">
+    <!-- Head -->
+    <rect x="21" y="7" width="3" height="3"/>
+    <rect x="19" y="10" width="7" height="2"/>
+    <!-- Body -->
+    <rect x="21" y="12" width="3" height="13"/>
+    <rect x="18" y="20" width="9" height="2"/>
+    <!-- Base -->
+    <rect x="16" y="25" width="13" height="5"/>
+    <rect x="18" y="30" width="9" height="2"/>
+    <ellipse cx="22.5" cy="35" rx="10" ry="2"/>
+  </g>
+</svg>

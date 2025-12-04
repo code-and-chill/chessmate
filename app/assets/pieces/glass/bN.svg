@@ -1,0 +1,13 @@
+<svg viewBox="0 0 45 45" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="glass-gradient-dark" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:currentColor;stop-opacity:0.6" />
+      <stop offset="100%" style="stop-color:currentColor;stop-opacity:0.9" />
+    </linearGradient>
+  </defs>
+  <g fill="url(#glass-gradient-dark)" stroke="currentColor" stroke-width="1.5" opacity="0.9">
+    <path d="M 22,10 C 11,10 9,16 9,26 L 15,28 L 15,36 L 30,36 L 30,30 C 30,30 32,28 32,22 C 32,12 28,10 22,10 Z" />
+    <circle cx="19" cy="17" r="1.5" fill="#fff" />
+    <path d="M 22,10 C 22,10 20,8 18,8 C 16,8 14,10 14,12 C 14,14 15,15 17,15 Z" />
+  </g>
+</svg>

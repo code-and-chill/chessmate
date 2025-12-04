@@ -1,0 +1,16 @@
+<svg viewBox="0 0 45 45" xmlns="http://www.w3.org/2000/svg">
+  <g fill="currentColor" stroke="currentColor" stroke-width="1" shape-rendering="crispEdges">
+    <!-- 5 balls filled -->
+    <rect x="5" y="11" width="3" height="3"/>
+    <rect x="13" y="8" width="3" height="3"/>
+    <rect x="21" y="7" width="3" height="3"/>
+    <rect x="29" y="8" width="3" height="3"/>
+    <rect x="37" y="11" width="3" height="3"/>
+    <!-- Crown body filled -->
+    <rect x="9" y="11" width="27" height="15"/>
+    <!-- Base -->
+    <rect x="9" y="26" width="27" height="3"/>
+    <rect x="11" y="29" width="23" height="4"/>
+    <rect x="15" y="30" width="15" height="3"/>
+  </g>
+</svg>
