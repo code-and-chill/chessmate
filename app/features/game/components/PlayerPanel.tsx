@@ -41,8 +41,7 @@ const PIECE_SYMBOLS: Record<string, string> = {
   'q': '♛', // queen
 };
 
-export const PlayerPanel = React.forwardRef<unknown, PlayerPanelProps>(
-  ({ color, isSelf, remainingMs, accountId, isActive, capturedPieces = [], onTimeExpire }) => {
+export const PlayerPanel: React.FC<PlayerPanelProps> = ({ color, isSelf, remainingMs, accountId, isActive, capturedPieces = [], onTimeExpire }) => {
     const [displayTime, setDisplayTime] = useState(remainingMs);
     const { colors } = useThemeTokens();
     const pulseScale = useSharedValue(1);
@@ -155,7 +154,6 @@ export const PlayerPanel = React.forwardRef<unknown, PlayerPanelProps>(
         </Box>
       </Surface>
     );
-  }
-);
+};
 
 PlayerPanel.displayName = 'PlayerPanel';

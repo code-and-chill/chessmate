@@ -17,7 +17,8 @@ import { View, TouchableOpacity, StyleSheet, Text as RNText } from 'react-native
 import Animated, { useAnimatedStyle, withSpring, useSharedValue } from 'react-native-reanimated';
 import { Text } from '../primitives/Text';
 import { useColors } from '../hooks/useThemeTokens';
-import { spacingTokens, radiusTokens } from '../index';
+import { spacingTokens } from '../tokens/spacing';
+import { radiusTokens } from '../tokens/radii';
 import type { DecisionReason } from '../../features/game/types/DecisionReason';
 import { getDecisionReasonMessage, getDecisionReasonIcon } from '../../features/game/types/DecisionReason';
 

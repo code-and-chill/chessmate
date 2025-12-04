@@ -264,6 +264,8 @@
     "achievements_unlocked": "{{count}} of {{total}} unlocked",
     "preferences_description": "Board theme • Pieces • Sounds • Animations",
     "appearance_description": "Theme • Language • Display settings",
+    "board_theme": "Board Theme",
+    "board_theme_description": "Customize board colors • Piece styles • Preview",
     "games_played": "Games Played",
     "edit_profile": "Edit profile",
     "update_avatar": "Update avatar",

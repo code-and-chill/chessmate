@@ -13,7 +13,8 @@ import {
   MatchmakingProvider,
   PuzzleProvider,
   LearningProvider,
-  SocialProvider 
+  SocialProvider,
+  BoardThemeProvider 
 } from '@/contexts';
 import { I18nProvider } from '@/i18n/I18nContext';
 import { useAppFonts } from '@/config/fonts';
@@ -41,38 +42,47 @@ export default function RootLayout() {
                 <PuzzleProvider>
                   <LearningProvider>
                     <ThemeProvider defaultMode={colorScheme === 'dark' ? 'dark' : 'light'}>
-                      <RNThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-                        <GlobalLayout>
-                        <Stack screenOptions={{ headerShown: false }}>
-                          <Stack.Screen name="(tabs)" />
-                          <Stack.Screen name="(drawer)" />
-                          <Stack.Screen name="puzzle" />
-                          <Stack.Screen name="learning" />
-                          <Stack.Screen name="social" />
-                          <Stack.Screen name="game" />
-                          <Stack.Screen 
-                            name="login" 
-                            options={{ 
-                              presentation: 'modal',
-                              headerShown: true,
-                              title: 'Sign In',
-                            }} 
-                          />
-                          <Stack.Screen 
-                            name="register" 
-                            options={{ 
-                              presentation: 'modal',
-                              headerShown: true,
-                              title: 'Sign Up',
-                            }} 
-                          />
-                          <Stack.Screen name="settings" />
-                        </Stack>
-                      </GlobalLayout>
-                      <StatusBar style="auto" />
-                    </RNThemeProvider>
-                  </ThemeProvider>
-                </LearningProvider>
+                      <BoardThemeProvider>
+                        <RNThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+                          <GlobalLayout>
+                            <Stack screenOptions={{ headerShown: false }}>
+                              <Stack.Screen name="(tabs)" />
+                              <Stack.Screen name="(drawer)" />
+                              <Stack.Screen name="puzzle" />
+                              <Stack.Screen name="learning" />
+                              <Stack.Screen name="social" />
+                              <Stack.Screen name="game" />
+                              <Stack.Screen 
+                                name="login" 
+                                options={{ 
+                                  presentation: 'modal',
+                                  headerShown: true,
+                                  title: 'Sign In',
+                                }} 
+                              />
+                              <Stack.Screen 
+                                name="register" 
+                                options={{ 
+                                  presentation: 'modal',
+                                  headerShown: true,
+                                  title: 'Sign Up',
+                                }} 
+                              />
+                              <Stack.Screen name="settings" />
+                              <Stack.Screen 
+                                name="settings/board-theme"
+                                options={{
+                                  presentation: 'card',
+                                  headerShown: false,
+                                }}
+                              />
+                            </Stack>
+                          </GlobalLayout>
+                          <StatusBar style="auto" />
+                        </RNThemeProvider>
+                      </BoardThemeProvider>
+                    </ThemeProvider>
+                  </LearningProvider>
               </PuzzleProvider>
             </MatchmakingProvider>
           </GameProvider>

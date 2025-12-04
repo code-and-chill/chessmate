@@ -23,8 +23,7 @@ export interface GameActionsProps {
  * Displays game control buttons and status based on game state
  */
 
-export const GameActions = React.forwardRef<unknown, GameActionsProps>(
-  ({ status = 'in_progress', result, endReason, sideToMove = 'w', onResign, onOfferDraw }) => {
+export const GameActions: React.FC<GameActionsProps> = ({ status = 'in_progress', result, endReason, sideToMove = 'w', onResign, onOfferDraw }) => {
     const { colors } = useThemeTokens();
     const isGameActive = status === 'in_progress';
     const isGameEnded = status === 'ended';
@@ -139,8 +138,7 @@ export const GameActions = React.forwardRef<unknown, GameActionsProps>(
         )}
       </Box>
     );
-  }
-);
+};
 
 GameActions.displayName = 'GameActions';
 

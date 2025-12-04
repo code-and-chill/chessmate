@@ -13,18 +13,13 @@
 
 import React, { useState } from 'react';
 import { View, StyleSheet, Text as RNText, TouchableOpacity, ScrollView } from 'react-native';
-import {
-  AccuracyGraph,
-  EvalGraph,
-  MoveQualityList,
-  CoachAvatar,
-  Card,
-  VStack,
-  HStack,
-  useColors,
-  useExpressionForSentiment,
-  type MoveQuality,
-} from '@/ui';
+import { AccuracyGraph } from './AccuracyGraph';
+import { EvalGraph } from './EvalGraph';
+import { MoveQualityList, type MoveQuality } from './MoveQualityBadge';
+import { CoachAvatar, useExpressionForSentiment } from '../coach/CoachAvatar';
+import { Card } from '../../primitives/Card';
+import { VStack, HStack } from '../../primitives/Stack';
+import { useColors } from '../../hooks/useThemeTokens';
 
 type GraphType = 'accuracy' | 'evaluation';
 

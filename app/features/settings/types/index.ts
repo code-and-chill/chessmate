@@ -3,7 +3,7 @@
  * features/settings/types/index.ts
  */
 
-export type SettingsMode = 'hub' | 'profile' | 'stats' | 'achievements' | 'preferences' | 'appearance';
+export type SettingsMode = 'hub' | 'profile' | 'stats' | 'achievements' | 'preferences' | 'appearance' | 'board-theme';
 
 export interface UserProfile {
   id: string;

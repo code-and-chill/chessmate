@@ -91,6 +91,31 @@ export function AppearanceView({ onBack }: AppearanceViewProps) {
           </VStack>
         </Card>
 
+        {/* Chess Board Theme */}
+        <Card variant="default" size="md">
+          <VStack gap={spacingTokens[4]}>
+            <Text variant="h4" color={colors.foreground.primary}>Chess Board</Text>
+            <TouchableOpacity 
+              onPress={() => {
+                console.log('Navigating to board theme...');
+                // Use router from expo-router
+                const { router } = require('expo-router');
+                router.push('/settings/board-theme');
+              }}
+              style={{ 
+                paddingVertical: spacingTokens[3],
+                borderBottomWidth: 1, 
+                borderBottomColor: colors.border 
+              }}
+            >
+              <HStack justifyContent="space-between" alignItems="center">
+                <Text variant="body" color={colors.foreground.primary}>Board Theme & Pieces</Text>
+                <Text variant="bodyMedium" weight="semibold" color={colors.accent.primary}>Configure →</Text>
+              </HStack>
+            </TouchableOpacity>
+          </VStack>
+        </Card>
+
         {/* Accessibility */}
         <Card variant="default" size="md">
           <VStack gap={spacingTokens[4]}>

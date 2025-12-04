@@ -44,7 +44,14 @@ export function PreferencesView({ onBack, userId }: PreferencesViewProps) {
       {/* Board & Pieces */}
       <View style={styles.card}>
         <Text style={styles.sectionTitle}>Board & Pieces</Text>
-        <PreferenceRow label="Board Theme" value={formatTheme(preferences?.board_theme)} />
+        <ClickablePreferenceRow 
+          label="Board Theme" 
+          value={formatTheme(preferences?.board_theme)} 
+          onPress={() => {
+            const { router } = require('expo-router');
+            router.push('/settings/board-theme');
+          }}
+        />
         <PreferenceRow label="Piece Set" value={formatTheme(preferences?.piece_set)} />
         <PreferenceRow label="Board Coordinates" value={preferences?.show_coordinates ? 'On' : 'Off'} />
         <PreferenceRow label="Legal Move Hints" value={preferences?.highlight_legal_moves ? 'On' : 'Off'} />
@@ -85,6 +92,18 @@ function PreferenceRow({ label, value }: { label: string; value: string }) {
       <Text style={styles.preferenceLabel}>{label}</Text>
       <Text style={styles.preferenceValue}>{value}</Text>
     </View>
+  );
+}
+
+function ClickablePreferenceRow({ label, value, onPress }: { label: string; value: string; onPress: () => void }) {
+  return (
+    <TouchableOpacity style={styles.preferenceRow} onPress={onPress} activeOpacity={0.7}>
+      <Text style={styles.preferenceLabel}>{label}</Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+        <Text style={styles.preferenceValue}>{value}</Text>
+        <Text style={[styles.preferenceValue, { color: '#667EEA' }]}>→</Text>
+      </View>
+    </TouchableOpacity>
   );
 }
 

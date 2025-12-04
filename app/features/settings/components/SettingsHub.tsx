@@ -130,6 +130,25 @@ export function SettingsHub({ onNavigate, userId }: SettingsHubProps) {
           </View>
         </TouchableOpacity>
       </Animated.View>
+
+      <Animated.View entering={FadeInDown.duration(500).delay(600)}>
+        <TouchableOpacity 
+          style={[styles.card, { backgroundColor: colors.background.secondary }]} 
+          onPress={() => {
+            console.log('Board Theme card pressed!');
+            onNavigate('board-theme');
+          }}
+          activeOpacity={0.7}
+        >
+          <View style={styles.cardHeader}>
+            <Text style={styles.cardIcon}>♟️</Text>
+            <View style={styles.cardTextContainer}>
+              <Text style={[styles.cardTitle, { color: colors.foreground.primary }]}>{t('settings.board_theme')}</Text>
+              <Text style={[styles.cardDescription, { color: colors.foreground.secondary }]}>{t('settings.board_theme_description')}</Text>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Animated.View>
     </ScrollView>
   );
 }

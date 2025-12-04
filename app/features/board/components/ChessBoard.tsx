@@ -25,6 +25,7 @@ import { GestureDetector, Gesture } from 'react-native-gesture-handler';
 import { useThemeTokens } from '@/ui/hooks/useThemeTokens';
 import { defaultBoardConfig, type BoardConfig } from '@/features/board/config';
 import { getBoardColors, type BoardTheme, type ThemeMode, type PieceTheme } from '@/features/board/config/themeConfig';
+import { useBoardTheme } from '@/contexts/BoardThemeContext';
 import { 
   parseFENToBoard,
   isValidMove as validateMove,
@@ -204,8 +205,8 @@ export const ChessBoard = React.forwardRef<View, ChessBoardProps>(
     borderRadius = defaultBoardConfig.borderRadius,
     isInteractive = defaultBoardConfig.isInteractive,
     disabledOpacity = defaultBoardConfig.disabledOpacity,
-    boardTheme = 'green',
-    themeMode = 'light',
+    boardTheme: propBoardTheme,
+    themeMode: propThemeMode,
     orientation = 'white',
     sideToMove = 'w',
     myColor = 'w',
@@ -215,6 +216,11 @@ export const ChessBoard = React.forwardRef<View, ChessBoardProps>(
     animateMovements = true,
     onMove,
   }, ref) => {
+    // Use context theme if props not provided
+    const { boardTheme: contextBoardTheme, mode: contextMode } = useBoardTheme();
+    const boardTheme = propBoardTheme || contextBoardTheme;
+    const themeMode = propThemeMode || contextMode;
+
     const [selectedSquare, setSelectedSquare] = useState<Square | null>(null);
     const [legalMoves, setLegalMoves] = useState<Square[]>([]);
     const [animatingPiece, setAnimatingPiece] = useState<AnimatedPiece | null>(null);

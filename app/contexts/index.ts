@@ -9,3 +9,4 @@ export { MatchmakingProvider, useMatchmaking } from './MatchmakingContext';
 export { PuzzleProvider, usePuzzle } from './PuzzleContext';
 export { LearningProvider, useLearning } from './LearningContext';
 export { SocialProvider, useSocial } from './SocialContext';
+export { BoardThemeProvider, useBoardTheme } from './BoardThemeContext';
