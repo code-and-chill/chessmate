@@ -35,11 +35,7 @@ export default function TabLayout() {
     >
       <Stack.Screen name="index"/>
       <Stack.Screen name="play"/>
-      <Stack.Screen name="puzzle"/>
       <Stack.Screen name="explore" />
-      <Stack.Screen name="learn" />
-      {/* <Stack.Screen name="social" /> */}
-      <Stack.Screen name="settings" />
     </Stack>
   );
 }

@@ -22,7 +22,7 @@ const sidebarItems: SidebarItem[] = [
     id: 'learn',
     title: 'Learn',
     icon: 'book.fill',
-    route: '/learn',
+    route: '/learning',
   },
   {
     id: 'social',
