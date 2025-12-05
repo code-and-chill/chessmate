@@ -1,173 +1,56 @@
-/**
- * Preferences View Component
- * features/settings/components/PreferencesView.tsx
- */
+import { useState } from 'react';
+import { FeatureScreenLayout } from '@/ui/components';
+import { VStack } from '@/ui/primitives/Stack';
+import { Button } from '@/ui/primitives/Button';
+import { Text } from '@/ui/primitives/Text';
 
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useUserPreferences } from '../hooks';
+export function PreferencesView() {
+  const [prefs, setPrefs] = useState({
+    notifications: true,
+    sound: true,
+    vibration: false,
+  });
+  const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-export interface PreferencesViewProps {
-  onBack: () => void;
-  userId: string;
-}
+  const toggle = (key: keyof typeof prefs) => {
+    setPrefs((prev) => ({ ...prev, [key]: !prev[key] }));
+    setSaved(false);
+  };
 
-// Helper to format animation level for display
-const formatAnimationLevel = (level: string | undefined): string => {
-  if (!level) return 'Full';
-  return level.charAt(0).toUpperCase() + level.slice(1);
-};
-
-// Helper to format time control for display
-const formatTimeControl = (tc: string | undefined): string => {
-  if (!tc) return 'Blitz';
-  return tc.charAt(0).toUpperCase() + tc.slice(1);
-};
-
-// Helper to format theme name for display
-const formatTheme = (theme: string | undefined): string => {
-  if (!theme) return 'Classic';
-  return theme.charAt(0).toUpperCase() + theme.slice(1);
-};
-
-export function PreferencesView({ onBack, userId }: PreferencesViewProps) {
-  const { preferences } = useUserPreferences(userId);
+  const handleSave = () => {
+    setSaving(true);
+    setTimeout(() => {
+      setSaving(false);
+      setSaved(true);
+    }, 600);
+  };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <TouchableOpacity style={styles.backButton} onPress={onBack}>
-        <Text style={styles.backButtonText}>← Back</Text>
-      </TouchableOpacity>
-
-      <Text style={styles.title}>Game Preferences</Text>
-      <Text style={styles.subtitle}>Customize your gameplay</Text>
-
-      {/* Board & Pieces */}
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Board & Pieces</Text>
-        <ClickablePreferenceRow 
-          label="Board Theme" 
-          value={formatTheme(preferences?.board_theme)} 
-          onPress={() => {
-            const { router } = require('expo-router');
-            router.push('/settings/board-theme');
-          }}
-        />
-        <PreferenceRow label="Piece Set" value={formatTheme(preferences?.piece_set)} />
-        <PreferenceRow label="Board Coordinates" value={preferences?.show_coordinates ? 'On' : 'Off'} />
-        <PreferenceRow label="Legal Move Hints" value={preferences?.highlight_legal_moves ? 'On' : 'Off'} />
-      </View>
-
-      {/* Gameplay */}
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Gameplay</Text>
-        <PreferenceRow label="Auto-Queen Promotion" value={preferences?.auto_queen_promotion ? 'On' : 'Off'} />
-        <PreferenceRow label="Confirm Moves" value={preferences?.confirm_moves ? 'On' : 'Off'} />
-        <PreferenceRow label="Default Time Control" value={formatTimeControl(preferences?.default_time_control)} />
-      </View>
-
-      {/* Sounds & Animations */}
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Sounds & Animations</Text>
-        <PreferenceRow label="Sound Effects" value={preferences?.sound_enabled ? 'On' : 'Off'} />
-        <PreferenceRow label="Animation Level" value={formatAnimationLevel(preferences?.animation_level)} />
-        <PreferenceRow label="Piece Animation" value={preferences?.piece_animation ? 'On' : 'Off'} />
-        <PreferenceRow label="Vibration" value={preferences?.vibration ? 'On' : 'Off'} />
-      </View>
-
-      {/* Analysis (Frontend-only for now) */}
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Analysis</Text>
-        <PreferenceRow label="Post-Game Analysis" value={formatTheme(preferences?.post_game_analysis || 'automatic')} />
-        <PreferenceRow label="Show Engine Lines" value={preferences?.show_engine_lines ? 'On' : 'Off'} />
-        <PreferenceRow label="Evaluation Bar" value={preferences?.evaluation_bar ? 'On' : 'Off'} />
-        <PreferenceRow label="Best Move Hints" value={formatTheme(preferences?.best_move_hints || 'after_game')} />
-      </View>
-    </ScrollView>
+    <FeatureScreenLayout
+      title="Preferences"
+      subtitle="App notification and sound settings"
+      statsRow={null}
+    >
+      <VStack gap={5} padding={2}>
+        <Button variant={prefs.notifications ? 'primary' : 'outline'} onPress={() => toggle('notifications')}>
+          {prefs.notifications ? '🔔 Notifications On' : '🔕 Notifications Off'}
+        </Button>
+        <Button variant={prefs.sound ? 'primary' : 'outline'} onPress={() => toggle('sound')}>
+          {prefs.sound ? '🔊 Sound On' : '🔈 Sound Off'}
+        </Button>
+        <Button variant={prefs.vibration ? 'primary' : 'outline'} onPress={() => toggle('vibration')}>
+          {prefs.vibration ? '📳 Vibration On' : '📴 Vibration Off'}
+        </Button>
+        <Button onPress={handleSave} disabled={saving}>
+          {saving ? 'Saving...' : 'Save Preferences'}
+        </Button>
+        {saved && (
+          <Text color="#16A34A" variant="caption" weight="semibold">
+            Preferences saved!
+          </Text>
+        )}
+      </VStack>
+    </FeatureScreenLayout>
   );
 }
-
-function PreferenceRow({ label, value }: { label: string; value: string }) {
-  return (
-    <View style={styles.preferenceRow}>
-      <Text style={styles.preferenceLabel}>{label}</Text>
-      <Text style={styles.preferenceValue}>{value}</Text>
-    </View>
-  );
-}
-
-function ClickablePreferenceRow({ label, value, onPress }: { label: string; value: string; onPress: () => void }) {
-  return (
-    <TouchableOpacity style={styles.preferenceRow} onPress={onPress} activeOpacity={0.7}>
-      <Text style={styles.preferenceLabel}>{label}</Text>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-        <Text style={styles.preferenceValue}>{value}</Text>
-        <Text style={[styles.preferenceValue, { color: '#667EEA' }]}>→</Text>
-      </View>
-    </TouchableOpacity>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f9f9f9',
-  },
-  content: {
-    padding: 20,
-  },
-  backButton: {
-    alignSelf: 'flex-start',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    marginBottom: 16,
-  },
-  backButtonText: {
-    fontSize: 16,
-    color: '#5856D6',
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    marginBottom: 8,
-    color: '#000',
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#666',
-    marginBottom: 24,
-  },
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#000',
-    marginBottom: 16,
-  },
-  preferenceRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f2f2f7',
-  },
-  preferenceLabel: {
-    fontSize: 15,
-    color: '#000',
-  },
-  preferenceValue: {
-    fontSize: 14,
-    color: '#5856D6',
-    fontWeight: '600',
-  },
-});

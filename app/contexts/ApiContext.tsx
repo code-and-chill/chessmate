@@ -1,8 +1,3 @@
-/**
- * API Context Provider - provides API clients to the app.
- * Supports both real and mock implementations via USE_MOCK_API flag.
- */
-
 import React, { createContext, useContext, ReactNode, useMemo } from 'react';
 import { 
   AuthApiClient,

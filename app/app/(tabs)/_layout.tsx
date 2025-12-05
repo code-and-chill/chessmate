@@ -1,8 +1,7 @@
 import { Stack, useRouter } from 'expo-router';
 import { TouchableOpacity, View } from 'react-native';
 
-import { IconSymbol } from '@/ui';
-import { useThemeTokens } from '@/ui';
+import { IconSymbol, useThemeTokens } from '@/ui';
 
 function HeaderActions() {
   const router = useRouter();
@@ -34,13 +33,13 @@ export default function TabLayout() {
         headerTintColor: colors.foreground.primary,
       }}
     >
-      <Stack.Screen name="index" options={{ title: 'Live Chess' }} />
-      <Stack.Screen name="play" options={{ headerShown: false }} />
-      <Stack.Screen name="puzzle" options={{ title: 'Puzzles' }} />
-      <Stack.Screen name="explore" options={{ title: 'Explore' }} />
-      <Stack.Screen name="learn" options={{ title: 'Learn' }} />
-      <Stack.Screen name="social" options={{ title: 'Social' }} />
-      <Stack.Screen name="settings" options={{ title: 'Settings' }} />
+      <Stack.Screen name="index"/>
+      <Stack.Screen name="play"/>
+      <Stack.Screen name="puzzle"/>
+      <Stack.Screen name="explore" />
+      <Stack.Screen name="learn" />
+      {/* <Stack.Screen name="social" /> */}
+      <Stack.Screen name="settings" />
     </Stack>
   );
 }

@@ -1,8 +1,3 @@
-/**
- * Social Screen Container
- * features/social/screens/SocialScreen.tsx
- */
-
 import { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { SocialHub, FriendsView, ClubsView, MessagesView, LeaderboardView } from '../components';
@@ -29,9 +24,3 @@ export function SocialScreen({ userId }: SocialScreenProps) {
       return <SocialHub onNavigate={setMode} userId={userId} />;
   }
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-});

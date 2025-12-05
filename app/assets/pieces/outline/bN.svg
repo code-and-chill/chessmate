@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 45 45" fill="currentColor" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+  <g>
+    <!-- Horse head -->
+    <path d="M 22,10 C 11,11 9,15 9,19 C 9,23 9,25 13,27 L 13,29 L 16,29 L 16,27 C 18,28 20,28 22,28 C 24,28 26,27 27,25 C 28,23 30,22 31,20 L 33,20 C 34,18 34,15 33,13 C 31,11 28,10 25,9.5 L 22,10" />
+    <!-- Eye (inverted for black) -->
+    <circle cx="18" cy="15" r="1.5" fill="#fff" stroke="none" />
+    <!-- Mane detail -->
+    <path d="M 15,18 Q 15,22 13,25" fill="none" />
+    <!-- Base -->
+    <path d="M 9,29 L 36,29 L 36,33 L 9,33 Z" />
+  </g>
+</svg>

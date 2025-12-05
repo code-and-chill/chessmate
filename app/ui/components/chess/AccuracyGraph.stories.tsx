@@ -4,7 +4,7 @@
 
 import React from 'react';
 import { View } from 'react-native';
-import { AccuracyGraph } from './AccuracyGraph';
+import { AccuracyGraph } from '@/ui';
 
 export default {
   title: 'Chess/AccuracyGraph',

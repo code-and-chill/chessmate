@@ -67,7 +67,7 @@ function LeaderboardEntryCard({ entry, colors }: { entry: LeaderboardEntry; colo
     <View style={[
       styles.leaderboardEntry,
       { backgroundColor: colors.background.secondary },
-      entry.highlight && { backgroundColor: colors.accent.bg, borderWidth: 2, borderColor: colors.accent.primary }
+      entry.highlight && { backgroundColor: colors.accent.primary, borderWidth: 2, borderColor: colors.accent.primary }
     ]}>
       <Text style={[styles.leaderboardRank, { color: colors.foreground.secondary }]}>#{entry.rank}</Text>
       <Text style={styles.leaderboardAvatar}>{entry.avatar}</Text>

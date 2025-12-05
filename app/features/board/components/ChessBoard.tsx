@@ -26,6 +26,8 @@ import { useThemeTokens } from '@/ui/hooks/useThemeTokens';
 import { defaultBoardConfig, type BoardConfig } from '@/features/board/config';
 import { getBoardColors, type BoardTheme, type ThemeMode, type PieceTheme } from '@/features/board/config/themeConfig';
 import { useBoardTheme } from '@/contexts/BoardThemeContext';
+import { Piece as PieceComponent } from './Piece';
+import { buildPieceKey, type PieceKey } from '../types/pieces';
 import { 
   parseFENToBoard,
   isValidMove as validateMove,
@@ -93,7 +95,8 @@ interface AnimatedPiece {
 const parseFEN = (fen: string): (Piece | null)[][] => parseFENToBoard(fen) as unknown as (Piece | null)[][];
 
 /**
- * Get piece emoji symbol
+ * Convert board Piece to PieceKey for rendering
+ * @deprecated Legacy emoji support - will be removed
  */
 const getPieceEmoji = (piece: Piece | null): string => {
   if (!piece) return '';
@@ -111,6 +114,13 @@ const getPieceEmoji = (piece: Piece | null): string => {
 };
 
 /**
+ * Convert board Piece to PieceKey for SVG rendering
+ */
+const getPieceKey = (piece: Piece): PieceKey => {
+  return buildPieceKey(piece.color, piece.type);
+};
+
+/**
  * AnimatedPiece - Smooth piece movement with shadows
  */
 const AnimatedPieceComponent: React.FC<{
@@ -122,7 +132,8 @@ const AnimatedPieceComponent: React.FC<{
   squareSize: number;
   orientation: 'white' | 'black';
   isCapture: boolean;
-}> = ({ piece, fromFile, fromRank, toFile, toRank, squareSize, orientation, isCapture }) => {
+  pieceTheme: PieceTheme;
+}> = ({ piece, fromFile, fromRank, toFile, toRank, squareSize, orientation, isCapture, pieceTheme }) => {
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
   const scale = useSharedValue(1);
@@ -191,9 +202,18 @@ const AnimatedPieceComponent: React.FC<{
         animatedStyle,
       ]}
     >
-      <Text style={[styles.piece, { fontSize: squareSize * 0.6 }]}>
-        {getPieceEmoji(piece)}
-      </Text>
+      {pieceTheme === 'classic' ? (
+        <Text style={[styles.piece, { fontSize: squareSize * 0.6 }]}>
+          {getPieceEmoji(piece)}
+        </Text>
+      ) : (
+        <PieceComponent
+          piece={getPieceKey(piece)}
+          theme={pieceTheme}
+          size={squareSize * 0.85}
+          color={piece.color === 'w' ? '#f0f0f0' : '#2c2c2c'}
+        />
+      )}
     </Animated.View>
   );
 };
@@ -217,7 +237,7 @@ export const ChessBoard = React.forwardRef<View, ChessBoardProps>(
     onMove,
   }, ref) => {
     // Use context theme if props not provided
-    const { boardTheme: contextBoardTheme, mode: contextMode } = useBoardTheme();
+    const { boardTheme: contextBoardTheme, mode: contextMode, pieceTheme } = useBoardTheme();
     const boardTheme = propBoardTheme || contextBoardTheme;
     const themeMode = propThemeMode || contextMode;
 
@@ -499,9 +519,18 @@ export const ChessBoard = React.forwardRef<View, ChessBoardProps>(
                     
                     {piece && !isAnimatingFrom ? (
                       <View style={styles.pieceContainer}>
-                        <Text style={[styles.piece, { fontSize: squareSize * 0.6 }]}>
-                          {getPieceEmoji(piece)}
-                        </Text>
+                        {pieceTheme === 'classic' ? (
+                          <Text style={[styles.piece, { fontSize: squareSize * 0.6 }]}>
+                            {getPieceEmoji(piece)}
+                          </Text>
+                        ) : (
+                          <PieceComponent
+                            piece={getPieceKey(piece)}
+                            theme={pieceTheme}
+                            size={squareSize * 0.85}
+                            color={piece.color === 'w' ? '#f0f0f0' : '#2c2c2c'}
+                          />
+                        )}
                       </View>
                     ) : null}
                     {isLegalMove && !piece && (
@@ -538,6 +567,7 @@ export const ChessBoard = React.forwardRef<View, ChessBoardProps>(
             squareSize={squareSize}
             orientation={orientation}
             isCapture={animatingPiece.isCapture}
+            pieceTheme={pieceTheme}
           />
         )}
       </View>

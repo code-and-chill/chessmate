@@ -1,11 +1,13 @@
-import { View, StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { StyleSheet } from 'react-native';
 import { SettingsScreen } from '@/features/settings';
+
 
 export default function SettingsTab() {
   return (
-    <View style={styles.container}>
-      <SettingsScreen userId="current-user" />
-    </View>
+    <SafeAreaView style={styles.container}>
+      <SettingsScreen />
+    </SafeAreaView>
   );
 }
 

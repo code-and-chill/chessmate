@@ -7,8 +7,8 @@ import {
   getSquareSize,
   shouldShowMoveListSideBySide,
   Spacing,
+  Colors,
 } from '@/core/constants';
-import { Colors } from '@/core/constants';
 
 export interface ResponsiveGameLayoutProps {
   // Board props

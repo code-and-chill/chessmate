@@ -765,7 +765,7 @@ export class MockLiveGameApiClient {
       white_player_id: 'player-1',
       black_player_id: 'player-2',
       fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
-      status: 'active' as const,
+      status: 'ongoing' as const,
       moves: [],
       time_control: '10+0',
       created_at: new Date().toISOString(),

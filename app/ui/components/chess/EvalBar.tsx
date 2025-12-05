@@ -18,8 +18,7 @@ import Animated, {
   withSpring,
   interpolateColor,
 } from 'react-native-reanimated';
-import { useColors, useIsDark } from '../../hooks/useThemeTokens';
-import { feedbackColorTokens } from '../../tokens/feedback';
+import { useColors, useIsDark, feedbackColorTokens } from '@/ui';
 
 export type EvalBarProps = {
   /**
@@ -109,7 +108,7 @@ export const EvalBar: React.FC<EvalBarProps> = ({
       percentage.value = targetPercentage;
       evalValue.value = evaluation;
     }
-  }, [evaluation, animated]);
+  }, [evaluation, animated, percentage, evalValue]);
   
   const animatedBarStyle = useAnimatedStyle(() => {
     const whiteColor = feedbackColorTokens.evaluation.whiteAdvantage;

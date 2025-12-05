@@ -14,3 +14,5 @@ export { useFriends, useLeaderboard, useSocialStats } from './hooks';
 
 // Components (for advanced usage)
 export { SocialHub, FriendsView, ClubsView, MessagesView, LeaderboardView } from './components';
+// Entry (app-level wrapper)
+export { default as SocialEntry } from './SocialEntry';

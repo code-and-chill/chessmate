@@ -1,7 +1,3 @@
-/**
- * Puzzle Context Provider - manages puzzle state, attempts, and user progress.
- */
-
 import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 import { useAuth } from './AuthContext';
 import { useApiClients } from './ApiContext';
@@ -48,17 +44,18 @@ interface PuzzleContextType {
   currentPuzzle: Puzzle | null;
   puzzleStats: PuzzleStats | null;
   isLoading: boolean;
-  
+  error: string | null;
+
   // Puzzle fetching
   getDailyPuzzle: () => Promise<Puzzle>;
   getRandomPuzzle: (filter?: PuzzleFilter) => Promise<Puzzle>;
   getPuzzleById: (id: string) => Promise<Puzzle>;
   getPuzzlesByTheme: (theme: string, limit?: number) => Promise<Puzzle[]>;
-  
+
   // Puzzle attempts
   submitAttempt: (puzzleId: string, moves: string[], timeSpent: number, hintsUsed: number) => Promise<boolean>;
   getAttemptHistory: () => Promise<PuzzleAttempt[]>;
-  
+
   // User stats
   getUserStats: () => Promise<PuzzleStats>;
   refreshStats: () => Promise<void>;
@@ -73,60 +70,69 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
   const [currentPuzzle, setCurrentPuzzle] = useState<Puzzle | null>(null);
   const [puzzleStats, setPuzzleStats] = useState<PuzzleStats | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const getDailyPuzzle = useCallback(async (): Promise<Puzzle> => {
     setIsLoading(true);
+    const userId = user?.id || 'guest';
     try {
-      const puzzle = await puzzleApi.getDailyPuzzle() as Puzzle;
+      const puzzle = await puzzleApi.getDailyPuzzle(userId) as Puzzle;
       setDailyPuzzle(puzzle);
+      setError(null);
       return puzzle;
-    } catch (error) {
-      console.error('Failed to fetch daily puzzle:', error);
-      throw error;
+    } catch (err: any) {
+      setError('Failed to fetch daily puzzle');
+      throw err;
     } finally {
       setIsLoading(false);
     }
-  }, [puzzleApi]);
+  }, [puzzleApi, user?.id]);
 
   const getRandomPuzzle = useCallback(async (filter?: PuzzleFilter): Promise<Puzzle> => {
     setIsLoading(true);
     try {
-      const puzzle = await puzzleApi.getRandomPuzzle() as Puzzle;
+      const puzzle = await puzzleApi.getRandomPuzzle(filter) as Puzzle;
       setCurrentPuzzle(puzzle);
+      setError(null);
       return puzzle;
-    } catch (error) {
-      console.error('Failed to fetch random puzzle:', error);
-      throw error;
+    } catch (err: any) {
+      setError('Failed to fetch random puzzle');
+      throw err;
     } finally {
       setIsLoading(false);
     }
   }, [puzzleApi]);
 
-  const getPuzzleById = useCallback(async (id: string): Promise<Puzzle> => {
+  const getPuzzleById = useCallback(async (): Promise<Puzzle> => {
     setIsLoading(true);
+    const userId = user?.id || 'guest';
     try {
-      const puzzle = await puzzleApi.getPuzzle(id) as Puzzle;
+      const puzzle = await puzzleApi.getPuzzle(userId) as Puzzle;
       setCurrentPuzzle(puzzle);
+      setError(null);
       return puzzle;
-    } catch (error) {
-      console.error('Failed to fetch puzzle:', error);
-      throw error;
+    } catch (err: any) {
+      setError('Failed to fetch puzzle');
+      throw err;
     } finally {
       setIsLoading(false);
     }
-  }, [puzzleApi]);
+  }, [puzzleApi, user?.id]);
 
-  const getPuzzlesByTheme = useCallback(async (theme: string, limit = 10): Promise<Puzzle[]> => {
+  const getPuzzlesByTheme = useCallback(async (): Promise<Puzzle[]> => {
     setIsLoading(true);
+    const userId = user?.id || 'guest';
     try {
-      return await puzzleApi.getPuzzlesByTheme(theme, limit) as Puzzle[];
-    } catch (error) {
-      console.error('Failed to fetch puzzles by theme:', error);
-      throw error;
+      const puzzles = await puzzleApi.getPuzzlesByTheme(userId) as Puzzle[];
+      setError(null);
+      return puzzles;
+    } catch (err: any) {
+      setError('Failed to fetch puzzles by theme');
+      throw err;
     } finally {
       setIsLoading(false);
     }
-  }, [puzzleApi]);
+  }, [puzzleApi, user?.id]);
 
   const submitAttempt = useCallback(async (
     puzzleId: string,
@@ -134,8 +140,6 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
     timeSpent: number,
     hintsUsed: number
   ): Promise<boolean> => {
-    // Use guest ID if not authenticated
-    const userId = user?.id || 'guest';
     
     try {
       const response = await puzzleApi.submitAttempt(puzzleId, {
@@ -145,12 +149,12 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
         timeSpentMs: timeSpent,
         hintsUsed,
       });
-      
+      setError(null);
       console.log('Puzzle attempt submitted:', response);
       return response.status === 'SUCCESS';
-    } catch (error) {
-      console.error('Failed to submit attempt:', error);
-      throw error;
+    } catch (err: any) {
+      setError('Failed to submit attempt');
+      throw err;
     }
   }, [user, puzzleApi]);
 
@@ -160,6 +164,7 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
     
     try {
       const history = await puzzleApi.getUserHistory(userId);
+      setError(null);
       // Transform API response to PuzzleAttempt format
       return history.map((item: Record<string, unknown>) => ({
         puzzleId: item.puzzle_id as string,
@@ -169,9 +174,9 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
         attempts: 1,
         completedAt: item.created_at as string,
       }));
-    } catch (error) {
-      console.error('Failed to get attempt history:', error);
-      throw error;
+    } catch (err: any) {
+      setError('Failed to get attempt history');
+      throw err;
     }
   }, [user, puzzleApi]);
 
@@ -182,7 +187,7 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
     setIsLoading(true);
     try {
       const apiStats = await puzzleApi.getUserStats(userId) as Record<string, unknown>;
-      
+      setError(null);
       // Transform API response to PuzzleStats format
       const stats: PuzzleStats = {
         totalAttempts: (apiStats.totalAttempts as number) || 0,
@@ -201,12 +206,11 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
         },
         recentAttempts: await getAttemptHistory(),
       };
-      
       setPuzzleStats(stats);
       return stats;
-    } catch (error) {
-      console.error('Failed to fetch user stats:', error);
-      throw error;
+    } catch (err: any) {
+      setError('Failed to fetch user stats');
+      throw err;
     } finally {
       setIsLoading(false);
     }
@@ -217,6 +221,7 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
   }, [getUserStats]);
 
   const value: PuzzleContextType = {
+    error,
     dailyPuzzle,
     currentPuzzle,
     puzzleStats,

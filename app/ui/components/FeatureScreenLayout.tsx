@@ -105,11 +105,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     position: 'relative',
-    // backgroundColor set dynamically from theme
   },
   gradientBg: {
     ...StyleSheet.absoluteFillObject,
-    // backgroundColor set dynamically from theme
   },
   content: {
     flex: 1,
@@ -128,13 +126,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: typographyTokens.fontSize['4xl'],
     fontWeight: typographyTokens.fontWeight.extrabold,
-    // color set dynamically from theme
     textAlign: 'center',
     letterSpacing: -0.5,
   },
   subtitle: {
     fontSize: typographyTokens.fontSize.lg,
-    // color set dynamically from theme
     textAlign: 'center',
     lineHeight: 24,
     fontWeight: typographyTokens.fontWeight.medium,

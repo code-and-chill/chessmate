@@ -14,7 +14,7 @@
  * ```
  */
 
-import React, { useMemo } from 'react';
+import React, {useCallback, useMemo} from 'react';
 import { View, StyleSheet, Dimensions, Text as RNText } from 'react-native';
 import Svg, { Path, Line, Circle, Rect, Text as SvgText, Defs, LinearGradient, Stop, ClipPath } from 'react-native-svg';
 import Animated, { FadeInDown } from 'react-native-reanimated';
@@ -149,17 +149,17 @@ export const EvalGraph: React.FC<EvalGraphProps> = ({
   const zeroY = yScale(0);
   
   // Generate SVG path for area chart
-  const generatePath = (data: number[]): string => {
+  const generatePath = useCallback((data: number[]): string => {
     if (data.length === 0) return '';
-    
+
     return data.map((evaluation, index) => {
       const x = xScale(index, data.length);
       const y = yScale(evaluation);
       return index === 0 ? `M ${x} ${y}` : `L ${x} ${y}`;
     }).join(' ');
-  };
+  });
   
-  const evalPath = useMemo(() => generatePath(evalNumbers), [evalNumbers, graphWidth, graphHeight]);
+  const evalPath = useMemo(() => generatePath(evalNumbers), [generatePath, evalNumbers]);
   
   // Generate filled area path (close to zero line)
   const filledAreaPath = useMemo(() => {
@@ -170,7 +170,7 @@ export const EvalGraph: React.FC<EvalGraphProps> = ({
     const firstX = xScale(0, evalNumbers.length);
     
     return `${linePath} L ${lastX} ${zeroY} L ${firstX} ${zeroY} Z`;
-  }, [evalNumbers, graphWidth, graphHeight, zeroY]);
+  }, [evalNumbers, generatePath, xScale, zeroY]);
   
   // Advantage colors
   const whiteAdvantageColor = feedbackColorTokens.coach.positive.primary[isDark ? 'dark' : 'light'];

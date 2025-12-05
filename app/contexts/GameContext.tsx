@@ -1,30 +1,7 @@
-/**
- * Game Context Provider - manages game state, moves, and game lifecycle.
- */
-
 import React, { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
-import { useAuth } from './AuthContext';
-import { useApiClients } from './ApiContext';
-
-interface GameMove {
-  from: string;
-  to: string;
-  promotion?: string;
-  san?: string;
-  timestamp: string;
-}
-
-interface GameState {
-  id: string;
-  white_player_id: string;
-  black_player_id: string;
-  fen: string;
-  status: 'waiting' | 'active' | 'completed';
-  result?: 'white_wins' | 'black_wins' | 'draw';
-  moves: GameMove[];
-  time_control: string;
-  created_at: string;
-}
+import type { GameState } from '@/features/game/types/GameState';
+import {useAuth} from "@/contexts/AuthContext";
+import {useApiClients} from "@/contexts/ApiContext";
 
 interface BotGameOptions {
   difficulty: string;
@@ -63,7 +40,7 @@ interface GameContextType {
   // Game management
   createBotGame: (options: BotGameOptions) => Promise<string>;
   createFriendGame: (options: FriendGameOptions) => Promise<FriendChallenge>;
-  createLocalGame: (options: LocalGameOptions) => Promise<any>;
+  createLocalGame: (options: LocalGameOptions) => Promise<GameState>;
   joinFriendGame: (inviteCode: string) => Promise<string>;
   joinGame: (gameId: string) => Promise<void>;
   leaveGame: (gameId: string) => Promise<void>;
@@ -87,25 +64,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
   const createBotGame = useCallback(async (options: BotGameOptions): Promise<string> => {
     if (!user) throw new Error('User not authenticated');
-    
     setIsCreatingGame(true);
     try {
       const { gameId } = await liveGameApi.createBotGame(user.id, options.difficulty, options.playerColor);
-      
-      const mockGame: GameState = {
-        id: gameId,
-        white_player_id: options.playerColor === 'white' ? user.id : 'bot-stockfish',
-        black_player_id: options.playerColor === 'black' ? user.id : 'bot-stockfish',
-        fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
-        status: 'active',
-        moves: [],
-        time_control: '10+0',
-        created_at: new Date().toISOString(),
-      };
-      
-      setActiveGames((prev) => new Map(prev).set(gameId, mockGame));
+      const game = await liveGameApi.getGame(gameId);
+      setActiveGames((prev: Map<string, GameState>) => new Map(prev).set(gameId, game));
       setCurrentGameId(gameId);
-      
       return gameId;
     } finally {
       setIsCreatingGame(false);
@@ -115,16 +79,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const createLocalGame = useCallback(async (options: LocalGameOptions) => {
     setIsCreatingGame(true);
     try {
-      const gameState = await playApi.createGame({
+      return await playApi.createGame({
         timeControl: options.timeControl,
         colorPreference: options.colorPreference,
-        rated: options.rated ?? false, // Default to unrated, but allow rated local games
-        is_local_game: true,
+        rated: options.rated ?? false,
         opponentAccountId: options.opponentAccountId,
       });
-      
-      // Note: Backend will enforce decision_reason='LOCAL_AUTO'
-      return gameState;
     } finally {
       setIsCreatingGame(false);
     }
@@ -132,36 +92,21 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
   const createFriendGame = useCallback(async (options: FriendGameOptions): Promise<FriendChallenge> => {
     if (!user) throw new Error('User not authenticated');
-    
     setIsCreatingGame(true);
     try {
-      const { gameId, inviteCode, rated, decision_reason } = await liveGameApi.createFriendGame(
+      const { gameId, inviteCode } = await liveGameApi.createFriendGame(
         options.creatorId,
         options.timeControl,
         options.playerColor,
-        options.rated ?? true, // Default to rated
+        options.rated ?? true,
         {
           starting_fen: options.starting_fen,
           is_odds_game: options.is_odds_game,
         }
       );
-      
-      // Note: Backend may override rated flag based on automatic rules
-      // decision_reason indicates why (LOCAL_AUTO, RATING_GAP_AUTO, etc.)
-      
-      const mockGame: GameState = {
-        id: gameId,
-        white_player_id: options.playerColor === 'white' ? user.id : '',
-        black_player_id: options.playerColor === 'black' ? user.id : '',
-        fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
-        status: 'waiting',
-        moves: [],
-        time_control: options.timeControl,
-        created_at: new Date().toISOString(),
-      };
-      
-      setActiveGames((prev) => new Map(prev).set(gameId, mockGame));
-      
+
+      const game = await liveGameApi.getGame(gameId);
+      setActiveGames((prev: Map<string, GameState>) => new Map(prev).set(gameId, game));
       return { gameId, inviteCode };
     } finally {
       setIsCreatingGame(false);
@@ -182,30 +127,18 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
   const joinGame = useCallback(async (gameId: string) => {
     if (!user) throw new Error('User not authenticated');
-    
     try {
-      // TODO: Fetch game state from API
-      const mockGame: GameState = {
-        id: gameId,
-        white_player_id: user.id,
-        black_player_id: 'opponent-id',
-        fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
-        status: 'active',
-        moves: [],
-        time_control: '10+0',
-        created_at: new Date().toISOString(),
-      };
-      
-      setActiveGames((prev) => new Map(prev).set(gameId, mockGame));
+      const game = await liveGameApi.getGame(gameId);
+      setActiveGames((prev: Map<string, GameState>) => new Map(prev).set(gameId, game));
       setCurrentGameId(gameId);
     } catch (error) {
       console.error('Failed to join game:', error);
       throw error;
     }
-  }, [user]);
+  }, [user, liveGameApi]);
 
   const leaveGame = useCallback(async (gameId: string) => {
-    setActiveGames((prev) => {
+    setActiveGames((prev: Map<string, GameState>) => {
       const updated = new Map(prev);
       updated.delete(gameId);
       return updated;
@@ -222,7 +155,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     
     try {
       const updatedGame = await liveGameApi.makeMove(gameId, from, to, promotion) as GameState;
-      setActiveGames((prev) => new Map(prev).set(gameId, updatedGame));
+      setActiveGames((prev: Map<string, GameState>) => new Map(prev).set(gameId, updatedGame));
     } catch (error) {
       console.error('Failed to make move:', error);
       throw error;
@@ -236,7 +169,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const refreshGame = useCallback(async (gameId: string) => {
     try {
       const game = await liveGameApi.getGame(gameId) as GameState;
-      setActiveGames((prev) => new Map(prev).set(gameId, game));
+      setActiveGames((prev: Map<string, GameState>) => new Map(prev).set(gameId, game));
     } catch (error) {
       console.error('Failed to refresh game:', error);
       throw error;

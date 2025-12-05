@@ -1,41 +1,62 @@
- import { StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, View, ActivityIndicator } from 'react-native';
+ import { StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, View, useWindowDimensions } from 'react-native';
 import { router } from 'expo-router';
 import { VStack, HStack, Text, useColors } from '@/ui';
 import { Card } from '@/ui/primitives/Card';
 import { useBoardTheme } from '@/contexts/BoardThemeContext';
+import { ChessBoard } from '@/features/board/components/ChessBoard';
 import {
   themeConfigOptions,
   getBoardColors as getThemeColors,
-  type BoardTheme,
-  type ThemeMode,
   type PieceTheme,
 } from '@/features/board/config/themeConfig';
 
 export default function BoardThemeSettings() {
   const colors = useColors();
-  const { mode, boardTheme, pieceTheme, setMode, setBoardTheme, setPieceTheme, getBoardColors, isLoading } = useBoardTheme();
-
-  console.log('BoardThemeSettings rendered!', { mode, boardTheme, pieceTheme, isLoading });
-
-  if (isLoading) {
-    return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background.primary }]}>
-        <View style={styles.loader}>
-          <ActivityIndicator size="large" color={colors.accent.primary} />
-          <Text style={[styles.loaderText, { color: colors.foreground.secondary }]}>
-            Loading theme settings...
-          </Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  const currentColors = getBoardColors();
+  const { width } = useWindowDimensions();
+  const { mode, boardTheme, pieceTheme, setMode, setBoardTheme, setPieceTheme, getBoardColors } = useBoardTheme();
+    getBoardColors();
+    const isDesktop = width >= 768;
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background.primary }]} pointerEvents="auto">
-      <ScrollView contentContainerStyle={styles.scrollContent} pointerEvents="auto">
-        <VStack gap={6} style={styles.content}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background.primary }]}>
+      <View style={styles.layoutContainer}>
+        {/* Left Side - Live Board Preview */}
+        <View style={[styles.previewSection, isDesktop && styles.previewSectionDesktop]}>
+          <VStack gap={4} style={styles.previewContent}>
+            <Text style={[styles.previewTitle, { color: colors.foreground.primary }]}>
+              Live Preview
+            </Text>
+            <View style={styles.boardContainer}>
+              <ChessBoard
+                fen="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+                boardTheme={boardTheme}
+                themeMode={mode}
+                pieceTheme={pieceTheme}
+                isInteractive={false}
+                showCoordinates={true}
+                size={isDesktop ? 400 : Math.min(width - 80, 360)}
+              />
+            </View>
+            <View style={[styles.infoCard, { backgroundColor: colors.background.secondary }]}>
+              <Text style={[styles.infoText, { color: colors.foreground.secondary }]}>
+                <Text style={{ fontWeight: '600' }}>Mode:</Text> {mode === 'light' ? '☀️ Light' : '🌙 Dark'}
+              </Text>
+              <Text style={[styles.infoText, { color: colors.foreground.secondary }]}>
+                <Text style={{ fontWeight: '600' }}>Board:</Text> {boardTheme.charAt(0).toUpperCase() + boardTheme.slice(1)}
+              </Text>
+              <Text style={[styles.infoText, { color: colors.foreground.secondary }]}>
+                <Text style={{ fontWeight: '600' }}>Pieces:</Text> {pieceTheme.charAt(0).toUpperCase() + pieceTheme.slice(1)}
+              </Text>
+            </View>
+          </VStack>
+        </View>
+
+        {/* Right Side - Theme Selectors */}
+        <ScrollView 
+          style={[styles.settingsSection, isDesktop && styles.settingsSectionDesktop]}
+          contentContainerStyle={styles.settingsContent}
+        >
+          <VStack gap={6} style={styles.content}>
           {/* Header */}
           <VStack gap={2}>
             <TouchableOpacity 
@@ -159,6 +180,18 @@ export default function BoardThemeSettings() {
             <VStack gap={3}>
               {themeConfigOptions.pieceThemes.map((theme) => {
                 const isActive = pieceTheme === theme;
+                const themeLabels: Record<PieceTheme, { name: string; description: string }> = {
+                  minimal: { name: 'Minimal', description: 'Clean, modern flat design' },
+                  solid: { name: 'Solid', description: 'Filled shapes, bold appearance' },
+                  outline: { name: 'Outline', description: 'Thick strokes, minimalist' },
+                  classic: { name: 'Classic', description: 'Traditional chess pieces' },
+                  neon: { name: 'Neon Glow', description: 'Cyberpunk glowing effects' },
+                  glass: { name: 'Glass', description: 'Translucent glass effect' },
+                  wood: { name: 'Wood Carved', description: 'Traditional wooden pieces' },
+                  pixel: { name: 'Pixel Art', description: 'Retro 8-bit style' },
+                  sketch: { name: 'Sketch', description: 'Hand-drawn artistic style' },
+                };
+                const label = themeLabels[theme];
                 return (
                   <TouchableOpacity
                     key={theme}
@@ -174,7 +207,10 @@ export default function BoardThemeSettings() {
                         <Text style={styles.pieceIcon}>♔</Text>
                         <VStack gap={0} style={{ flex: 1 }}>
                           <Text style={[styles.themeName, { color: colors.foreground.primary }]}>
-                            {theme.charAt(0).toUpperCase() + theme.slice(1)}
+                            {label.name}
+                          </Text>
+                          <Text style={[styles.themeDescription, { color: colors.foreground.tertiary }]}>
+                            {label.description}
                           </Text>
                           {isActive && (
                             <Text style={[styles.themeActive, { color: colors.accent.primary }]}>
@@ -193,33 +229,9 @@ export default function BoardThemeSettings() {
             </VStack>
           </VStack>
 
-          {/* Preview Section */}
-          <VStack gap={3}>
-            <Text style={[styles.sectionTitle, { color: colors.foreground.primary }]}>Preview</Text>
-            <Card variant="elevated" size="lg">
-              <VStack gap={2} style={{ alignItems: 'center' }}>
-                <Text style={[styles.previewTitle, { color: colors.foreground.primary }]}>
-                  Current Selection
-                </Text>
-                <Text style={[styles.previewText, { color: colors.foreground.secondary }]}>
-                  Mode: {mode} | Board: {boardTheme} | Pieces: {pieceTheme}
-                </Text>
-                {/* Mini board preview - 2x2 squares */}
-                <View style={styles.miniBoard}>
-                  <View style={styles.miniRow}>
-                    <View style={[styles.miniSquare, { backgroundColor: currentColors.lightSquare }]} />
-                    <View style={[styles.miniSquare, { backgroundColor: currentColors.darkSquare }]} />
-                  </View>
-                  <View style={styles.miniRow}>
-                    <View style={[styles.miniSquare, { backgroundColor: currentColors.darkSquare }]} />
-                    <View style={[styles.miniSquare, { backgroundColor: currentColors.lightSquare }]} />
-                  </View>
-                </View>
-              </VStack>
-            </Card>
-          </VStack>
         </VStack>
       </ScrollView>
+      </View>
     </SafeAreaView>
   );
 }
@@ -228,22 +240,59 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  loader: {
+  layoutContainer: {
     flex: 1,
+    flexDirection: 'row',
+  },
+  previewSection: {
+    flex: 1,
+    padding: 20,
     justifyContent: 'center',
     alignItems: 'center',
+    minWidth: 300,
   },
-  loaderText: {
-    marginTop: 20,
-    fontSize: 17,
-    fontWeight: '500',
+  previewSectionDesktop: {
+    borderRightWidth: 1,
+    borderRightColor: 'rgba(0, 0, 0, 0.1)',
   },
-  scrollContent: {
+  previewContent: {
+    alignItems: 'center',
+    maxWidth: 480,
+    width: '100%',
+  },
+  previewTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  boardContainer: {
+    marginVertical: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 4,
+  },
+  infoCard: {
+    padding: 16,
+    borderRadius: 12,
+    width: '100%',
+    gap: 8,
+  },
+  infoText: {
+    fontSize: 14,
+  },
+  settingsSection: {
+    flex: 1,
+  },
+  settingsSectionDesktop: {
+    maxWidth: 500,
+  },
+  settingsContent: {
     padding: 20,
   },
   content: {
-    maxWidth: 600,
-    alignSelf: 'center',
     width: '100%',
   },
   backButton: {
@@ -303,25 +352,8 @@ const styles = StyleSheet.create({
     fontSize: 32,
     padding: 8,
   },
-  previewTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  previewText: {
-    fontSize: 14,
-    textAlign: 'center',
-    marginBottom: 16,
-  },
-  miniBoard: {
-    width: 120,
-    height: 120,
-  },
-  miniRow: {
-    flexDirection: 'row',
-  },
-  miniSquare: {
-    width: 60,
-    height: 60,
+  themeDescription: {
+    fontSize: 13,
+    marginTop: 2,
   },
 });

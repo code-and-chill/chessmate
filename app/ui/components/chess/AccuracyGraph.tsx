@@ -16,12 +16,10 @@
  */
 
 import React, { useMemo } from 'react';
-import { View, StyleSheet, Dimensions, Text as RNText, Platform } from 'react-native';
+import { View, StyleSheet, Dimensions, Text as RNText } from 'react-native';
 import Svg, { Path, Line, Circle, Text as SvgText, Defs, LinearGradient, Stop } from 'react-native-svg';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import { useIsDark, useColors } from '../../hooks/useThemeTokens';
-import { feedbackColorTokens } from '../../tokens/feedback';
-import { spacingTokens } from '../../tokens/spacing';
+import { useIsDark, useColors, feedbackColorTokens, spacingTokens } from '@/ui';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const DEFAULT_WIDTH = Math.min(SCREEN_WIDTH - spacingTokens[8], 600);
@@ -95,7 +93,7 @@ export type AccuracyGraphProps = {
 /**
  * AccuracyGraph Component
  * 
- * Chess.com-style accuracy timeline with player/opponent lines and threshold markers.
+ * accuracy timeline with player/opponent lines and threshold markers.
  */
 export const AccuracyGraph: React.FC<AccuracyGraphProps> = ({
   playerData,

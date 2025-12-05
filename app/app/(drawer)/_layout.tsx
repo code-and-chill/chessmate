@@ -39,20 +39,21 @@ export default function DrawerLayout() {
           headerTitle: 'Lessons & Tactics',
         }}
       />
-      <Drawer.Screen
+      {/* <Drawer.Screen
         name="social"
         options={{
           title: 'Social',
           drawerIcon: ({ color, size }) => <IconSymbol size={size} name="person.2.fill" color={color} />,
           headerTitle: 'Friends & Clubs',
         }}
-      />
+      /> */}
       <Drawer.Screen
         name="settings"
         options={{
           title: 'Settings',
           drawerIcon: ({ color, size }) => <IconSymbol size={size} name="gearshape.fill" color={color} />,
           headerTitle: 'Settings',
+          headerShown: false,
         }}
       />
     </Drawer>

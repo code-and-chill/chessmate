@@ -1,17 +1,6 @@
-/**
- * Stack Components – Pre-configured Flexbox Layouts
- * 
- * Simplified API for common flex patterns:
- * - VStack: Vertical flex layout (flexDirection: 'column')
- * - HStack: Horizontal flex layout (flexDirection: 'row')
- * 
- * Built on Box component for consistency
- */
-
 import React from 'react';
-import type { ViewStyle } from 'react-native';
-import type { View } from 'react-native';
-import { Box } from './Box';
+import type { ViewStyle, View } from 'react-native';
+import { Box } from '@/ui';
 
 export interface StackProps {
   children: React.ReactNode;

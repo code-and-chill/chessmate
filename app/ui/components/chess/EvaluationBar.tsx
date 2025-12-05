@@ -10,11 +10,8 @@ import { View, StyleSheet } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   withSpring,
-  interpolate,
 } from 'react-native-reanimated';
-import { Text } from '../../primitives/Text';
-import { spacingTokens } from '../../tokens/spacing';
-import { colorTokens, getColor } from '../../tokens/colors';
+import { Text, colorTokens, getColor } from '@/ui';
 
 export type EvaluationBarProps = {
   /**

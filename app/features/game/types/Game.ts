@@ -1,5 +1,3 @@
-// Definition of the Game type
-
 import type { DecisionReason } from './DecisionReason';
 
 export interface Game {

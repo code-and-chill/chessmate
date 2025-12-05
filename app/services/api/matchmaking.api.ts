@@ -27,7 +27,7 @@ export interface QueueStatus {
 }
 
 export class MatchmakingApiClient {
-  private baseUrl: string;
+  private readonly baseUrl: string;
   private authToken?: string;
 
   constructor(baseUrl: string = 'http://localhost:8004', authToken?: string) {

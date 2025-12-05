@@ -10,7 +10,6 @@ import Animated, {
   useAnimatedStyle,
   withSpring,
   useSharedValue,
-  withTiming,
 } from 'react-native-reanimated';
 import { Text } from '@/ui/primitives/Text';
 import { useThemeTokens } from '@/ui/hooks/useThemeTokens';
@@ -39,7 +38,7 @@ export function SegmentedControl<T extends string>({
       damping: 20,
       stiffness: 200,
     });
-  }, [selectedIndex, segmentWidth]);
+  }, [selectedIndex, segmentWidth, translateX]);
 
   const indicatorStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: translateX.value }],

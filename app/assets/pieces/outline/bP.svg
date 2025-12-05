@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 45 45" fill="currentColor" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+  <g>
+    <!-- Head -->
+    <circle cx="22.5" cy="13" r="5" />
+    <!-- Neck -->
+    <path d="M 19,15 L 19,22 L 26,22 L 26,15" fill="none" />
+    <!-- Body -->
+    <path d="M 17,22 L 16,28 L 29,28 L 28,22" fill="none" />
+    <!-- Base -->
+    <path d="M 14,28 L 31,28 L 31,32 L 14,32 Z" />
+  </g>
+</svg>

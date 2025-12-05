@@ -1,14 +1,6 @@
-/**
- * ThemeProvider Component
- * app/ui/theme/ThemeProvider.tsx
- */
-
-import { useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useColorScheme } from 'react-native';
-import { ThemeContext } from '../hooks/useThemeTokens';
-import type { ThemeMode } from '../hooks/useThemeTokens';
-import { semanticColors } from '../tokens/colors';
-import { typographyTokens } from '../tokens/typography';
+import { ThemeMode, ThemeContext, semanticColors, typographyTokens } from '@/ui';
 
 type ThemeProviderProps = {
   children: React.ReactNode;

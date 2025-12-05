@@ -1,8 +1,3 @@
-/**
- * PlayerRow Component
- * app/ui/components/PlayerRow.tsx
- */
-
 import { Box } from '../primitives/Box';
 import { Text } from '../primitives/Text';
 import { Avatar } from '../primitives/Avatar';
@@ -45,7 +40,6 @@ export const PlayerRow: React.FC<PlayerRowProps> = ({
       justifyContent="space-between"
       alignItems="center"
       padding={4}
-      borderBottomWidth={1}
       borderColor={getColor(colorTokens.neutral[200], isDark)}
     >
       <Box flexDirection="row" alignItems="center" gap={3}>

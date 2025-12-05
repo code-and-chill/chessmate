@@ -1,10 +1,3 @@
-/**
- * Sidebar Component - Modern AI-Aesthetic Navigation
- * app/ui/components/Sidebar.tsx
- * 
- * A sidebar navigation component with soft shadows and glassmorphism
- */
-
 import { StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter, usePathname } from 'expo-router';
 import Animated, {
@@ -20,6 +13,7 @@ import { useThemeTokens } from '../hooks/useThemeTokens';
 import { spacingTokens } from '../tokens/spacing';
 import { radiusTokens } from '../tokens/radii';
 import { useAuth } from '@/contexts/AuthContext';
+import React from "react";
 
 export interface SidebarItem {
   id: string;
@@ -42,7 +36,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ items, onItemPress }) => {
 
   const handlePress = (item: SidebarItem) => {
     onItemPress?.(item);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     router.push(item.route as any);
   };
 
@@ -235,7 +228,6 @@ const SidebarItem: React.FC<SidebarItemProps> = ({ item, isActive, onPress }) =>
           }}
         >
           <Box style={styles.itemContent}>
-            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
             <IconSymbol
               name={item.icon as any}
               size={24}

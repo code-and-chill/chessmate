@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 45 45" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+  <g>
+    <!-- Five spheres on top -->
+    <circle cx="9" cy="9" r="2.5" />
+    <circle cx="15.5" cy="6" r="2.5" />
+    <circle cx="22.5" cy="9" r="2.5" />
+    <circle cx="29.5" cy="6" r="2.5" />
+    <circle cx="36" cy="9" r="2.5" />
+    <!-- Crown body -->
+    <path d="M 9,11 L 15.5,8.5 L 22.5,11 L 29.5,8.5 L 36,11 L 34,26 L 11,26 Z" />
+    <!-- Base -->
+    <path d="M 13,26 L 32,26 M 13,29 L 32,29" />
+    <path d="M 11,29 L 34,29 L 34,33 L 11,33 Z" />
+  </g>
+</svg>

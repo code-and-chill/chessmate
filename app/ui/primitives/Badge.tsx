@@ -46,7 +46,7 @@ export const Badge: React.FC<BadgeProps> = ({
     neutral: { bg: colors.background.tertiary, text: colors.foreground.primary },
   };
 
-  const badgeColors = variantColors[variant];
+  const badgeColors = variantColors[variant] ?? { bg: colors?.background?.tertiary ?? '#F3F3F3', text: colors?.foreground?.primary ?? '#000' };
 
   return (
     <View

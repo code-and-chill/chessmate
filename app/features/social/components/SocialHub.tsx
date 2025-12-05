@@ -1,14 +1,5 @@
-/**
- * Social Hub Component
- * features/social/components/SocialHub.tsx
- * 
- * Minimalist Pro Design - Glassmorphic social hub
- */
-
-import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View, ActivityIndicator } from 'react-native';
-import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
-import { Card } from '@/ui/primitives/Card';
-import { VStack, HStack, Icon } from '@/ui';
+import { SafeAreaView, ScrollView, StyleSheet, Text, View, ActivityIndicator } from 'react-native';
+import {VStack, HStack, Icon, FeatureScreenLayout, Panel, FeatureCard} from '@/ui';
 import { StatCard } from '@/ui/components/StatCard';
 import { useSocialStats } from '../hooks';
 import type { SocialMode } from '../types';
@@ -27,233 +18,73 @@ export function SocialHub({ onNavigate, userId }: SocialHubProps) {
 
   if (loading || !stats) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background.primary }]}>
-        <View style={styles.loader}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: colors.background.primary }}>
+        <VStack justifyContent="center" alignItems="center" style={{ flex: 1 }} gap={4}>
           <ActivityIndicator size="large" color={colors.accent.primary} />
-          <Text style={[styles.loaderText, { color: colors.foreground.secondary }]}>{t('common.loading')}</Text>
-        </View>
+          <Text variant="body" color={colors.foreground.secondary} style={{ marginTop: 20 }}>
+            {t('common.loading')}
+          </Text>
+        </VStack>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background.primary }]}>
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <VStack style={styles.content} gap={6}>
-          {/* Header */}
-          <Animated.View entering={FadeInUp.delay(100).duration(400)}>
-            <VStack gap={1} style={styles.header}>
-              <Text style={[styles.title, { color: colors.accent.primary }]}>{t('social.social')}</Text>
-              <Text style={[styles.subtitle, { color: colors.foreground.secondary }]}>{t('social.connect_with_community')}</Text>
-            </VStack>
-          </Animated.View>
-
-          {/* Stats Panel */}
-          <Animated.View entering={FadeInDown.delay(200).duration(400)}>
-            <Card variant="gradient" size="md" style={{ padding: 20 }}>
-              <VStack gap={4}>
-                <Text style={[styles.sectionTitle, { color: colors.foreground.primary }]}>
-                  Your Network
-                </Text>
-                <HStack gap={3}>
-                  <StatCard 
-                    value={stats.onlineFriends.toString()} 
-                    label={t('social.online_friends')} 
-                  />
-                  <StatCard 
-                    value={stats.clubs.toString()} 
-                    label={t('social.clubs')} 
-                  />
-                </HStack>
-                <HStack gap={3}>
-                  <StatCard
-                    icon="chat"
-                    value={stats.unreadMessages.toString()} 
-                    label={t('social.unread')} 
-                  />
-                  <StatCard 
-                    value={stats.globalRank?.toString() || 'N/A'} 
-                    label="Global Rank" 
-                  />
-                </HStack>
-              </VStack>
-            </Card>
-          </Animated.View>
-
-          {/* Feature Cards */}
-          <VStack gap={4}>
-            <Animated.View entering={FadeInDown.delay(300).duration(400)}>
-              <Card variant="default" size="md" style={styles.card}>
-                <TouchableOpacity style={styles.cardInner} onPress={() => onNavigate('friends')}>
-                  <View style={[styles.iconBadge, { backgroundColor: colors.accent.primary + '15' }]}>
-                    <Icon name="friends" size={32} color={colors.accent.primary} />
-                  </View>
-                  <VStack gap={1} style={{ flex: 1 }}>
-                    <Text style={[styles.cardTitle, { color: colors.foreground.primary }]}>
-                      {t('social.friends')}
-                    </Text>
-                    <Text style={[styles.cardDescription, { color: colors.foreground.secondary }]}>
-                      {t('social.friends_description')}
-                    </Text>
-                    <Text style={[styles.cardProgress, { color: colors.accent.primary }]}>
-                      {ti('social.friend_count', { count: stats.totalFriends })} • {ti('social.online_count', { count: stats.onlineFriends })}
-                    </Text>
-                  </VStack>
-                  <Text style={[styles.arrow, { color: colors.accent.primary }]}>→</Text>
-                </TouchableOpacity>
-              </Card>
-            </Animated.View>
-
-            <Animated.View entering={FadeInDown.delay(400).duration(400)}>
-              <Card variant="default" size="md" style={styles.card}>
-                <TouchableOpacity style={styles.cardInner} onPress={() => onNavigate('clubs')}>
-                  <View style={[styles.iconBadge, { backgroundColor: colors.accent.primary + '15' }]}>
-                    <Icon name="clubs" size={32} color={colors.accent.primary} />
-                  </View>
-                  <VStack gap={1} style={{ flex: 1 }}>
-                    <Text style={[styles.cardTitle, { color: colors.foreground.primary }]}>
-                      {t('social.clubs')}
-                    </Text>
-                    <Text style={[styles.cardDescription, { color: colors.foreground.secondary }]}>
-                      {t('social.clubs_description')}
-                    </Text>
-                    <Text style={[styles.cardProgress, { color: colors.accent.primary }]}>
-                      {ti('social.member_of_clubs', { count: stats.clubs })}
-                    </Text>
-                  </VStack>
-                  <Text style={[styles.arrow, { color: colors.accent.primary }]}>→</Text>
-                </TouchableOpacity>
-              </Card>
-            </Animated.View>
-
-            <Animated.View entering={FadeInDown.delay(500).duration(400)}>
-              <Card variant="default" size="md" style={styles.card}>
-                <TouchableOpacity style={styles.cardInner} onPress={() => onNavigate('messages')}>
-                  <View style={[styles.iconBadge, { backgroundColor: colors.accent.primary + '15' }]}>
-                    <Icon name="message" size={32} color={colors.accent.primary} />
-                  </View>
-                  <VStack gap={1} style={{ flex: 1 }}>
-                    <Text style={[styles.cardTitle, { color: colors.foreground.primary }]}>
-                      {t('social.messages')}
-                    </Text>
-                    <Text style={[styles.cardDescription, { color: colors.foreground.secondary }]}>
-                      {t('social.messages_description')}
-                    </Text>
-                    <Text style={[styles.cardProgress, { color: colors.accent.primary }]}>
-                      {ti('social.unread_messages', { count: stats.unreadMessages })}
-                    </Text>
-                  </VStack>
-                  <Text style={[styles.arrow, { color: colors.accent.primary }]}>→</Text>
-                </TouchableOpacity>
-              </Card>
-            </Animated.View>
-
-            <Animated.View entering={FadeInDown.delay(600).duration(400)}>
-              <Card variant="default" size="md" style={styles.card}>
-                <TouchableOpacity style={styles.cardInner} onPress={() => onNavigate('leaderboard')}>
-                  <View style={[styles.iconBadge, { backgroundColor: colors.accent.primary + '15' }]}>
-                    <Icon name="leaderboard" size={32} color={colors.accent.primary} />
-                  </View>
-                    <VStack gap={1} style={{ flex: 1 }}>
-                      <Text style={[styles.cardTitle, { color: colors.foreground.primary }]}>
-                        {t('social.leaderboards')}
-                      </Text>
-                      <Text style={[styles.cardDescription, { color: colors.foreground.secondary }]}>
-                        {t('social.leaderboards_description')}
-                      </Text>
-                      <Text style={[styles.cardProgress, { color: colors.accent.primary }]}>
-                        {ti('social.ranked_globally', { rank: stats.globalRank || 'N/A' })}
-                      </Text>
-                    </VStack>
-                    <Text style={[styles.arrow, { color: colors.accent.primary }]}>→</Text>
-                  </TouchableOpacity>
-                </Card>
-              </Animated.View>
+    <FeatureScreenLayout
+      title={t('social.social')}
+      subtitle={t('social.connect_with_community')}
+      statsRow={(
+        <Panel variant="glass" padding={6}>
+          <VStack gap={5}>
+            <Text variant="title" color={colors.foreground.primary}>
+              {t('social.your_network', 'Your Network')}
+            </Text>
+            <HStack gap={4}>
+              <StatCard value={stats.onlineFriends.toString()} label={t('social.online_friends')} />
+              <StatCard value={stats.clubs.toString()} label={t('social.clubs')} />
+            </HStack>
+            <HStack gap={4}>
+              <StatCard icon="chat" value={stats.unreadMessages.toString()} label={t('social.unread')} />
+              <StatCard value={stats.globalRank?.toString() || 'N/A'} label={t('social.global_rank', 'Global Rank')} />
+            </HStack>
           </VStack>
-        </VStack>
-      </ScrollView>
-    </SafeAreaView>
+        </Panel>
+      )}
+      contentPadding={6}
+      maxWidth={600}
+    >
+      <FeatureCard
+        icon="friends"
+        title={t('social.friends')}
+        description={t('social.friends_description')}
+        progress={ti('social.friend_count', { count: stats.totalFriends }) + ' • ' + ti('social.online_count', { count: stats.onlineFriends })}
+        onPress={() => onNavigate('friends')}
+        delay={300}
+      />
+      <FeatureCard
+        icon="clubs"
+        title={t('social.clubs')}
+        description={t('social.clubs_description')}
+        progress={ti('social.member_of_clubs', { count: stats.clubs })}
+        onPress={() => onNavigate('clubs')}
+        delay={400}
+      />
+      <FeatureCard
+        icon="message"
+        title={t('social.messages')}
+        description={t('social.messages_description')}
+        progress={ti('social.unread_messages', { count: stats.unreadMessages })}
+        onPress={() => onNavigate('messages')}
+        delay={500}
+      />
+      <FeatureCard
+        icon="leaderboard"
+        title={t('social.leaderboards')}
+        description={t('social.leaderboards_description')}
+        progress={ti('social.ranked_globally', { rank: stats.globalRank || 'N/A' })}
+        onPress={() => onNavigate('leaderboard')}
+        delay={600}
+      />
+    </FeatureScreenLayout>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingHorizontal: 20,
-    paddingBottom: 40,
-  },
-  content: {
-    paddingTop: 24,
-    maxWidth: 600,
-    alignSelf: 'center',
-    width: '100%',
-  },
-  header: {
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  title: {
-    fontSize: 36,
-    fontWeight: '800',
-    textAlign: 'center',
-    letterSpacing: -0.5,
-  },
-  subtitle: {
-    fontSize: 17,
-    textAlign: 'center',
-    fontWeight: '500',
-    lineHeight: 24,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    letterSpacing: -0.3,
-  },
-  card: {
-    marginBottom: 12,
-  },
-  cardInner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
-    padding: 16,
-  },
-  iconBadge: {
-    width: 56,
-    height: 56,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  cardTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    letterSpacing: -0.4,
-  },
-  cardDescription: {
-    fontSize: 15,
-    fontWeight: '500',
-    lineHeight: 20,
-  },
-  cardProgress: {
-    fontSize: 13,
-    fontWeight: '600',
-    marginTop: 4,
-  },
-  arrow: {
-    fontSize: 20,
-    fontWeight: '600',
-  },
-  loader: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loaderText: {
-    fontSize: 17,
-    marginTop: 20,
-    fontWeight: '500',
-  },
-});

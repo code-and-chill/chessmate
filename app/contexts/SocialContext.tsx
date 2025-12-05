@@ -1,7 +1,3 @@
-/**
- * Social Context Provider - manages friends, messaging, clubs, and social features.
- */
-
 import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 import { useAuth } from './AuthContext';
 import { useApiClients } from './ApiContext';
@@ -90,7 +86,7 @@ interface SocialContextType {
   acceptFriendRequest: (requestId: string) => Promise<void>;
   declineFriendRequest: (requestId: string) => Promise<void>;
   removeFriend: (friendId: string) => Promise<void>;
-  searchUsers: (query: string) => Promise<Array<{ id: string; username: string; rating: number }>>;
+  searchUsers: (query: string) => Promise<{ id: string; username: string; rating: number }[]>;
   
   // Messaging
   getConversations: () => Promise<Conversation[]>;

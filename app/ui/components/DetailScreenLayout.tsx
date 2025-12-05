@@ -1,12 +1,12 @@
 /**
  * DetailScreenLayout Component
- * 
+ *
  * A standardized layout for detail/secondary screens with consistent styling.
  * Complements FeatureScreenLayout for the second-level screens in navigation hierarchy.
  * Part of the Design Language System (DLS).
- * 
+ *
  * @see /app/docs/design-language-system.md
- * 
+ *
  * @example
  * ```tsx
  * <DetailScreenLayout
@@ -22,7 +22,7 @@
  */
 
 import type { ReactNode } from 'react';
-import { StyleSheet, View, Text, SafeAreaView, TouchableOpacity, ScrollView, Platform, Dimensions } from 'react-native';
+import { StyleSheet, Text, SafeAreaView, TouchableOpacity, ScrollView, Platform, Dimensions } from 'react-native';
 import Animated, { FadeInUp, FadeInDown } from 'react-native-reanimated';
 import { VStack } from '@/ui/primitives/Stack';
 import { Icon } from '@/ui/icons';

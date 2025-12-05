@@ -1,5 +1,7 @@
 import { useState, useCallback } from 'react';
-import { Dimensions } from 'react-native';
+import { Dimensions, Pressable, Text, StyleSheet, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { 
   GameActions, 
@@ -25,6 +27,7 @@ export interface PlayScreenProps {
 }
 
 export function PlayScreen(_props: PlayScreenProps = {}): React.ReactElement {
+  const router = useRouter();
   const { colors } = useThemeTokens();
   const screenConfig = createPlayScreenConfig();
   
@@ -124,8 +127,18 @@ export function PlayScreen(_props: PlayScreenProps = {}): React.ReactElement {
   );
 
   return (
-    <Box flex={1} style={{ backgroundColor: colors.background.primary, padding: spacingTokens[4] }}>
-      <VStack flex={1} gap={spacingTokens[4]}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background.primary }]}>
+      <View style={styles.container}>
+        {/* Floating Gear Icon - Theme Settings */}
+        <Pressable
+          style={[styles.gearButton, { backgroundColor: colors.accent.primary }]}
+          onPress={() => router.push('/settings/board-theme')}
+        >
+          <Text style={styles.gearIcon}>⚙️</Text>
+        </Pressable>
+
+        <Box flex={1} style={{ padding: spacingTokens[4] }}>
+          <VStack flex={1} gap={spacingTokens[4]}>
         {/* Game Header */}
         <GameHeaderCard
           status={gameState.status === 'in_progress' ? 'live' : 'ended'}
@@ -198,24 +211,54 @@ export function PlayScreen(_props: PlayScreenProps = {}): React.ReactElement {
           </Animated.View>
         </Box>
       </VStack>
+        </Box>
 
-      {/* Modals */}
-      <PawnPromotionModal
-        visible={promotionState.isVisible}
-        color={gameState.sideToMove}
-        onSelect={handlePawnPromotion}
-        onCancel={promotionActions.hidePromotion}
-      />
-
-      {gameState.result && (
-        <GameResultModal
-          visible={showResultModal}
-          result={gameState.result}
-          reason={gameState.endReason}
-          isPlayerWhite={true}
-          onClose={() => setShowResultModal(false)}
+        {/* Modals */}
+        <PawnPromotionModal
+          visible={promotionState.isVisible}
+          color={gameState.sideToMove}
+          onSelect={handlePawnPromotion}
+          onCancel={promotionActions.hidePromotion}
         />
-      )}
-    </Box>
+
+        {gameState.result && (
+          <GameResultModal
+            visible={showResultModal}
+            result={gameState.result}
+            reason={gameState.endReason}
+            isPlayerWhite={true}
+            onClose={() => setShowResultModal(false)}
+          />
+        )}
+      </View>
+    </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+  },
+  container: {
+    flex: 1,
+  },
+  gearButton: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 9999,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 12,
+  },
+  gearIcon: {
+    fontSize: 28,
+  },
+});

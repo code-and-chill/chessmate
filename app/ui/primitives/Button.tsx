@@ -1,11 +1,3 @@
-/**
- * Button Primitive Component
- * app/ui/primitives/Button.tsx
- * 
- * Variants: Primary | Secondary | Ghost | Icon-only
- * States: default | hover | active | focused | disabled | loading
- */
-
 import React from 'react';
 import { Pressable, ActivityIndicator, View } from 'react-native';
 import type { PressableProps, ViewStyle } from 'react-native';
@@ -14,11 +6,7 @@ import Animated, {
   useSharedValue,
   withSpring,
 } from 'react-native-reanimated';
-import { Text } from './Text';
-import { radiusTokens } from '../tokens/radii';
-import { spacingTokens } from '../tokens/spacing';
-import { microInteractions, motionTokens } from '../tokens/motion';
-import { colorTokens, getColor } from '../tokens/colors';
+import { Text, microInteractions, radiusTokens, spacingTokens, colorTokens, getColor } from '@/ui';
 
 type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'outline' | 'destructive';
 type ButtonSize = 'sm' | 'md' | 'lg';
@@ -108,7 +96,7 @@ export const Button: React.FC<ButtonProps> = ({
 }) => {
   const scale = useSharedValue(1);
   const buttonStyles = getButtonStyles(isDark);
-  const variantStyle = buttonStyles[variant];
+  const variantStyle = buttonStyles[variant] ?? buttonStyles.primary;
   const sizeConfig = sizeStyles[size];
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -138,9 +126,9 @@ export const Button: React.FC<ButtonProps> = ({
     width: iconOnly ? sizeConfig.height : undefined,
     paddingHorizontal: iconOnly ? 0 : sizeConfig.paddingH,
     borderRadius: radiusTokens.md,
-    backgroundColor: color || variantStyle.bg,
-    borderWidth: variantStyle.border !== 'none' ? 1 : 0,
-    borderColor: variantStyle.border !== 'none' ? variantStyle.border : undefined,
+    backgroundColor: color ?? variantStyle?.bg ?? getColor(colorTokens.blue[600], isDark),
+    borderWidth: variantStyle?.border !== 'none' ? 1 : 0,
+    borderColor: variantStyle?.border !== 'none' ? variantStyle?.border : undefined,
     opacity: disabled ? microInteractions.opacityDisabled : 1,
     justifyContent: 'center',
     alignItems: 'center',
@@ -170,7 +158,7 @@ export const Button: React.FC<ButtonProps> = ({
       {isLoading ? (
         <ActivityIndicator
           size="small"
-          color={variantStyle.text}
+          color={variantStyle?.text ?? '#FFFFFF'}
           accessibilityLabel="Loading"
         />
       ) : (
@@ -186,7 +174,7 @@ export const Button: React.FC<ButtonProps> = ({
               <Text
                 size={sizeConfig.fontSize}
                 weight="semibold"
-                color={color ? '#FFFFFF' : variantStyle.text}
+                color={color ? '#FFFFFF' : variantStyle?.text ?? '#FFFFFF'}
               >
                 {children}
               </Text>

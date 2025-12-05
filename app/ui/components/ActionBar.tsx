@@ -9,12 +9,12 @@ import { colorTokens, getColor } from '../tokens/colors';
 import { useColors, useIsDark } from '../hooks/useThemeTokens';
 
 type ActionBarProps = {
-  actions: Array<{
+  actions: {
     label: string;
     onPress: () => void;
     variant?: 'solid' | 'outline' | 'subtle' | 'ghost';
     icon?: React.ReactNode;
-  }>;
+  }[];
 };
 
 export const ActionBar: React.FC<ActionBarProps> = ({ actions }) => {

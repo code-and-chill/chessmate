@@ -1,7 +1,3 @@
-/**
- * Learning Context Provider - manages lessons, courses, and learning progress.
- */
-
 import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 import { useAuth } from './AuthContext';
 import { useApiClients } from './ApiContext';

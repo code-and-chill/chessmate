@@ -1,7 +1,3 @@
-/**
- * Auth Context Provider - manages authentication state and tokens.
- */
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useApiClients } from './ApiContext';

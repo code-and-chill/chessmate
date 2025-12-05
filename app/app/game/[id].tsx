@@ -123,7 +123,7 @@ export default function GameScreen() {
     } catch (err) {
       console.error('Failed to refresh game:', err);
     }
-  }, [id, showResultModal]);
+  }, [id, playApi, showResultModal]);
 
   const handleMove = useCallback((from: string, to: string) => {
     const currentState = gameStateRef.current;
@@ -144,8 +144,7 @@ export default function GameScreen() {
     }
 
     // For local/offline games
-    const isLocalGame = currentState.mode === 'local' || 
-                        currentState.isLocal === true || 
+    const isLocalGame = currentState.mode === 'local' || currentState.isLocal ||
                         id?.startsWith('local-');
     
     if (isLocalGame) {
@@ -226,7 +225,7 @@ export default function GameScreen() {
     } catch (err) {
       console.error('❌ Failed to make promotion move:', err);
     }
-  }, [promotionState, id, gameState]);
+  }, [promotionState.move, gameState, id, playApi]);
 
   const handleResign = useCallback(async () => {
     setShowResignModal(false);
@@ -237,7 +236,7 @@ export default function GameScreen() {
     } catch (err) {
       console.error('❌ Failed to resign:', err);
     }
-  }, [id]);
+  }, [id, playApi]);
 
   const handleOfferDraw = useCallback(async () => {
     setShowDrawModal(false);
@@ -361,6 +360,14 @@ export default function GameScreen() {
   return (
     <>
     <SafeAreaView style={{ flex: 1 }}>
+      {/* Floating Gear Icon - Theme Settings */}
+      <Pressable
+        style={[styles.gearButton, { backgroundColor: colors.accent.primary }]}
+        onPress={() => router.push('/settings/board-theme')}
+      >
+        <Text style={styles.gearIcon}>⚙️</Text>
+      </Pressable>
+
       <Surface gradient="subtle" style={{ flex: 1 }}>
         <Box flex={1} style={{ paddingHorizontal: spacingTokens[2], paddingTop: spacingTokens[4] }}>
           <VStack flex={1} gap={spacingTokens[4]}>
@@ -599,5 +606,24 @@ const styles = StyleSheet.create({
   errorText: {
     fontSize: 16,
     fontWeight: '600',
+  },
+  gearButton: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 9999,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 12,
+  },
+  gearIcon: {
+    fontSize: 28,
   },
 });

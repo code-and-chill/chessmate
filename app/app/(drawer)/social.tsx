@@ -1,5 +1,6 @@
-import { Redirect } from 'expo-router';
+import React from 'react';
+import { SocialEntry } from '@/features/social';
 
-export default function SocialRedirect() {
-  return <Redirect href="/social/friends" />;
+export default function SocialTab() {
+  return <SocialEntry />;
 }

@@ -1,10 +1,3 @@
-/**
- * Board Theme Selector Component
- * app/ui/components/BoardThemeSelector.tsx
- * 
- * Settings component for selecting chess board visual theme
- */
-
 import React from 'react';
 import { ScrollView, Pressable } from 'react-native';
 import { Box } from '../primitives/Box';

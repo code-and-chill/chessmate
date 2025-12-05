@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react';
 import { View, StyleSheet, Platform, TouchableOpacity } from 'react-native';
-import { usePathname } from 'expo-router';
 import { useState } from 'react';
 import { IconSymbol } from '@/ui/primitives/icon-symbol';
 import { Sidebar, type SidebarItem } from './Sidebar';
@@ -12,35 +11,30 @@ const sidebarItems: SidebarItem[] = [
     title: 'Play',
     icon: 'gamecontroller.fill',
     route: '/',
-    headerTitle: 'Live Chess',
   },
   {
     id: 'puzzle',
     title: 'Puzzle',
     icon: 'brain.head.profile',
     route: '/puzzle',
-    headerTitle: 'Puzzles',
   },
   {
     id: 'learn',
     title: 'Learn',
     icon: 'book.fill',
     route: '/learn',
-    headerTitle: 'Lessons & Tactics',
   },
   {
     id: 'social',
     title: 'Social',
     icon: 'person.2.fill',
     route: '/social/friends',
-    headerTitle: 'Friends & Clubs',
   },
   {
     id: 'settings',
     title: 'Settings',
     icon: 'gearshape.fill',
     route: '/settings',
-    headerTitle: 'Settings',
   },
 ];
 
@@ -50,11 +44,7 @@ interface GlobalLayoutProps {
 
 export function GlobalLayout({ children }: GlobalLayoutProps) {
   const { colors, mode } = useThemeTokens();
-  const pathname = usePathname();
   const [sidebarVisible, setSidebarVisible] = useState(Platform.OS === 'web');
-
-  // Login/register are now modals, so we always show the sidebar for the main app
-  // (The modal screens will overlay on top)
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background.primary }]}>

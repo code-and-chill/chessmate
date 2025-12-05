@@ -21,7 +21,7 @@ import { Card } from '../../primitives/Card';
 import { VStack, HStack } from '../../primitives/Stack';
 import { useColors } from '../../hooks/useThemeTokens';
 
-type GraphType = 'accuracy' | 'evaluation';
+export type GraphType = 'accuracy' | 'evaluation';
 
 export type GameReviewPanelProps = {
   /**

@@ -1,13 +1,5 @@
-/**
- * StatusBadge Component
- * app/ui/components/StatusBadge.tsx
- * 
- * Game status indicator with semantic variants
- */
-
 import React from 'react';
 import { Badge } from '@/ui/primitives/Badge';
-import { useThemeTokens } from '@/ui/hooks/useThemeTokens';
 
 export type GameStatus = 'live' | 'ended' | 'paused' | 'waiting';
 
