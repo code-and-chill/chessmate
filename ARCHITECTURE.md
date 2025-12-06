@@ -1,7 +1,8 @@
 ---
 title: Chessmate System Architecture
+service: global
 status: draft
-last_reviewed: 2025-11-15
+last_reviewed: 2025-12-06
 type: architecture
 ---
 
@@ -106,6 +107,7 @@ High-level overview of the Chessmate platform architecture.
 - **live-game-api**: Active game state and moves
 - **matchmaking-api**: Player pairing and matching
 - **rating-api**: Player rating computation and storage (Glicko-2)
+- **game-history-api**: Durable game history ingestion, storage, and retrieval
 - **bot-orchestrator-api**: Engine-backed bot orchestration (BotSpec, engine, knowledge)
 - **engine-cluster-api**: Chess engine evaluation service (Stockfish)
 - **chess-knowledge-api**: Opening books and endgame tablebases
@@ -170,4 +172,4 @@ For detailed information, see:
 - [Integration Flows](./docs/architecture/integration-flows.md)
 - [Domain Map](./docs/architecture/domain-map.md)
 
-*Last updated: 2025-11-15*
+*Last updated: 2025-12-06*

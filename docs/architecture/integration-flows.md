@@ -1,7 +1,8 @@
 ---
 title: Integration Flows
+service: global
 status: draft
-last_reviewed: 2025-11-15
+last_reviewed: 2025-12-06
 type: architecture
 ---
 
@@ -112,6 +113,35 @@ Cross-service communication patterns and data flows.
 
 ---
 
+## Game Event Ingestion & History
+
+```
+┌─────────────────────┐        ┌───────────────────────┐        ┌────────────────────┐
+│ live-game-api       │  1.   │ Kafka topic:          │  2.   │ game-history-api     │
+│ (publish events)    ├──────►│ game-events           ├──────►│ ingestion workers    │
+└────────┬────────────┘       └──────────┬────────────┘       └──────────┬─────────┘
+         │                                │                            3. │
+         │                                │             ┌─────────────────▼────────────┐
+         │                                │             │ Postgres (games, player_games)│
+         │                                │             └─────────────────┬────────────┘
+         │                                │                            4. │
+         │                                │             ┌─────────────────▼────────────┐
+         │                                │             │ S3 Archive (raw + compact)   │
+         │                                │             └──────────────────────────────┘
+```
+
+**Participants**:
+- live-game-api publishes GameCreated/MoveMade/GameEnded/GameAborted/GameResigned/GameTimeout events to Kafka partitioned by `gameId`.
+- game-history-api ingestion workers consume ordered events, update Postgres, and trigger archival.
+- Postgres hosts `games` and `player_games` hot partitions; S3 stores raw and compacted archives for analytics and replay.
+
+**Data Exchanged**:
+- Kafka events: envelopes with `eventId`, `eventType`, `gameId`, `occurredAt`, and type-specific payloads.
+- Postgres writes: canonical game summaries, move lists, and player index rows with filterable metadata.
+- S3 objects: compressed JSON/Parquet partitioned by region/date/hour for long-term retention.
+
+---
+
 ## [Additional Flow - Fill as Needed]
 
 **Fill:** Document other significant integration flows.
@@ -158,4 +188,4 @@ Used for:
 
 ---
 
-*Last updated: 2025-11-15*
+*Last updated: 2025-12-06*

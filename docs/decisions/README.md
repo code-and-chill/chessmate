@@ -1,7 +1,8 @@
 ---
 title: Architectural Decision Records Index
+service: global
 status: draft
-last_reviewed: 2025-11-15
+last_reviewed: 2025-12-06
 type: decision
 ---
 
@@ -39,7 +40,8 @@ Each ADR follows this format:
 
 | ADR | Title | Status | Date |
 |-----|-------|--------|------|
-| [None yet] | [Template example] | Proposed | 2025-11-15 |
+| [ADR-0001](./ADR-0001-documentation-standardization.md) | Documentation Standardization | Active | 2025-11-15 |
+| [ADR-0002](./ADR-0002-create-game-history-api.md) | Create Game History API | Accepted | 2025-12-06 |
 
 ## Superseded Decisions
 
@@ -58,12 +60,11 @@ Each ADR follows this format:
 
 ## Decision Categories
 
-- **Architecture**: Service boundaries, patterns, frameworks
-- **Technology**: Language choices, databases, libraries
-- **Operations**: Deployment, monitoring, scaling strategies
-- **Security**: Authentication, authorization, data protection
-- **Data**: Storage, caching, consistency models
+- **Architecture**: Major system or infrastructure decisions
+- **Domain**: Changes to domain boundaries or ownership
+- **Operations**: Deployment, observability, or reliability decisions
+- **Security**: Authentication, authorization, encryption, and privacy
 
 ---
 
-*Last updated: 2025-11-15*
+*Last updated: 2025-12-06*

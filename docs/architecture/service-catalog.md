@@ -1,7 +1,8 @@
 ---
 title: Service Catalog
+service: global
 status: draft
-last_reviewed: 2025-11-15
+last_reviewed: 2025-12-06
 type: architecture
 ---
 
@@ -20,6 +21,7 @@ Complete index of all services in the platform with descriptions and quick refer
 | bot-orchestrator-api | API | Python | Draft | [Owner] |
 | engine-cluster-api | Service | Python | Draft | [Owner] |
 | chess-knowledge-api | Service | Python | Draft | [Owner] |
+| game-history-api | API | Go | Draft | [Owner] |
 | chess-app | Client | TypeScript | Operational | [Owner] |
 
 ---
@@ -68,7 +70,6 @@ Complete index of all services in the platform with descriptions and quick refer
 - Chess move validation and execution
 - Game end conditions and result determination
 - Real-time player synchronization
-- Game history and replays
 
 **Key Endpoints**:
 - `POST /v1/games` - Start new game
@@ -87,6 +88,42 @@ Complete index of all services in the platform with descriptions and quick refer
 - Repository: `/workspaces/chessmate/live-game-api/`
 - Docs: `./docs/README.md`
 - Dev Guide: `./docs/GETTING_STARTED.md`
+
+---
+
+## game-history-api
+
+**Type**: API Service
+**Language**: Go
+**Domain**: Game History & Analytics
+
+**Responsibilities**:
+- Ingest ordered game events (GameCreated, MoveMade, GameEnded/Aborted/Resigned/Timeout) from Kafka topic `game-events`.
+- Build and persist canonical game summaries and compact move lists in partitioned Postgres tables.
+- Maintain player-indexed views for reverse-chronological history with filters and pagination.
+- Archive raw event streams and compacted records to S3 for long-term retention and offline analytics.
+- Serve REST endpoints for game lookup, player history, bulk exports, health, and admin rebuilds.
+
+**Key Endpoints**:
+- `GET /game-history/v1/games/{gameId}` - Retrieve canonical game summary and moves
+- `GET /game-history/v1/players/{playerId}/games` - Paginated player history with filters
+- `GET /game-history/v1/export/games` - Internal export for analytics/puzzles
+- `POST /game-history/v1/admin/games/{gameId}/rebuild` - Rebuild records from Kafka/S3
+- `GET /game-history/v1/health` - Service health and dependency checks
+
+**Upstream Dependencies**:
+- live-game-api (event publisher via Kafka)
+- account-api (player identity and visibility rules)
+
+**Downstream Dependencies**:
+- rating-api (rating updates)
+- puzzle-api (puzzle mining)
+- future fair-play-api (anti-cheat analysis)
+
+**Quick Start**:
+- Repository: `/workspaces/chessmate/game-history-api/`
+- Docs: `./game-history-api/docs/`
+- Dev Guide: `./game-history-api/docs/how-to/local-dev.md`
 
 ---
 
@@ -302,4 +339,4 @@ Complete index of all services in the platform with descriptions and quick refer
 
 ---
 
-*Last updated: 2025-11-15*
+*Last updated: 2025-12-06*

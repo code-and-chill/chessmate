@@ -1,0 +1,39 @@
+name: game-history-api
+kind: api
+language: go
+runtime: go1.22
+
+description: Authoritative game history service ingesting Kafka events, serving history APIs, and archiving to S3.
+
+commands:
+  dev: "go run ./cmd/server"
+  test: "go test ./..."
+  build: "go build ./..."
+  lint: "go vet ./..."
+  migrate: "go run ./cmd/migrate"
+  logs: "docker logs game-history-api --tail ${lines}"
+  bruno: "bruno open bruno/collections"
+  bruno-test: "bruno run bruno/collections --env local"
+
+dependencies:
+  dev:
+    - live-game-api
+    - account-api
+  test:
+    - live-game-api
+    - account-api
+  build: []
+  deploy:
+    - live-game-api
+
+infra:
+  requires:
+    - database
+    - queue
+  optional:
+    - object-store
+
+tags:
+  - gaming
+  - history
+  - analytics

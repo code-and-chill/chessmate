@@ -1,7 +1,8 @@
 ---
 title: Chessmate System Guide
+service: global
 status: draft
-last_reviewed: 2025-11-15
+last_reviewed: 2025-12-06
 type: index
 ---
 
@@ -92,6 +93,13 @@ Real-time active game state and moves.
 - **Database**: PostgreSQL
 - **Status**: Operational
 - **Quick Links**: [README](./live-game-api/README.md) | [Docs](./live-game-api/docs/) | [API Spec](./live-game-api/docs/overview.md)
+
+#### [game-history-api](./game-history-api/)
+Authoritative history ingestion and retrieval service fed by Kafka game events.
+- **Language**: Go (REST)
+- **Database**: PostgreSQL + S3 archival
+- **Status**: Draft
+- **Quick Links**: [README](./game-history-api/README.md) | [Docs](./game-history-api/docs/) | [API Spec](./game-history-api/docs/api.md)
 
 #### [matchmaking-api](./matchmaking-api/)
 Player matching and queue management.
@@ -342,5 +350,5 @@ chessmate/
 
 ---
 
-*Last updated: 2025-11-15*  
+*Last updated: 2025-12-06*
 *For updates to this guide, see: [Documentation Standards](./docs/standards/documentation.md)*
