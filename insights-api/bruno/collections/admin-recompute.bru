@@ -1,0 +1,14 @@
+meta {
+  name: Admin Recompute
+  type: http
+}
+
+request {
+  method: POST
+  url: {{baseUrl}}/insights/v1/admin/players/player-123/recompute
+}
+
+assert {
+  response.status: 200
+  response.body.playerId: "player-123"
+}

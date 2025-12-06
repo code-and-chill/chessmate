@@ -1,0 +1,18 @@
+meta {
+  name: Rating Trend
+  type: http
+}
+
+request {
+  method: GET
+  url: {{baseUrl}}/insights/v1/players/player-123/rating-trend
+  params {
+    timeControlBucket: BLITZ
+    maxPoints: 2
+  }
+}
+
+assert {
+  response.status: 200
+  response.body.points[0].rating: 1720
+}

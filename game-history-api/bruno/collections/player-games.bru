@@ -1,0 +1,25 @@
+meta {
+  name: List Player Games
+  type: http
+  seq: 3
+}
+
+request {
+  method: GET
+  url: ${baseUrl}/api/v1/players/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa/games?limit=5
+}
+
+headers {
+  Content-Type: application/json
+  Authorization: Bearer ${authToken}
+}
+
+tests {
+  test("status is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("includes seeded game", function() {
+    expect(res.body[0].gameId).to.equal("11111111-1111-1111-1111-111111111111");
+  });
+}

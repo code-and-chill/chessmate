@@ -1,0 +1,19 @@
+meta {
+  name: Performance Breakdown
+  type: http
+}
+
+request {
+  method: GET
+  url: {{baseUrl}}/insights/v1/players/player-123/performance
+  params {
+    timeControlBucket: BLITZ
+    window: 30D
+  }
+}
+
+assert {
+  response.status: 200
+  response.body.timeControlBucket: "BLITZ"
+  response.body.streaks.currentStreak.type: "WIN"
+}

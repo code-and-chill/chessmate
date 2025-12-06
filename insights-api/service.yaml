@@ -1,0 +1,33 @@
+name: insights-api
+kind: api
+language: python
+runtime: python3.11
+
+description: Precomputed chess insights service for player overviews, trends, and streaks.
+
+commands:
+  dev: "uvicorn app.main:app --reload --host 0.0.0.0 --port 8020"
+  test: "pytest tests -v"
+  build: "echo 'No build step required for FastAPI'"
+  lint: "echo 'No linters configured'"
+  logs: "docker logs insights-api --tail ${lines}"
+  bruno: "bruno open bruno/collections"
+  bruno-test: "bruno run bruno/collections --env local"
+
+dependencies:
+  dev: []
+  test: []
+  build: []
+  deploy: []
+
+infra:
+  requires:
+    - database
+    - message-bus
+  optional:
+    - cache
+
+tags:
+  - insights
+  - analytics
+  - games

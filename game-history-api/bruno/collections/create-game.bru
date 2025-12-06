@@ -1,0 +1,37 @@
+meta {
+  name: Create Game
+  type: http
+  seq: 2
+}
+
+request {
+  method: POST
+  url: ${baseUrl}/api/v1/games
+  body: '{
+    "gameId": "11111111-1111-1111-1111-111111111111",
+    "whitePlayerId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+    "blackPlayerId": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+    "result": "WHITE_WIN",
+    "timeControl": "3+0",
+    "timeControlBucket": "BLITZ",
+    "mode": "RATED",
+    "endedAt": "2025-12-06T10:15:00Z",
+    "moves": 42
+  }'
+}
+
+headers {
+  Content-Type: application/json
+  Authorization: Bearer ${authToken}
+}
+
+tests {
+  test("status is 201", function() {
+    expect(res.status).to.equal(201);
+  });
+
+  test("returns expected ids", function() {
+    expect(res.body.gameId).to.equal("11111111-1111-1111-1111-111111111111");
+    expect(res.body.whitePlayerId).to.equal("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
+  });
+}

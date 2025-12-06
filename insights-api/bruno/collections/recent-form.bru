@@ -1,0 +1,17 @@
+meta {
+  name: Recent Form
+  type: http
+}
+
+request {
+  method: GET
+  url: {{baseUrl}}/insights/v1/players/player-123/recent-form
+  params {
+    limit: 2
+  }
+}
+
+assert {
+  response.status: 200
+  response.body.results[0].gameId: "g1"
+}

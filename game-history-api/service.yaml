@@ -1,0 +1,33 @@
+name: game-history-api
+kind: api
+language: python
+runtime: python3.11
+
+description: Canonical store and retrieval API for chess game summaries and outcomes.
+
+commands:
+  dev: "uvicorn app.main:app --reload --host 0.0.0.0 --port 8014"
+  test: "pytest tests -v"
+  build: "echo 'No build step required for FastAPI'"
+  lint: "echo 'No linters configured'"
+  logs: "docker logs game-history-api --tail ${lines}"
+  bruno: "bruno open bruno/collections"
+  bruno-test: "bruno run bruno/collections --env local"
+
+dependencies:
+  dev: []
+  test: []
+  build: []
+  deploy: []
+
+infra:
+  requires:
+    - database
+  optional:
+    - cache
+    - message-bus
+
+tags:
+  - games
+  - history
+  - insights

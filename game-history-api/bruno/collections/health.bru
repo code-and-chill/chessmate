@@ -1,0 +1,24 @@
+meta {
+  name: Health Check
+  type: http
+  seq: 1
+}
+
+request {
+  method: GET
+  url: ${baseUrl}/health
+}
+
+headers {
+  Content-Type: application/json
+}
+
+tests {
+  test("status is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("service is game-history-api", function() {
+    expect(res.body.service).to.equal("game-history-api");
+  });
+}

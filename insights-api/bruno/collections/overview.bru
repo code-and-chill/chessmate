@@ -1,0 +1,15 @@
+meta {
+  name: Player Overview
+  type: http
+}
+
+request {
+  method: GET
+  url: {{baseUrl}}/insights/v1/players/player-123/overview
+}
+
+assert {
+  response.status: 200
+  response.body.playerId: "player-123"
+  response.body.summary.totalGames: 900
+}
