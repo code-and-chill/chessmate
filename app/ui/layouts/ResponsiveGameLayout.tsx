@@ -1,6 +1,6 @@
-import type React from 'react';
-import { useWindowDimensions, Platform } from 'react-native';
-import type { ViewStyle } from 'react-native';
+import React, { useState } from 'react';
+import { useWindowDimensions } from 'react-native';
+import type { ViewStyle, LayoutChangeEvent } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { ChessBoard, type ChessBoardProps } from '@/features/board';
 import { MoveList, type Move } from '@/features/game';
@@ -91,17 +91,14 @@ export interface ResponsiveGameLayoutProps {
  * Calculate board size based on layout type and available dimensions
  * 
  * @param layoutType - Current layout type
- * @param width - Available width
- * @param height - Available height
+ * @param contentWidth - Available content width (already accounts for sidebar, padding, etc.)
+ * @param contentHeight - Available content height
  * @returns Board size configuration
  */
-export const SIDEBAR_WIDTH = 240;
-
 export const calculateBoardSize = (
   layoutType: LayoutType,
-  width: number,
-  height: number,
-  hasSidebar: boolean = false
+  contentWidth: number,
+  contentHeight: number
 ): BoardSizeConfig => {
   const HEADER_HEIGHT = 70;
   const VERTICAL_PADDING = spacingTokens[4] * 2;
@@ -111,10 +108,7 @@ export const calculateBoardSize = (
   const GAP_HEIGHT = spacingTokens[1] * 4;
   const BREATHING_ROOM = 24;
   
-  const sidebarOffset = hasSidebar ? SIDEBAR_WIDTH : 0;
-  const contentWidth = width - sidebarOffset;
-  
-  const availableHeight = height - HEADER_HEIGHT - VERTICAL_PADDING - BREATHING_ROOM;
+  const availableHeight = contentHeight - HEADER_HEIGHT - VERTICAL_PADDING - BREATHING_ROOM;
   const availableWidth = contentWidth - HORIZONTAL_PADDING;
   
   let boardSize: number;
@@ -204,18 +198,35 @@ export const ResponsiveGameLayout: React.FC<ResponsiveGameLayoutProps> = ({
   testID,
 }) => {
   const { colors } = useThemeTokens();
-  const { width, height } = useWindowDimensions();
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   const { isMobile, isTablet, isDesktop } = useDeviceType();
   
-  // Determine layout type based on screen width
-  const layoutType = getLayoutType(width);
+  // Track measured content dimensions for accurate sizing
+  const [contentDimensions, setContentDimensions] = useState<{ width: number; height: number } | null>(null);
+  
+  // Handle layout measurement to get actual content area dimensions
+  const handleLayout = (event: LayoutChangeEvent) => {
+    const { width: measuredWidth, height: measuredHeight } = event.nativeEvent.layout;
+    // Only update if dimensions changed significantly (avoid unnecessary re-renders)
+    if (
+      !contentDimensions ||
+      Math.abs(measuredWidth - contentDimensions.width) > 1 ||
+      Math.abs(measuredHeight - contentDimensions.height) > 1
+    ) {
+      setContentDimensions({ width: measuredWidth, height: measuredHeight });
+    }
+  };
+  
+  // Use measured content dimensions, fall back to window dimensions on first render
+  const effectiveWidth = contentDimensions?.width ?? windowWidth;
+  const effectiveHeight = contentDimensions?.height ?? windowHeight;
+  
+  // Determine layout type based on content width (not viewport width)
+  const layoutType = getLayoutType(effectiveWidth);
   const isHorizontalLayout = layoutType !== 'mobile';
   
-  // On web, account for the sidebar width in board size calculation
-  const hasSidebar = Platform.OS === 'web';
-  
-  // Calculate board size based on layout
-  const { boardSize, squareSize } = calculateBoardSize(layoutType, width, height, hasSidebar);
+  // Calculate board size based on measured content dimensions
+  const { boardSize, squareSize } = calculateBoardSize(layoutType, effectiveWidth, effectiveHeight);
   
   // Animation configuration
   const createAnimConfig = (delay: number) => 
@@ -320,7 +331,11 @@ export const ResponsiveGameLayout: React.FC<ResponsiveGameLayoutProps> = ({
   
   return (
     <Surface variant="subtle" style={containerStyle}>
-      <Box flex={1} style={{ paddingHorizontal: spacingTokens[2], paddingTop: spacingTokens[4] }}>
+      <Box 
+        flex={1} 
+        style={{ paddingHorizontal: spacingTokens[2], paddingTop: spacingTokens[4] }}
+        onLayout={handleLayout}
+      >
         <VStack flex={1} gap={spacingTokens[4]}>
           {/* Header Section */}
           {renderHeader && renderHeader()}

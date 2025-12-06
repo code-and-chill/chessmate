@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { View, StyleSheet, ActivityIndicator, Text, useWindowDimensions, SafeAreaView, Modal, Pressable, Platform } from 'react-native';
+import { View, StyleSheet, ActivityIndicator, Text, useWindowDimensions, SafeAreaView, Modal, Pressable } from 'react-native';
+import type { LayoutChangeEvent } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useApiClients } from '@/contexts/ApiContext';
 import { useThemeTokens } from '@/ui';
@@ -56,20 +57,36 @@ export default function GameScreen() {
   const screenConfig = createPlayScreenConfig();
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   
-  // Use standardized responsive layout utilities
-  const layoutType = getLayoutType(windowWidth);
+  // Track measured content dimensions for accurate sizing (handles sidebar, collapsed states, etc.)
+  const [contentDimensions, setContentDimensions] = useState<{ width: number; height: number } | null>(null);
+  
+  // Handle layout measurement to get actual content area dimensions
+  const handleContentLayout = (event: LayoutChangeEvent) => {
+    const { width: measuredWidth, height: measuredHeight } = event.nativeEvent.layout;
+    // Only update if dimensions changed significantly (avoid unnecessary re-renders)
+    if (
+      !contentDimensions ||
+      Math.abs(measuredWidth - contentDimensions.width) > 1 ||
+      Math.abs(measuredHeight - contentDimensions.height) > 1
+    ) {
+      setContentDimensions({ width: measuredWidth, height: measuredHeight });
+    }
+  };
+  
+  // Use measured content dimensions, fall back to window dimensions on first render
+  const effectiveWidth = contentDimensions?.width ?? windowWidth;
+  const effectiveHeight = contentDimensions?.height ?? windowHeight;
+  
+  // Use standardized responsive layout utilities based on actual content width
+  const layoutType = getLayoutType(effectiveWidth);
   const isHorizontalLayout = layoutType !== 'mobile';
   const isDesktopLayout = layoutType === 'desktop';
   
-  // On web, account for the sidebar width in board size calculation
-  const hasSidebar = Platform.OS === 'web';
-  
-  // Calculate board size using standardized utility
+  // Calculate board size using measured content dimensions
   const { boardSize: BOARD_SIZE, squareSize: SQUARE_SIZE } = calculateBoardSize(
     layoutType,
-    windowWidth,
-    windowHeight,
-    hasSidebar
+    effectiveWidth,
+    effectiveHeight
   );
 
   useEffect(() => {
@@ -354,7 +371,11 @@ export default function GameScreen() {
       </Pressable>
 
       <Surface variant="subtle" style={{ flex: 1 }}>
-        <Box flex={1} style={{ paddingHorizontal: spacingTokens[2], paddingTop: spacingTokens[4] }}>
+        <Box 
+          flex={1} 
+          style={{ paddingHorizontal: spacingTokens[2], paddingTop: spacingTokens[4] }}
+          onLayout={handleContentLayout}
+        >
           <VStack flex={1} gap={spacingTokens[4]}>
           {/* Game Header with Actions */}
           <Card variant="elevated" size="sm" padding={spacingTokens[3]}>
