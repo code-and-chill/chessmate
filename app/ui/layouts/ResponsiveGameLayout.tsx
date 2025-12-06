@@ -101,41 +101,40 @@ export const calculateBoardSize = (
   height: number
 ): BoardSizeConfig => {
   const HEADER_HEIGHT = 70;
-  const VERTICAL_PADDING = spacingTokens[2] * 3;
+  const VERTICAL_PADDING = spacingTokens[4] * 2;
   const HORIZONTAL_PADDING = spacingTokens[2] * 2;
-  const PLAYER_CARDS_HEIGHT = 70;
-  const GAP_HEIGHT = spacingTokens[1] * 2;
+  const PLAYER_CARD_HEIGHT = 56;
+  const PLAYER_CARDS_TOTAL = PLAYER_CARD_HEIGHT * 2;
+  const GAP_HEIGHT = spacingTokens[1] * 4;
+  const BREATHING_ROOM = 24;
   
-  const availableHeight = height - HEADER_HEIGHT - VERTICAL_PADDING;
+  const availableHeight = height - HEADER_HEIGHT - VERTICAL_PADDING - BREATHING_ROOM;
   const availableWidth = width - HORIZONTAL_PADDING;
   
   let boardSize: number;
   
   switch (layoutType) {
     case 'desktop': {
-      // Desktop: 60% of available width, constrained by height
       const boardColumnWidth = (availableWidth * 0.6) - spacingTokens[4];
-      const maxBoardHeight = availableHeight - PLAYER_CARDS_HEIGHT - GAP_HEIGHT;
+      const maxBoardHeight = availableHeight - PLAYER_CARDS_TOTAL - GAP_HEIGHT;
       boardSize = Math.min(boardColumnWidth, maxBoardHeight);
       break;
     }
     case 'tablet': {
-      // Tablet: 55% of available width, constrained by height
       const boardColumnWidth = (availableWidth * 0.55) - spacingTokens[4];
-      const maxBoardHeight = availableHeight - PLAYER_CARDS_HEIGHT - GAP_HEIGHT;
+      const maxBoardHeight = availableHeight - PLAYER_CARDS_TOTAL - GAP_HEIGHT;
       boardSize = Math.min(boardColumnWidth, maxBoardHeight, 480);
       break;
     }
     case 'mobile':
     default: {
-      // Mobile: Full width minus padding, max 500px
       boardSize = Math.min(availableWidth, 500);
       break;
     }
   }
   
   return {
-    boardSize: Math.max(boardSize, 280), // Minimum board size
+    boardSize: Math.max(boardSize, 280),
     squareSize: Math.max(boardSize, 280) / 8,
   };
 };
