@@ -25,45 +25,92 @@ Before writing ANY code or documentation, agents **MUST** complete the Pre-Fligh
 
 ## 0.0. Pre-Flight Checklist (MANDATORY)
 
-**Complete this mental checklist before every action:**
+Run this sequence before writing code, generating diffs, or touching any file.
 
-### ✅ Step 1: Understand the Request
-- [ ] What is the user asking for?
-- [ ] Which service/feature/component is affected?
-- [ ] Is this UI work, API work, business logic, or documentation?
-- [ ] What is the scope of the change?
+### Step 0: Clarify Intent
+- Do I understand what the user wants as the final output?
+- Is the scope clear enough to produce code or changes?
+- Is the affected component/service obvious?
+  - If yes → proceed.
+  - If a crucial detail is missing → ask exactly ONE targeted question.
+  - No philosophical questions. No “why” loops.
 
-### ✅ Step 2: Search for Existing Patterns
-- [ ] Does similar functionality already exist?
-- [ ] Are there reusable components, utilities, or services?
-- [ ] What design patterns are used for this type of work?
-- [ ] Can I extend existing code instead of creating new?
+### Step 1: Understand the Request
+- What feature, fix, or change is being asked for?
+- Is this UI, API, business logic, infra, data, or documentation?
+- Which folders/services/domains in the monorepo are affected?
+- What is explicitly in scope, and what is out?
 
-### ✅ Step 3: Identify Relevant Documentation
-- [ ] Which architectural guidelines apply?
-  - For UI: [`app/docs/design-language-system.md`](app/docs/design-language-system.md)
-  - For services: `{service}/docs/overview.md` + `docs/architecture-{language}.md`
-  - For documentation: This file (AGENTS.md) + [`docs/README.md`](docs/README.md)
-- [ ] Should I update existing docs or create new ones?
-- [ ] Where does this change belong in the documentation hierarchy?
+### Step 2: Check Alignment & Alternatives (Internal)
+- Is coding the necessary solution? (vs config, existing flags, documentation, or simple refactor)
+- Is there a smaller or safer vertical slice?
+- Can this be behind a feature flag?
+- This step never triggers questions to the user unless blocking.
 
-### ✅ Step 4: Consider Architecture & Patterns
-- [ ] What architectural principles apply? (DLS, DDD, Clean Architecture, Vertical Slicing)
-- [ ] What language-specific patterns should I follow?
-- [ ] What dependencies or integrations are affected?
-- [ ] How does this fit into the existing system design?
+### Step 3: Map System Impact
+- Which bounded contexts are touched?
+- What upstream/downstream flows are affected?
+- Does this change cross service boundaries?
+- Does this introduce new failure modes, latencies, or data shapes?
+- Mentally sketch: Request → Layers → Side Effects → Outputs
 
-### ✅ Step 5: Plan the Implementation
-- [ ] What files need to be created or modified?
-- [ ] What tests need to be written?
-- [ ] What documentation needs to be updated?
-- [ ] What Bruno API collections need updates? (for API changes)
+### Step 4: Search for Existing Patterns (Prefer Reuse)
+- Does similar functionality already exist in the monorepo?
+- Are there reusable components, clients, utilities, or DLS patterns?
+- Does the *-client, *-engine, or UI DLS already support this?
+- If creating a new pattern, should this become the golden path?
+- Agents must avoid duplicating patterns unless explicitly instructed.
 
-### ✅ Step 6: Verify Compliance
-- [ ] Does this follow established patterns?
-- [ ] Am I updating existing docs instead of creating scattered files?
-- [ ] Am I reusing existing components instead of duplicating?
-- [ ] Have I checked all relevant guidelines?
+### Step 5: Identify Relevant Documentation
+- Which architecture guidelines apply?
+- For UI: docs/design-language-system.md
+- For services: {service}/docs/overview.md + architecture-*.md
+- For agents: AGENTS.md
+- For API: Bruno collections
+- Update existing docs, do not scatter new files unless necessary.
+
+### Step 6: Architecture & NFR Check
+- Evaluate the change against:
+  - DDD boundaries
+  - Clean Architecture/domain purity
+  - Latency budgets / hot paths
+  - Idempotency, retries, caching
+  - Tenancy boundaries & access control
+  - Data consistency & migrations
+  - Infra & cost impact
+- If NFR shifts significantly → generate design note or ADR.
+
+### Step 7: Plan the Implementation
+- Define:
+  - Files to create/update
+  - Functions/modules/classes to modify
+  - Tests: unit, integration, contract, e2e
+  - API updates (Bruno collections)
+  - Migrations, flags, configs
+  - Directory alignment with dx-cli conventions
+- The agent should output a short structured plan before diffing.
+
+### Step 8: Rollout, Migration, and Rollback Strategy
+- Will this ship behind a feature flag?
+- Does it support backward compatibility?
+- Any dual-writes or data migrations?
+- How do we rollback instantly if something breaks?
+- What metrics/logs will signal success or regression?
+- Every change must have a safe unwind path.
+
+### Step 9: Stakeholder Awareness
+- (Internal unless the user asks to notify)
+- Who else might be affected? (other service owners, SRE, analytics, data consumers)
+- Should this be structured as a design review?
+- Will this change surprise anyone in the runtime graph?
+- Agents usually skip notifications unless explicitly instructed.
+
+### Step 10: Verify Compliance
+- Am I following the monorepo’s golden paths?
+- Am I reusing components instead of duplicating them?
+- Are file locations consistent with dx-cli conventions?
+- Are docs updated in the correct place?
+- Does the final output match intent and avoid speculative work?
 
 ---
 
