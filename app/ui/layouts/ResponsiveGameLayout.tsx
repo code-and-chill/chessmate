@@ -1,5 +1,5 @@
 import type React from 'react';
-import { useWindowDimensions } from 'react-native';
+import { useWindowDimensions, Platform } from 'react-native';
 import type { ViewStyle } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { ChessBoard, type ChessBoardProps } from '@/features/board';
@@ -95,10 +95,13 @@ export interface ResponsiveGameLayoutProps {
  * @param height - Available height
  * @returns Board size configuration
  */
+export const SIDEBAR_WIDTH = 240;
+
 export const calculateBoardSize = (
   layoutType: LayoutType,
   width: number,
-  height: number
+  height: number,
+  hasSidebar: boolean = false
 ): BoardSizeConfig => {
   const HEADER_HEIGHT = 70;
   const VERTICAL_PADDING = spacingTokens[4] * 2;
@@ -108,8 +111,11 @@ export const calculateBoardSize = (
   const GAP_HEIGHT = spacingTokens[1] * 4;
   const BREATHING_ROOM = 24;
   
+  const sidebarOffset = hasSidebar ? SIDEBAR_WIDTH : 0;
+  const contentWidth = width - sidebarOffset;
+  
   const availableHeight = height - HEADER_HEIGHT - VERTICAL_PADDING - BREATHING_ROOM;
-  const availableWidth = width - HORIZONTAL_PADDING;
+  const availableWidth = contentWidth - HORIZONTAL_PADDING;
   
   let boardSize: number;
   
@@ -205,8 +211,11 @@ export const ResponsiveGameLayout: React.FC<ResponsiveGameLayoutProps> = ({
   const layoutType = getLayoutType(width);
   const isHorizontalLayout = layoutType !== 'mobile';
   
+  // On web, account for the sidebar width in board size calculation
+  const hasSidebar = Platform.OS === 'web';
+  
   // Calculate board size based on layout
-  const { boardSize, squareSize } = calculateBoardSize(layoutType, width, height);
+  const { boardSize, squareSize } = calculateBoardSize(layoutType, width, height, hasSidebar);
   
   // Animation configuration
   const createAnimConfig = (delay: number) => 

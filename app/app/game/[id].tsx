@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { View, StyleSheet, ActivityIndicator, Text, useWindowDimensions, SafeAreaView, Modal, Pressable } from 'react-native';
+import { View, StyleSheet, ActivityIndicator, Text, useWindowDimensions, SafeAreaView, Modal, Pressable, Platform } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useApiClients } from '@/contexts/ApiContext';
 import { useThemeTokens } from '@/ui';
@@ -61,11 +61,15 @@ export default function GameScreen() {
   const isHorizontalLayout = layoutType !== 'mobile';
   const isDesktopLayout = layoutType === 'desktop';
   
+  // On web, account for the sidebar width in board size calculation
+  const hasSidebar = Platform.OS === 'web';
+  
   // Calculate board size using standardized utility
   const { boardSize: BOARD_SIZE, squareSize: SQUARE_SIZE } = calculateBoardSize(
     layoutType,
     windowWidth,
-    windowHeight
+    windowHeight,
+    hasSidebar
   );
 
   useEffect(() => {

@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Pressable, Text, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { Pressable, Text, StyleSheet, View, useWindowDimensions, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import Animated, { FadeInUp } from 'react-native-reanimated';
@@ -49,11 +49,15 @@ export function PlayScreen(_props: PlayScreenProps = {}): React.ReactElement {
   const isHorizontalLayout = layoutType !== 'mobile';
   const isDesktopLayout = layoutType === 'desktop';
   
+  // On web, account for the sidebar width in board size calculation
+  const hasSidebar = Platform.OS === 'web';
+  
   // Calculate board size using standardized utility
   const { boardSize: BOARD_SIZE, squareSize: SQUARE_SIZE } = calculateBoardSize(
     layoutType,
     windowWidth,
-    windowHeight
+    windowHeight,
+    hasSidebar
   );
 
   /**
