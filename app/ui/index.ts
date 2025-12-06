@@ -214,6 +214,9 @@ export { Skeleton, SkeletonCard, SkeletonList } from './primitives/SkeletonLoade
 export { FeatureScreenLayout } from './components/FeatureScreenLayout';
 export { FeatureCard } from './components/FeatureCard';
 export { StatCard } from './components/StatCard';
+export { ChoiceChip } from './primitives/ChoiceChip';
+export { Tabs } from './components/Tabs';
+export type { TabItem } from './components/Tabs';
 export { GlobalLayout } from './components/GlobalLayout';
 export { SegmentedControl } from './components/SegmentedControl';
 export { RatedToggle } from './components/RatedToggle';

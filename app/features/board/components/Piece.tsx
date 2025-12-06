@@ -109,7 +109,6 @@ const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
     justifyContent: 'center',
-    // Add subtle shadow for depth
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -119,9 +118,6 @@ const styles = StyleSheet.create({
       },
       android: {
         elevation: 3,
-      },
-      web: {
-        filter: 'drop-shadow(0 2px 3px rgba(0, 0, 0, 0.25))',
       },
     }),
   },

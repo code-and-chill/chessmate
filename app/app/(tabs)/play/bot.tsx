@@ -98,7 +98,7 @@ export default function BotPlayScreen() {
                     ]}
                   >
                     <HStack gap={4} style={{ alignItems: 'center' }}>
-                      <View style={[styles.botBadge, { backgroundColor: 'rgba(102, 126, 234, 0.1)' }]}>
+                      <View style={[styles.botBadge, { backgroundColor: colors.translucent.light }]}>
                         <Text style={styles.botIcon}>{bot.label.split(' ')[0]}</Text>
                       </View>
                       <VStack gap={1} style={{ flex: 1 }}>
@@ -137,7 +137,7 @@ export default function BotPlayScreen() {
                         styles.colorButton,
                         {
                           backgroundColor: playerColor === color
-                            ? 'rgba(102, 126, 234, 0.15)'
+                            ? colors.translucent.medium
                             : colors.background.secondary,
                           borderColor: playerColor === color ? colors.accent.primary : 'transparent',
                         },

@@ -99,7 +99,6 @@ export const getColor = (token: ColorToken | string, isDark: boolean): string =>
   if (typeof token === 'string') return token;
   return isDark ? token.dark : token.light;
 };
-
 export const semanticColors = (isDark: boolean) => ({
   background: {
     primary: getColor(colorTokens.neutral[50], isDark),

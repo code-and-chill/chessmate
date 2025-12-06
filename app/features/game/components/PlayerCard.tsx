@@ -152,7 +152,7 @@ export const PlayerCard = React.memo<PlayerCardProps>(({
         padding={spacingTokens[2]} // Compact 8px padding
         style={{
           borderWidth: isActive ? 2 : 1,
-          borderColor: isActive ? colors.accent.primary : 'rgba(255, 255, 255, 0.2)',
+          borderColor: isActive ? colors.accent.primary : colors.translucent.dark,
         }}
       >
         {/* Compact Single Row */}

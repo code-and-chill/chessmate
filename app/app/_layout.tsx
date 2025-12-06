@@ -49,7 +49,7 @@ export default function RootLayout() {
                               <Stack.Screen name="(drawer)" />
                               <Stack.Screen name="puzzle" />
                               <Stack.Screen name="learning" />
-                              {/* <Stack.Screen name="social" /> */}
+                               <Stack.Screen name="social" />
                               <Stack.Screen name="game" />
                               <Stack.Screen 
                                 name="login" 
@@ -68,13 +68,6 @@ export default function RootLayout() {
                                 }} 
                               />
                               <Stack.Screen name="settings" />
-                              {/*<Stack.Screen */}
-                              {/*  name="settings/board-theme"*/}
-                              {/*  options={{*/}
-                              {/*    presentation: 'card',*/}
-                              {/*    headerShown: false,*/}
-                              {/*  }}*/}
-                              {/*/>*/}
                             </Stack>
                           </GlobalLayout>
                           <StatusBar style="auto" />

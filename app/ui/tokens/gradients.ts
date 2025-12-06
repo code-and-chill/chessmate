@@ -123,3 +123,20 @@ export const overlayPatterns = {
     blend: 'multiply' as const,
   },
 };
+
+// Theme-aware resolver: returns gradient tokens resolved for current theme.
+// This helper is non-breaking and consumers can opt-in to use theme-aware gradients
+// via `getGradientTokens(isDark)` instead of the static `gradientTokens` when
+// they want colors that adapt to light/dark mode.
+import { semanticColors } from './colors';
+
+export const getGradientTokens = (isDark: boolean) => {
+  const colors = semanticColors(isDark);
+
+  return {
+    ...gradientTokens,
+    glassMorphLight: { ...gradientTokens.glassMorphLight, colors: [colors.translucent.light, colors.translucent.medium] },
+    glassMorphDark: { ...gradientTokens.glassMorphDark, colors: [colors.translucent.dark, colors.translucent.medium] },
+    radialGlow: { ...gradientTokens.radialGlow, colors: [colors.accent.primary, 'transparent'] },
+  } as const;
+};

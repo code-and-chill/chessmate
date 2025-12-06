@@ -1,3 +1,4 @@
+import React from 'react';
 import { useRouter } from 'expo-router';
 import { StyleSheet, Pressable, Text, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -5,7 +6,7 @@ import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { Panel } from '@/ui/primitives/Panel';
 import { VStack, HStack, useThemeTokens } from '@/ui';
 
-export default function ExploreTab() {
+export default function ExploreScreen() {
   const router = useRouter();
   const { colors } = useThemeTokens();
 
@@ -53,13 +54,13 @@ export default function ExploreTab() {
   ];
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background.primary }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background.primary }]}> 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <VStack style={styles.content} gap={6}>
           {/* Header */}
           <Animated.View entering={FadeInUp.delay(100).duration(400)} style={styles.header}>
             <Text style={[styles.title, { color: colors.accent.primary }]}>Explore Chess</Text>
-            <Text style={[styles.subtitle, { color: colors.foreground.secondary }]}>
+            <Text style={[styles.subtitle, { color: colors.foreground.secondary }]}> 
               Discover features to improve your game
             </Text>
           </Animated.View>
@@ -75,13 +76,13 @@ export default function ExploreTab() {
                         <Text style={styles.featureIcon}>{feature.icon}</Text>
                       </View>
                       <VStack gap={1} style={{ flex: 1 }}>
-                        <Text style={[styles.featureTitle, { color: colors.foreground.primary }]}>
+                        <Text style={[styles.featureTitle, { color: colors.foreground.primary }]}> 
                           {feature.title}
                         </Text>
-                        <Text style={[styles.featureDescription, { color: colors.foreground.secondary }]}>
+                        <Text style={[styles.featureDescription, { color: colors.foreground.secondary }]}> 
                           {feature.description}
                         </Text>
-                        <Text style={[styles.featureProgress, { color: colors.accent.primary }]}>
+                        <Text style={[styles.featureProgress, { color: colors.accent.primary }]}> 
                           {feature.progress}
                         </Text>
                       </VStack>
@@ -170,5 +171,3 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 });
-
-

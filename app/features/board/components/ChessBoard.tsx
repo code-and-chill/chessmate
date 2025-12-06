@@ -536,7 +536,7 @@ export const ChessBoard = React.forwardRef<View, ChessBoardProps>(
                     {isLegalMove && !piece && (
                       <View style={[
                         styles.legalMoveIndicator,
-                        { width: squareSize * 0.25, height: squareSize * 0.25 }
+                        { width: squareSize * 0.25, height: squareSize * 0.25, backgroundColor: colors.translucent.dark }
                       ]} />
                     )}
                     {isLegalMove && piece && (
@@ -546,6 +546,7 @@ export const ChessBoard = React.forwardRef<View, ChessBoardProps>(
                           width: squareSize * 0.9, 
                           height: squareSize * 0.9,
                           borderWidth: squareSize * 0.08,
+                          borderColor: colors.translucent.dark,
                         }
                       ]} />
                     )}
@@ -605,18 +606,18 @@ const styles = StyleSheet.create({
   },
   squareLabel: {
     fontSize: 8,
-    color: 'rgba(0, 0, 0, 0.3)',
+    color: '#737373',
     fontWeight: '600',
   },
   legalMoveIndicator: {
     position: 'absolute',
     borderRadius: 100,
-    backgroundColor: 'rgba(0, 0, 0, 0.2)',
+    // backgroundColor applied at runtime from theme
   },
   legalMoveCaptureIndicator: {
     position: 'absolute',
     borderRadius: 4,
-    borderColor: 'rgba(0, 0, 0, 0.3)',
+    // borderColor applied at runtime from theme
     backgroundColor: 'transparent',
   },
 });

@@ -115,3 +115,23 @@ export const getAllThemeIds = (): BoardThemeId[] => {
 export const getAllThemes = (): BoardTheme[] => {
   return Object.values(boardThemes);
 };
+
+// Theme-aware resolver: map board theme visual tokens to theme-aware semantic colors
+import { semanticColors } from './colors';
+
+export const getResolvedBoardTheme = (themeId: BoardThemeId, isDark: boolean): BoardTheme => {
+  const base = getBoardTheme(themeId);
+  const colors = semanticColors(isDark);
+
+  // Resolve highlights and indicator colors to semantic tokens where appropriate
+  return {
+    ...base,
+    selectedSquare: colors.accent.primary + '80',
+    lastMoveHighlight: colors.accent.primary + '66',
+    legalMoveIndicator: colors.foreground.muted + '33',
+    legalMoveCaptureIndicator: colors.error + '55',
+    checkHighlight: colors.error + '99',
+    coordinateColor: colors.foreground.secondary,
+    borderColor: base.borderColor || colors.border,
+  } as BoardTheme;
+};

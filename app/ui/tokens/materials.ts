@@ -208,6 +208,29 @@ export const pieceShadow = {
   },
 } as const;
 
+// Theme-aware resolvers for material tokens
+import { semanticColors } from './colors';
+
+export const getSquareGlowForTheme = (isDark: boolean) => {
+  const colors = semanticColors(isDark);
+  return {
+    none: squareGlow.none,
+    subtle: { ...squareGlow.subtle, borderColor: colors.accent.primary + '33', shadowColor: colors.accent.primary },
+    medium: { ...squareGlow.medium, borderColor: colors.accent.primary + '80', shadowColor: colors.accent.primary },
+    strong: { ...squareGlow.strong, borderColor: colors.accent.primary + 'B3', shadowColor: colors.accent.primary },
+  } as const;
+};
+
+export const getBoardBorderResolved = (isDark: boolean) => {
+  const colors = semanticColors(isDark);
+  return {
+    ...boardBorder,
+    simple: { ...boardBorder.simple, borderColor: colors.border },
+    raised: { ...boardBorder.raised, borderColor: colors.overlay },
+    inset: { ...boardBorder.inset, borderColor: colors.overlay },
+  } as const;
+};
+
 /**
  * Piece shadow type
  */

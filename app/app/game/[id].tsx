@@ -544,7 +544,7 @@ export default function GameScreen() {
     {/* Resign Confirmation Modal */}
     <Modal visible={showResignModal} transparent animationType="fade">
       <Pressable 
-        style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' }}
+        style={{ flex: 1, backgroundColor: colors.overlay, justifyContent: 'center', alignItems: 'center' }}
         onPress={() => setShowResignModal(false)}
       >
         <Pressable onPress={(e) => e.stopPropagation()}>
@@ -567,7 +567,7 @@ export default function GameScreen() {
     {/* Draw Offer Confirmation Modal */}
     <Modal visible={showDrawModal} transparent animationType="fade">
       <Pressable 
-        style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' }}
+        style={{ flex: 1, backgroundColor: colors.overlay, justifyContent: 'center', alignItems: 'center' }}
         onPress={() => setShowDrawModal(false)}
       >
         <Pressable onPress={(e) => e.stopPropagation()}>
