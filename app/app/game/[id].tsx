@@ -1,12 +1,11 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { View, StyleSheet, ActivityIndicator, Text, Dimensions, useWindowDimensions, ScrollView, SafeAreaView, Modal, Pressable } from 'react-native';
+import { View, StyleSheet, ActivityIndicator, Text, useWindowDimensions, SafeAreaView, Modal, Pressable } from 'react-native';
+import type { LayoutChangeEvent } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useApiClients } from '@/contexts/ApiContext';
 import { useThemeTokens } from '@/ui';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { 
-  GameActions, 
-  GameHeaderCard,
   GameResultModal, 
   PawnPromotionModal,
   PlayerCard,
@@ -25,6 +24,7 @@ import { Button } from '@/ui/primitives/Button';
 import { spacingTokens } from '@/ui/tokens/spacing';
 import { radiusTokens } from '@/ui/tokens/radii';
 import { applyMoveToFENSimple } from '@/core/utils/chess/engine';
+import { getLayoutType, calculateBoardSize, type LayoutType } from '@/ui/layouts/ResponsiveGameLayout';
 
 type PieceColor = 'w' | 'b';
 
@@ -57,35 +57,37 @@ export default function GameScreen() {
   const screenConfig = createPlayScreenConfig();
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   
-  // Responsive breakpoint: 768px for tablet/desktop
-  const isLargeScreen = windowWidth >= 768;
+  // Track measured content dimensions for accurate sizing (handles sidebar, collapsed states, etc.)
+  const [contentDimensions, setContentDimensions] = useState<{ width: number; height: number } | null>(null);
   
-  // Calculate available space for game area (viewport - header - padding)
-  const HEADER_HEIGHT = 70; // Header card height
-  const VERTICAL_PADDING = spacingTokens[2] * 3; // Top + bottom + gaps
-  const HORIZONTAL_PADDING = spacingTokens[2] * 2; // Left + right
-  const availableHeight = windowHeight - HEADER_HEIGHT - VERTICAL_PADDING;
-  const availableWidth = windowWidth - HORIZONTAL_PADDING;
-  
-  // Calculate board size based on container, not viewport
-  // Goal: Fill vertical space aggressively, maintain square aspect ratio
-  const calculateBoardSize = () => {
-    if (isLargeScreen) {
-      // Desktop: Use full 60% column width, constrained by available height
-      const boardColumnWidth = (availableWidth * 0.6) - spacingTokens[4]; // Account for gap
-      const playerCardsHeight = 70; // Two player cards combined height
-      const gapHeight = spacingTokens[1] * 2; // Gaps between cards and board
-      const maxBoardHeight = availableHeight - playerCardsHeight - gapHeight;
-      
-      // Board must be square - use the constraint that allows maximum size
-      // Remove arbitrary 600px cap to let board grow
-      return Math.min(boardColumnWidth, maxBoardHeight);
+  // Handle layout measurement to get actual content area dimensions
+  const handleContentLayout = (event: LayoutChangeEvent) => {
+    const { width: measuredWidth, height: measuredHeight } = event.nativeEvent.layout;
+    // Only update if dimensions changed significantly (avoid unnecessary re-renders)
+    if (
+      !contentDimensions ||
+      Math.abs(measuredWidth - contentDimensions.width) > 1 ||
+      Math.abs(measuredHeight - contentDimensions.height) > 1
+    ) {
+      setContentDimensions({ width: measuredWidth, height: measuredHeight });
     }
-    // Mobile: Full width minus padding
-    return Math.min(availableWidth, 500);
   };
   
-  const BOARD_SIZE = calculateBoardSize();
+  // Use measured content dimensions, fall back to window dimensions on first render
+  const effectiveWidth = contentDimensions?.width ?? windowWidth;
+  const effectiveHeight = contentDimensions?.height ?? windowHeight;
+  
+  // Use standardized responsive layout utilities based on actual content width
+  const layoutType = getLayoutType(effectiveWidth);
+  const isHorizontalLayout = layoutType !== 'mobile';
+  const isDesktopLayout = layoutType === 'desktop';
+  
+  // Calculate board size using measured content dimensions
+  const { boardSize: BOARD_SIZE, squareSize: SQUARE_SIZE } = calculateBoardSize(
+    layoutType,
+    effectiveWidth,
+    effectiveHeight
+  );
 
   useEffect(() => {
     if (!id) {
@@ -368,9 +370,13 @@ export default function GameScreen() {
         <Text style={styles.gearIcon}>⚙️</Text>
       </Pressable>
 
-      <Surface gradient="subtle" style={{ flex: 1 }}>
-        <Box flex={1} style={{ paddingHorizontal: spacingTokens[2], paddingTop: spacingTokens[4] }}>
-          <VStack flex={1} gap={spacingTokens[4]}>
+      <Surface variant="subtle" style={{ flex: 1 }}>
+        <Box 
+          flex={1} 
+          style={{ paddingHorizontal: spacingTokens[1], paddingTop: spacingTokens[2] }}
+          onLayout={handleContentLayout}
+        >
+          <VStack flex={1} gap={spacingTokens[2]}>
           {/* Game Header with Actions */}
           <Card variant="elevated" size="sm" padding={spacingTokens[3]}>
             <HStack gap={spacingTokens[2]} alignItems="center" justifyContent="space-between">
@@ -406,16 +412,16 @@ export default function GameScreen() {
             </HStack>
           </Card>
 
-          {/* Main Game Area - Responsive Layout */}
+          {/* Main Game Area - Responsive Layout (chess.com style - board fills screen) */}
           <Box style={{ 
-          flexDirection: isLargeScreen ? 'row' : 'column', 
+          flexDirection: isHorizontalLayout ? 'row' : 'column', 
           flex: 1, 
-          gap: spacingTokens[4],
+          gap: spacingTokens[2],
           alignItems: 'stretch',
         }}>
-          {/* Board Column (60% on large screens) */}
+          {/* Board Column (70% on desktop, 65% on tablet - chess.com style) */}
           <VStack 
-            flex={isLargeScreen ? 0.6 : 1} 
+            flex={isHorizontalLayout ? (isDesktopLayout ? 0.70 : 0.65) : 1} 
             gap={spacingTokens[1]}
             style={{ 
               justifyContent: 'center',
@@ -499,17 +505,17 @@ export default function GameScreen() {
             </Animated.View>
           </VStack>
 
-          {/* Move List - Glassmorphic Panel on large screens (40%) */}
+          {/* Move List - Glassmorphic Panel on desktop (30%), Card on tablet (35%) - chess.com style */}
           <Animated.View 
             entering={FadeInUp.duration(250).delay(100)} 
             style={{ 
-              flex: isLargeScreen ? 0.4 : 0,
-              minHeight: isLargeScreen ? 0 : 300,
-              maxHeight: isLargeScreen ? undefined : 400,
+              flex: isHorizontalLayout ? (isDesktopLayout ? 0.30 : 0.35) : 0,
+              minHeight: isHorizontalLayout ? 0 : 200,
+              maxHeight: isHorizontalLayout ? undefined : 300,
               alignSelf: 'stretch',
             }}
           >
-            {isLargeScreen ? (
+            {isDesktopLayout ? (
               <Panel variant="glass" padding={0} style={{ flex: 1, overflow: 'hidden' }}>
                 <MoveList moves={formattedMoves} />
               </Panel>
