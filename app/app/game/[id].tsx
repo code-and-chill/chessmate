@@ -1,12 +1,10 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { View, StyleSheet, ActivityIndicator, Text, Dimensions, useWindowDimensions, ScrollView, SafeAreaView, Modal, Pressable } from 'react-native';
+import { View, StyleSheet, ActivityIndicator, Text, useWindowDimensions, SafeAreaView, Modal, Pressable } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useApiClients } from '@/contexts/ApiContext';
 import { useThemeTokens } from '@/ui';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { 
-  GameActions, 
-  GameHeaderCard,
   GameResultModal, 
   PawnPromotionModal,
   PlayerCard,
@@ -25,6 +23,7 @@ import { Button } from '@/ui/primitives/Button';
 import { spacingTokens } from '@/ui/tokens/spacing';
 import { radiusTokens } from '@/ui/tokens/radii';
 import { applyMoveToFENSimple } from '@/core/utils/chess/engine';
+import { getLayoutType, calculateBoardSize, type LayoutType } from '@/ui/layouts/ResponsiveGameLayout';
 
 type PieceColor = 'w' | 'b';
 
@@ -57,35 +56,17 @@ export default function GameScreen() {
   const screenConfig = createPlayScreenConfig();
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   
-  // Responsive breakpoint: 768px for tablet/desktop
-  const isLargeScreen = windowWidth >= 768;
+  // Use standardized responsive layout utilities
+  const layoutType = getLayoutType(windowWidth);
+  const isHorizontalLayout = layoutType !== 'mobile';
+  const isDesktopLayout = layoutType === 'desktop';
   
-  // Calculate available space for game area (viewport - header - padding)
-  const HEADER_HEIGHT = 70; // Header card height
-  const VERTICAL_PADDING = spacingTokens[2] * 3; // Top + bottom + gaps
-  const HORIZONTAL_PADDING = spacingTokens[2] * 2; // Left + right
-  const availableHeight = windowHeight - HEADER_HEIGHT - VERTICAL_PADDING;
-  const availableWidth = windowWidth - HORIZONTAL_PADDING;
-  
-  // Calculate board size based on container, not viewport
-  // Goal: Fill vertical space aggressively, maintain square aspect ratio
-  const calculateBoardSize = () => {
-    if (isLargeScreen) {
-      // Desktop: Use full 60% column width, constrained by available height
-      const boardColumnWidth = (availableWidth * 0.6) - spacingTokens[4]; // Account for gap
-      const playerCardsHeight = 70; // Two player cards combined height
-      const gapHeight = spacingTokens[1] * 2; // Gaps between cards and board
-      const maxBoardHeight = availableHeight - playerCardsHeight - gapHeight;
-      
-      // Board must be square - use the constraint that allows maximum size
-      // Remove arbitrary 600px cap to let board grow
-      return Math.min(boardColumnWidth, maxBoardHeight);
-    }
-    // Mobile: Full width minus padding
-    return Math.min(availableWidth, 500);
-  };
-  
-  const BOARD_SIZE = calculateBoardSize();
+  // Calculate board size using standardized utility
+  const { boardSize: BOARD_SIZE, squareSize: SQUARE_SIZE } = calculateBoardSize(
+    layoutType,
+    windowWidth,
+    windowHeight
+  );
 
   useEffect(() => {
     if (!id) {
@@ -368,7 +349,7 @@ export default function GameScreen() {
         <Text style={styles.gearIcon}>⚙️</Text>
       </Pressable>
 
-      <Surface gradient="subtle" style={{ flex: 1 }}>
+      <Surface variant="subtle" style={{ flex: 1 }}>
         <Box flex={1} style={{ paddingHorizontal: spacingTokens[2], paddingTop: spacingTokens[4] }}>
           <VStack flex={1} gap={spacingTokens[4]}>
           {/* Game Header with Actions */}
@@ -408,14 +389,14 @@ export default function GameScreen() {
 
           {/* Main Game Area - Responsive Layout */}
           <Box style={{ 
-          flexDirection: isLargeScreen ? 'row' : 'column', 
+          flexDirection: isHorizontalLayout ? 'row' : 'column', 
           flex: 1, 
           gap: spacingTokens[4],
           alignItems: 'stretch',
         }}>
-          {/* Board Column (60% on large screens) */}
+          {/* Board Column (60% on desktop, 55% on tablet) */}
           <VStack 
-            flex={isLargeScreen ? 0.6 : 1} 
+            flex={isHorizontalLayout ? (isDesktopLayout ? 0.6 : 0.55) : 1} 
             gap={spacingTokens[1]}
             style={{ 
               justifyContent: 'center',
@@ -499,17 +480,17 @@ export default function GameScreen() {
             </Animated.View>
           </VStack>
 
-          {/* Move List - Glassmorphic Panel on large screens (40%) */}
+          {/* Move List - Glassmorphic Panel on desktop (40%), Card on tablet (45%) */}
           <Animated.View 
             entering={FadeInUp.duration(250).delay(100)} 
             style={{ 
-              flex: isLargeScreen ? 0.4 : 0,
-              minHeight: isLargeScreen ? 0 : 300,
-              maxHeight: isLargeScreen ? undefined : 400,
+              flex: isHorizontalLayout ? (isDesktopLayout ? 0.4 : 0.45) : 0,
+              minHeight: isHorizontalLayout ? 0 : 300,
+              maxHeight: isHorizontalLayout ? undefined : 400,
               alignSelf: 'stretch',
             }}
           >
-            {isLargeScreen ? (
+            {isDesktopLayout ? (
               <Panel variant="glass" padding={0} style={{ flex: 1, overflow: 'hidden' }}>
                 <MoveList moves={formattedMoves} />
               </Panel>

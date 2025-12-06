@@ -1,179 +1,326 @@
 import type React from 'react';
-import { View, StyleSheet, ScrollView, Platform, useColorScheme } from 'react-native';
+import { useWindowDimensions } from 'react-native';
+import type { ViewStyle } from 'react-native';
+import Animated, { FadeInUp } from 'react-native-reanimated';
 import { ChessBoard, type ChessBoardProps } from '@/features/board';
-import { PlayerPanel, type PlayerPanelProps, MoveList, type Move, GameActions, type GameActionsProps } from '@/features/game';
-import {
-  getBoardSize,
-  getSquareSize,
-  shouldShowMoveListSideBySide,
-  Spacing,
-  Colors,
-} from '@/core/constants';
+import { MoveList, type Move } from '@/features/game';
+import { Box } from '@/ui/primitives/Box';
+import { VStack } from '@/ui/primitives/Stack';
+import { Card } from '@/ui/primitives/Card';
+import { Panel } from '@/ui/primitives/Panel';
+import { Surface } from '@/ui/primitives/Surface';
+import { useThemeTokens } from '@/ui/hooks/useThemeTokens';
+import { useDeviceType } from '@/ui/hooks/useResponsive';
+import { spacingTokens } from '@/ui/tokens/spacing';
+import { LayoutBreakpoints } from '@/core/constants/layout';
+
+/**
+ * Layout type for responsive behavior
+ * - mobile: < 768px - vertical stacked layout
+ * - tablet: 768px - 1023px - horizontal layout with smaller board
+ * - desktop: >= 1024px - horizontal layout with larger board and glassmorphic panel
+ */
+export type LayoutType = 'mobile' | 'tablet' | 'desktop';
+
+/**
+ * Board size configuration for different layouts
+ */
+export interface BoardSizeConfig {
+  boardSize: number;
+  squareSize: number;
+}
+
+/**
+ * Props for the top and bottom player sections
+ * Using render props pattern for flexibility
+ */
+export interface PlayerSectionProps {
+  width: number;
+}
+
+/**
+ * Props for the game actions section
+ * Using render props pattern for flexibility
+ */
+export interface GameActionsSectionProps {
+  layoutType: LayoutType;
+}
+
+/**
+ * Props for the move list section
+ * Using render props pattern for flexibility
+ */
+export interface MoveListSectionProps {
+  layoutType: LayoutType;
+  moves: Move[];
+}
 
 export interface ResponsiveGameLayoutProps {
-  // Board props
+  /** Chess board props (size and squareSize are calculated internally) */
   boardProps: Omit<ChessBoardProps, 'size' | 'squareSize'>;
   
-  // Player props
-  topPlayerProps: Omit<PlayerPanelProps, 'position'>;
-  bottomPlayerProps: Omit<PlayerPanelProps, 'position'>;
-  
-  // Game state
+  /** Moves to display in the move list */
   moves?: Move[];
-  gameActionsProps?: GameActionsProps;
+  
+  /** Render prop for top player section */
+  renderTopPlayer?: (props: PlayerSectionProps) => React.ReactNode;
+  
+  /** Render prop for bottom player section */
+  renderBottomPlayer?: (props: PlayerSectionProps) => React.ReactNode;
+  
+  /** Render prop for game actions section */
+  renderGameActions?: (props: GameActionsSectionProps) => React.ReactNode;
+  
+  /** Render prop for move list section (overrides default) */
+  renderMoveList?: (props: MoveListSectionProps) => React.ReactNode;
+  
+  /** Render prop for header section */
+  renderHeader?: () => React.ReactNode;
+  
+  /** Whether to animate entrance */
+  animated?: boolean;
+  
+  /** Custom style for the container */
+  style?: ViewStyle;
+  
+  /** Test ID for testing */
+  testID?: string;
 }
+
+/**
+ * Calculate board size based on layout type and available dimensions
+ * 
+ * @param layoutType - Current layout type
+ * @param width - Available width
+ * @param height - Available height
+ * @returns Board size configuration
+ */
+export const calculateBoardSize = (
+  layoutType: LayoutType,
+  width: number,
+  height: number
+): BoardSizeConfig => {
+  const HEADER_HEIGHT = 70;
+  const VERTICAL_PADDING = spacingTokens[2] * 3;
+  const HORIZONTAL_PADDING = spacingTokens[2] * 2;
+  const PLAYER_CARDS_HEIGHT = 70;
+  const GAP_HEIGHT = spacingTokens[1] * 2;
+  
+  const availableHeight = height - HEADER_HEIGHT - VERTICAL_PADDING;
+  const availableWidth = width - HORIZONTAL_PADDING;
+  
+  let boardSize: number;
+  
+  switch (layoutType) {
+    case 'desktop': {
+      // Desktop: 60% of available width, constrained by height
+      const boardColumnWidth = (availableWidth * 0.6) - spacingTokens[4];
+      const maxBoardHeight = availableHeight - PLAYER_CARDS_HEIGHT - GAP_HEIGHT;
+      boardSize = Math.min(boardColumnWidth, maxBoardHeight);
+      break;
+    }
+    case 'tablet': {
+      // Tablet: 55% of available width, constrained by height
+      const boardColumnWidth = (availableWidth * 0.55) - spacingTokens[4];
+      const maxBoardHeight = availableHeight - PLAYER_CARDS_HEIGHT - GAP_HEIGHT;
+      boardSize = Math.min(boardColumnWidth, maxBoardHeight, 480);
+      break;
+    }
+    case 'mobile':
+    default: {
+      // Mobile: Full width minus padding, max 500px
+      boardSize = Math.min(availableWidth, 500);
+      break;
+    }
+  }
+  
+  return {
+    boardSize: Math.max(boardSize, 280), // Minimum board size
+    squareSize: Math.max(boardSize, 280) / 8,
+  };
+};
+
+/**
+ * Get layout type based on screen width
+ * 
+ * @param width - Screen width
+ * @returns Layout type
+ */
+export const getLayoutType = (width: number): LayoutType => {
+  if (width >= LayoutBreakpoints.desktop) {
+    return 'desktop';
+  }
+  if (width >= LayoutBreakpoints.tablet) {
+    return 'tablet';
+  }
+  return 'mobile';
+};
 
 /**
  * ResponsiveGameLayout Component
  * 
- * Responsive layout for chess games that adapts to screen size:
- * - Desktop: Board centered (480-600px), move list on right sidebar
- * - Tablet: Board centered, move list on right or below based on orientation
- * - Mobile: Board full width, move list below
+ * A state-of-the-art responsive layout for chess games that adapts seamlessly
+ * across iOS, Android, and Web platforms.
  * 
- * Player panels are positioned directly above/below board
- * Game actions below board on all layouts
+ * Layout behavior:
+ * - Desktop (≥1024px): Horizontal layout with board (60%) and glassmorphic move list panel (40%)
+ * - Tablet (768-1023px): Horizontal layout with board (55%) and move list card (45%)
+ * - Mobile (<768px): Vertical stacked layout with full-width board and move list below
+ * 
+ * Features:
+ * - Uses DLS primitives (Box, VStack, HStack, Card, Panel, Surface)
+ * - Three-tier responsive system aligned with breakpoints.ts and layout.ts
+ * - Render props pattern for flexible customization
+ * - Animated entrance with react-native-reanimated
+ * - Theme-aware styling via useThemeTokens
+ * 
+ * @example
+ * ```tsx
+ * <ResponsiveGameLayout
+ *   boardProps={{ fen, sideToMove, onMove }}
+ *   moves={formattedMoves}
+ *   renderTopPlayer={({ width }) => <PlayerCard width={width} ... />}
+ *   renderBottomPlayer={({ width }) => <PlayerCard width={width} ... />}
+ *   renderGameActions={({ layoutType }) => <GameActions ... />}
+ *   animated
+ * />
+ * ```
  */
 export const ResponsiveGameLayout: React.FC<ResponsiveGameLayoutProps> = ({
   boardProps,
-  topPlayerProps,
-  bottomPlayerProps,
   moves = [],
-  gameActionsProps,
+  renderTopPlayer,
+  renderBottomPlayer,
+  renderGameActions,
+  renderMoveList,
+  renderHeader,
+  animated = true,
+  style,
+  testID,
 }) => {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
-  const showSideBySide = shouldShowMoveListSideBySide();
-  const boardSize = getBoardSize();
-  const squareSize = getSquareSize();
-
+  const { colors } = useThemeTokens();
+  const { width, height } = useWindowDimensions();
+  const { isMobile, isTablet, isDesktop } = useDeviceType();
+  
+  // Determine layout type based on screen width
+  const layoutType = getLayoutType(width);
+  const isHorizontalLayout = layoutType !== 'mobile';
+  
+  // Calculate board size based on layout
+  const { boardSize, squareSize } = calculateBoardSize(layoutType, width, height);
+  
+  // Animation configuration
+  const createAnimConfig = (delay: number) => 
+    animated ? FadeInUp.duration(250).delay(delay) : undefined;
+  
+  // Default move list renderer
+  const defaultRenderMoveList = ({ layoutType: lt, moves: m }: MoveListSectionProps) => {
+    if (lt === 'desktop') {
+      return (
+        <Panel variant="glass" padding={0} style={{ flex: 1, overflow: 'hidden' }}>
+          <MoveList moves={m} />
+        </Panel>
+      );
+    }
+    return (
+      <Card variant="default" size="md" padding={0} style={{ flex: 1 }}>
+        <MoveList moves={m} />
+      </Card>
+    );
+  };
+  
+  // Board section with players
   const BoardSection = (
-    <View style={styles.boardSection}>
-      {/* Top Player (Opponent) */}
-      <PlayerPanel {...topPlayerProps} position="top" />
-
+    <VStack 
+      flex={isHorizontalLayout ? (layoutType === 'desktop' ? 0.6 : 0.55) : 1}
+      gap={spacingTokens[1]}
+      style={{ 
+        justifyContent: 'center',
+        alignItems: 'center',
+      }}
+    >
+      {/* Top Player */}
+      {renderTopPlayer && (
+        <Animated.View entering={createAnimConfig(0)} style={{ width: boardSize }}>
+          {renderTopPlayer({ width: boardSize })}
+        </Animated.View>
+      )}
+      
       {/* Chess Board */}
-      <View style={[styles.boardContainer, { width: boardSize, height: boardSize }]}>
+      <Animated.View 
+        entering={createAnimConfig(50)} 
+        style={{ width: boardSize, height: boardSize }}
+      >
         <ChessBoard
           {...boardProps}
           size={boardSize}
           squareSize={squareSize}
         />
-      </View>
-
-      {/* Bottom Player (Self) */}
-      <PlayerPanel {...bottomPlayerProps} position="bottom" />
-
-      {/* Game Actions */}
-      {gameActionsProps && (
-        <View style={styles.actionsContainer}>
-          <GameActions {...gameActionsProps} />
-        </View>
+      </Animated.View>
+      
+      {/* Bottom Player */}
+      {renderBottomPlayer && (
+        <Animated.View entering={createAnimConfig(150)} style={{ width: boardSize }}>
+          {renderBottomPlayer({ width: boardSize })}
+        </Animated.View>
       )}
-    </View>
+      
+      {/* Game Actions (mobile only - shown below board) */}
+      {!isHorizontalLayout && renderGameActions && (
+        <Animated.View entering={createAnimConfig(200)} style={{ width: boardSize }}>
+          {renderGameActions({ layoutType })}
+        </Animated.View>
+      )}
+    </VStack>
   );
-
+  
+  // Move list section
   const MoveListSection = (
-    <View style={[
-      styles.moveListSection,
-      showSideBySide ? styles.moveListSidebar : styles.moveListBelow,
-    ]}>
-      <MoveList moves={moves} />
-    </View>
+    <Animated.View 
+      entering={createAnimConfig(100)} 
+      style={{ 
+        flex: isHorizontalLayout ? (layoutType === 'desktop' ? 0.4 : 0.45) : 0,
+        minHeight: isHorizontalLayout ? 0 : 300,
+        maxHeight: isHorizontalLayout ? undefined : 400,
+        alignSelf: 'stretch',
+      }}
+    >
+      {(renderMoveList || defaultRenderMoveList)({ layoutType, moves })}
+    </Animated.View>
   );
-
-  if (showSideBySide) {
-    return (
-      <ScrollView
-        style={[styles.container, { backgroundColor: colors.background }]}
-        contentContainerStyle={styles.sideBySideLayout}
-      >
-        <View style={styles.mainContent}>
-          {BoardSection}
-        </View>
-        {MoveListSection}
-      </ScrollView>
-    );
-  }
-
-  return (
-    <ScrollView
-      style={[styles.container, { backgroundColor: colors.background }]}
-      contentContainerStyle={styles.stackedLayout}
+  
+  // Main content layout
+  const MainContent = (
+    <Box 
+      style={{ 
+        flexDirection: isHorizontalLayout ? 'row' : 'column', 
+        flex: 1, 
+        gap: spacingTokens[4],
+        alignItems: 'stretch',
+      }}
     >
       {BoardSection}
       {MoveListSection}
-    </ScrollView>
+    </Box>
+  );
+  
+  // Merge styles properly for Surface component
+  const containerStyle: ViewStyle = {
+    flex: 1,
+    ...style,
+  };
+  
+  return (
+    <Surface variant="subtle" style={containerStyle}>
+      <Box flex={1} style={{ paddingHorizontal: spacingTokens[2], paddingTop: spacingTokens[4] }}>
+        <VStack flex={1} gap={spacingTokens[4]}>
+          {/* Header Section */}
+          {renderHeader && renderHeader()}
+          
+          {/* Main Game Area */}
+          {MainContent}
+        </VStack>
+      </Box>
+    </Surface>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  sideBySideLayout: {
-    flexDirection: 'row',
-    padding: Spacing.xl,
-    gap: Spacing.xl,
-    minHeight: '100%',
-    ...Platform.select({
-      web: {
-        justifyContent: 'center',
-      },
-    }),
-  },
-  stackedLayout: {
-    padding: Spacing.lg,
-    alignItems: 'center',
-    gap: Spacing.xl,
-  },
-  mainContent: {
-    flex: 1,
-    maxWidth: 800,
-    alignItems: 'center',
-  },
-  boardSection: {
-    alignItems: 'center',
-    gap: Spacing.md,
-    width: '100%',
-  },
-  boardContainer: {
-    // Size set dynamically
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
-      },
-      android: {
-        elevation: 8,
-      },
-    }),
-  },
-  actionsContainer: {
-    width: '100%',
-    maxWidth: 600,
-    marginTop: Spacing.md,
-  },
-  moveListSection: {
-    width: '100%',
-  },
-  moveListSidebar: {
-    width: 300,
-  },
-  scrollContainer: {
-    flex: 1,
-  },
-  sidebar: {
-    ...Platform.select({
-      web: {
-        position: 'sticky' as const,
-        top: Spacing.xl,
-      },
-    }),
-  },
-  moveListBelow: {
-    maxWidth: 600,
-  },
-});
