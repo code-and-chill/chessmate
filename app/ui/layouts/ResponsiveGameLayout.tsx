@@ -90,6 +90,11 @@ export interface ResponsiveGameLayoutProps {
 /**
  * Calculate board size based on layout type and available dimensions
  * 
+ * Height-driven approach inspired by chess.com:
+ * - Board fills maximum available vertical space
+ * - Minimal overhead for player info (positioned at board edges, not separate cards)
+ * - Move list panel stretches full height alongside board
+ * 
  * @param layoutType - Current layout type
  * @param contentWidth - Available content width (already accounts for sidebar, padding, etc.)
  * @param contentHeight - Available content height
@@ -100,42 +105,48 @@ export const calculateBoardSize = (
   contentWidth: number,
   contentHeight: number
 ): BoardSizeConfig => {
-  const HEADER_HEIGHT = 70;
-  const VERTICAL_PADDING = spacingTokens[4] * 2;
-  const HORIZONTAL_PADDING = spacingTokens[2] * 2;
-  const PLAYER_CARD_HEIGHT = 56;
-  const PLAYER_CARDS_TOTAL = PLAYER_CARD_HEIGHT * 2;
-  const GAP_HEIGHT = spacingTokens[1] * 4;
-  const BREATHING_ROOM = 24;
+  // Minimal margins - chess.com style with board filling the screen
+  const MINIMAL_VERTICAL_MARGIN = spacingTokens[2]; // 8px top/bottom
+  const MINIMAL_HORIZONTAL_MARGIN = spacingTokens[2]; // 8px left/right
+  const PLAYER_INFO_HEIGHT = 32; // Compact player info at board edges (not full cards)
+  const HEADER_BAR_HEIGHT = 40; // Compact header bar
   
-  const availableHeight = contentHeight - HEADER_HEIGHT - VERTICAL_PADDING - BREATHING_ROOM;
-  const availableWidth = contentWidth - HORIZONTAL_PADDING;
+  // Available space after minimal margins
+  const availableHeight = contentHeight - HEADER_BAR_HEIGHT - (MINIMAL_VERTICAL_MARGIN * 2) - (PLAYER_INFO_HEIGHT * 2);
+  const availableWidth = contentWidth - (MINIMAL_HORIZONTAL_MARGIN * 2);
   
   let boardSize: number;
   
   switch (layoutType) {
     case 'desktop': {
-      const boardColumnWidth = (availableWidth * 0.6) - spacingTokens[4];
-      const maxBoardHeight = availableHeight - PLAYER_CARDS_TOTAL - GAP_HEIGHT;
-      boardSize = Math.min(boardColumnWidth, maxBoardHeight);
+      // Board column takes ~70% of width (more generous than before)
+      // Board size is primarily height-driven to fill the screen
+      const boardColumnWidth = availableWidth * 0.70;
+      boardSize = Math.min(boardColumnWidth, availableHeight);
       break;
     }
     case 'tablet': {
-      const boardColumnWidth = (availableWidth * 0.55) - spacingTokens[4];
-      const maxBoardHeight = availableHeight - PLAYER_CARDS_TOTAL - GAP_HEIGHT;
-      boardSize = Math.min(boardColumnWidth, maxBoardHeight, 480);
+      // Board column takes ~65% of width
+      const boardColumnWidth = availableWidth * 0.65;
+      boardSize = Math.min(boardColumnWidth, availableHeight);
       break;
     }
     case 'mobile':
     default: {
-      boardSize = Math.min(availableWidth, 500);
+      // On mobile, board fills width but respects height
+      boardSize = Math.min(availableWidth, availableHeight, contentWidth * 0.95);
       break;
     }
   }
   
+  // Clamp to reasonable bounds
+  const MIN_BOARD_SIZE = 280;
+  const MAX_BOARD_SIZE = 800;
+  boardSize = Math.max(MIN_BOARD_SIZE, Math.min(boardSize, MAX_BOARD_SIZE));
+  
   return {
-    boardSize: Math.max(boardSize, 280),
-    squareSize: Math.max(boardSize, 280) / 8,
+    boardSize,
+    squareSize: boardSize / 8,
   };
 };
 
@@ -248,10 +259,10 @@ export const ResponsiveGameLayout: React.FC<ResponsiveGameLayoutProps> = ({
     );
   };
   
-  // Board section with players
+  // Board section with players - chess.com style with board filling available space
   const BoardSection = (
     <VStack 
-      flex={isHorizontalLayout ? (layoutType === 'desktop' ? 0.6 : 0.55) : 1}
+      flex={isHorizontalLayout ? (layoutType === 'desktop' ? 0.70 : 0.65) : 1}
       gap={spacingTokens[1]}
       style={{ 
         justifyContent: 'center',
@@ -293,14 +304,14 @@ export const ResponsiveGameLayout: React.FC<ResponsiveGameLayoutProps> = ({
     </VStack>
   );
   
-  // Move list section
+  // Move list section - stretches full height alongside board
   const MoveListSection = (
     <Animated.View 
       entering={createAnimConfig(100)} 
       style={{ 
-        flex: isHorizontalLayout ? (layoutType === 'desktop' ? 0.4 : 0.45) : 0,
-        minHeight: isHorizontalLayout ? 0 : 300,
-        maxHeight: isHorizontalLayout ? undefined : 400,
+        flex: isHorizontalLayout ? (layoutType === 'desktop' ? 0.30 : 0.35) : 0,
+        minHeight: isHorizontalLayout ? 0 : 200,
+        maxHeight: isHorizontalLayout ? undefined : 300,
         alignSelf: 'stretch',
       }}
     >
@@ -333,10 +344,10 @@ export const ResponsiveGameLayout: React.FC<ResponsiveGameLayoutProps> = ({
     <Surface variant="subtle" style={containerStyle}>
       <Box 
         flex={1} 
-        style={{ paddingHorizontal: spacingTokens[2], paddingTop: spacingTokens[4] }}
+        style={{ paddingHorizontal: spacingTokens[1], paddingTop: spacingTokens[2] }}
         onLayout={handleLayout}
       >
-        <VStack flex={1} gap={spacingTokens[4]}>
+        <VStack flex={1} gap={spacingTokens[2]}>
           {/* Header Section */}
           {renderHeader && renderHeader()}
           

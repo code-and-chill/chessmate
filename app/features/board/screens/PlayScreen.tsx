@@ -174,10 +174,10 @@ export function PlayScreen(_props: PlayScreenProps = {}): React.ReactElement {
         <Surface variant="subtle" style={{ flex: 1 }}>
           <Box 
             flex={1} 
-            style={{ paddingHorizontal: spacingTokens[2], paddingTop: spacingTokens[4] }}
+            style={{ paddingHorizontal: spacingTokens[1], paddingTop: spacingTokens[2] }}
             onLayout={handleContentLayout}
           >
-            <VStack flex={1} gap={spacingTokens[4]}>
+            <VStack flex={1} gap={spacingTokens[2]}>
               {/* Game Header */}
               <GameHeaderCard
                 status={gameState.status === 'in_progress' ? 'live' : 'ended'}
@@ -186,16 +186,16 @@ export function PlayScreen(_props: PlayScreenProps = {}): React.ReactElement {
                 isRated={true}
               />
 
-              {/* Main Game Area - Responsive Layout */}
+              {/* Main Game Area - Responsive Layout (chess.com style - board fills screen) */}
               <Box style={{ 
                 flexDirection: isHorizontalLayout ? 'row' : 'column', 
                 flex: 1, 
-                gap: spacingTokens[4],
+                gap: spacingTokens[2],
                 alignItems: 'stretch',
               }}>
-                {/* Board Column (60% on desktop, 55% on tablet) */}
+                {/* Board Column (70% on desktop, 65% on tablet - chess.com style) */}
                 <VStack 
-                  flex={isHorizontalLayout ? (isDesktopLayout ? 0.6 : 0.55) : 1} 
+                  flex={isHorizontalLayout ? (isDesktopLayout ? 0.70 : 0.65) : 1} 
                   gap={spacingTokens[1]}
                   style={{ 
                     justifyContent: 'center',
@@ -254,13 +254,13 @@ export function PlayScreen(_props: PlayScreenProps = {}): React.ReactElement {
                   )}
                 </VStack>
 
-                {/* Move List - Glassmorphic Panel on desktop (40%), Card on tablet (45%) */}
+                {/* Move List - Glassmorphic Panel on desktop (30%), Card on tablet (35%) - chess.com style */}
                 <Animated.View 
                   entering={createAnimConfig(100)} 
                   style={{ 
-                    flex: isHorizontalLayout ? (isDesktopLayout ? 0.4 : 0.45) : 0,
-                    minHeight: isHorizontalLayout ? 0 : 300,
-                    maxHeight: isHorizontalLayout ? undefined : 400,
+                    flex: isHorizontalLayout ? (isDesktopLayout ? 0.30 : 0.35) : 0,
+                    minHeight: isHorizontalLayout ? 0 : 200,
+                    maxHeight: isHorizontalLayout ? undefined : 300,
                     alignSelf: 'stretch',
                   }}
                 >
