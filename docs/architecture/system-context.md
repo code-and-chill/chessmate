@@ -1,7 +1,8 @@
 ---
 title: System Context
+service: global
 status: draft
-last_reviewed: 2025-11-15
+last_reviewed: 2025-12-06
 type: architecture
 ---
 
@@ -83,6 +84,9 @@ The Chessmate platform is a polyglot microservices architecture designed to supp
 - **live-game-api** - Active game state and moves
 - **matchmaking-api** - Player matching and pairing
 
+### Game History Domain
+- **game-history-api** - Durable game event ingestion, storage, and retrieval (Postgres + S3)
+
 ### Discovery & Search Domain
 - *[To be documented]*
 
@@ -91,4 +95,4 @@ The Chessmate platform is a polyglot microservices architecture designed to supp
 
 ---
 
-*Last updated: 2025-11-15*
+*Last updated: 2025-12-06*

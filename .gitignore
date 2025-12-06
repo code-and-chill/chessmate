@@ -119,6 +119,8 @@ venv.bak/
 /pkg/
 go.mod
 go.sum
+!game-history-api/go.mod
+!game-history-api/go.sum
 .env.test
 
 # Rust

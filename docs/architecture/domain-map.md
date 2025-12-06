@@ -1,7 +1,8 @@
 ---
 title: Domain Map
+service: global
 status: draft
-last_reviewed: 2025-11-15
+last_reviewed: 2025-12-06
 type: architecture
 ---
 
@@ -55,20 +56,26 @@ A bounded context is a boundary within which a particular domain model is define
 
 ---
 
-### [Domain Context 3]
+### Game History Context
 
-**Fill:** Document additional bounded contexts as they emerge.
-
-**Services**: [service names]
+**Services**: game-history-api
 
 **Responsibilities**:
-- [Main responsibilities]
+- Ingest ordered gameplay events from Kafka
+- Build canonical game summaries and compact move lists
+- Maintain player-indexed history for low-latency queries
+- Archive raw and compacted records to S3 for analytics and replay
 
 **Key Entities**:
-- [Core entities]
+- Game Summary
+- Move
+- PlayerGameIndex
 
 **External Integrations**:
-- [External dependencies]
+- Kafka `game-events` topic (producer: live-game-api)
+- Postgres (hot store partitions)
+- S3 object storage (cold archives)
+- Downstream consumers: rating-api, puzzle-api, future fair-play-api
 
 ---
 
@@ -108,4 +115,4 @@ A bounded context is a boundary within which a particular domain model is define
 
 ---
 
-*Last updated: 2025-11-15*
+*Last updated: 2025-12-06*

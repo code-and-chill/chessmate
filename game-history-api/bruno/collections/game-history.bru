@@ -1,0 +1,46 @@
+meta {
+  name: Game History API
+  type: http
+  seq: 2
+}
+
+request "Get Game by ID" {
+  method: GET
+  url: ${baseUrl}/game-history/v1/games/{{gameId}}
+
+  vars {
+    gameId: "11111111-2222-3333-4444-555555555555"
+  }
+
+  headers {
+    Content-Type: application/json
+  }
+
+  tests {
+    test("returns seeded fixture", function() {
+      expect(res.status).to.equal(200);
+      expect(res.body.gameId).to.equal("11111111-2222-3333-4444-555555555555");
+    });
+  }
+}
+
+request "Get Player History" {
+  method: GET
+  url: ${baseUrl}/game-history/v1/players/{{playerId}}/games?limit=5
+
+  vars {
+    playerId: ${playerId}
+  }
+
+  headers {
+    Content-Type: application/json
+  }
+
+  tests {
+    test("responds with seeded history", function() {
+      expect(res.status).to.equal(200);
+      expect(res.body.games.length).to.be.greaterThan(0);
+      expect(res.body.games[0].gameId).to.equal("11111111-2222-3333-4444-555555555555");
+    });
+  }
+}
