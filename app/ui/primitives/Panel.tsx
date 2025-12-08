@@ -20,7 +20,8 @@ type PanelProps = {
   density?: PanelDensity;
   padding?: number;
   blur?: boolean;
-  style?: ViewStyle;
+  // Accept single style or array so callers can pass conditional styles
+  style?: ViewStyle | ViewStyle[];
 };
 
 export const Panel: React.FC<PanelProps> = ({

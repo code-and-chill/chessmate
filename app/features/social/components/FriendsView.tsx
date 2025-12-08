@@ -4,13 +4,12 @@
  */
 
 import { useState } from 'react';
-import { SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { Card } from '@/ui/primitives/Card';
-import { VStack, HStack } from '@/ui';
+import { VStack, HStack, InteractivePressable, useThemeTokens } from '@/ui';
 import { useFriends } from '../hooks';
 import type { Friend } from '../types';
-import { useThemeTokens } from '@/ui';
 import { useI18n } from '@/i18n/I18nContext';
 
 export interface FriendsViewProps {
@@ -37,9 +36,9 @@ export function FriendsView({ onBack, userId }: FriendsViewProps) {
           {/* Header */}
           <Animated.View entering={FadeInUp.delay(100).duration(400)}>
             <VStack gap={1} style={styles.header}>
-              <TouchableOpacity onPress={onBack} style={styles.backButton}>
+              <InteractivePressable onPress={onBack} style={styles.backButton}>
                 <Text style={[styles.backButtonText, { color: colors.accent.primary }]}>← {t('common.back')}</Text>
-              </TouchableOpacity>
+              </InteractivePressable>
               <Text style={[styles.title, { color: colors.foreground.primary }]}>{t('social.friends')}</Text>
               <Text style={[styles.subtitle, { color: colors.foreground.secondary }]}>
                 {ti('social.friend_count', { count: friends.length })} • {ti('social.online_count', { count: onlineFriends.length })}
@@ -58,9 +57,9 @@ export function FriendsView({ onBack, userId }: FriendsViewProps) {
                   value={searchQuery}
                   onChangeText={setSearchQuery}
                 />
-                <TouchableOpacity style={[styles.addButton, { backgroundColor: colors.accent.primary }]}>
+                <InteractivePressable style={[styles.addButton, { backgroundColor: colors.accent.primary }]} onPress={() => { /* TODO add friend */ }}>
                   <Text style={[styles.addButtonText, { color: '#FFFFFF' }]}>+ {t('social.add_friend')}</Text>
-                </TouchableOpacity>
+                </InteractivePressable>
               </VStack>
             </Card>
           </Animated.View>
@@ -130,12 +129,12 @@ function FriendCard({ friend, onChallenge, colors }: FriendCardProps) {
           </VStack>
         </HStack>
         {friend.online && !friend.playing && (
-          <TouchableOpacity 
-            style={[styles.challengeButton, { backgroundColor: colors.accent.primary }]} 
+          <InteractivePressable
+            style={[styles.challengeButton, { backgroundColor: colors.accent.primary }]}
             onPress={() => onChallenge(friend.id)}
           >
             <Text style={styles.challengeButtonText}>⚔️ {t('social.challenge')}</Text>
-          </TouchableOpacity>
+          </InteractivePressable>
         )}
       </View>
     </Card>

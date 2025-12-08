@@ -1,11 +1,5 @@
-/**
- * SegmentedControl Component
- * iOS-style segmented control for filter selection
- * Part of Minimalist Pro design system
- */
-
-import React from 'react';
-import { View, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
+import React, {useState, useRef} from 'react';
+import { View, TouchableOpacity, StyleSheet, LayoutChangeEvent } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   withSpring,
@@ -19,6 +13,8 @@ type SegmentedControlProps<T extends string> = {
   selectedSegment: T;
   onSegmentChange: (segment: T) => void;
   style?: any;
+  /** Optional formatter for segment labels (e.g., localization) */
+  labelFormatter?: (segment: T) => string;
 };
 
 export function SegmentedControl<T extends string>({
@@ -26,46 +22,58 @@ export function SegmentedControl<T extends string>({
   selectedSegment,
   onSegmentChange,
   style,
+  labelFormatter,
 }: SegmentedControlProps<T>) {
   const { colors, isDark } = useThemeTokens();
   const selectedIndex = segments.indexOf(selectedSegment);
-  const segmentWidth = (Dimensions.get('window').width - 48) / segments.length; // Account for padding
-  
-  const translateX = useSharedValue(selectedIndex * segmentWidth);
+  const [containerWidth, setContainerWidth] = useState<number | null>(null);
+  const segmentWidth = (containerWidth && containerWidth > 0)
+    ? Math.max((containerWidth - 6) / segments.length, 0) // account for container padding (3 left+right)
+    : Math.max(0, 0);
 
-  React.useEffect(() => {
-    translateX.value = withSpring(selectedIndex * segmentWidth, {
-      damping: 20,
-      stiffness: 200,
-    });
-  }, [selectedIndex, segmentWidth, translateX]);
+   const translateX = useSharedValue(selectedIndex * segmentWidth);
 
-  const indicatorStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: translateX.value }],
-  }));
+   React.useEffect(() => {
+    if (segmentWidth > 0) {
+      translateX.value = withSpring(selectedIndex * segmentWidth, {
+        damping: 20,
+        stiffness: 200,
+      });
+    }
+   }, [selectedIndex, segmentWidth, translateX]);
+
+   const indicatorStyle = useAnimatedStyle(() => ({
+     transform: [{ translateX: translateX.value }],
+   }));
+
+   const handleLayout = (e: LayoutChangeEvent) => {
+    const w = e.nativeEvent.layout.width;
+    if (w && w !== containerWidth) setContainerWidth(w);
+  };
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background.secondary }, style]}>
-      {/* Animated indicator */}
-      <Animated.View
-        style={[
-          styles.indicator,
-          {
-            width: segmentWidth,
-            backgroundColor: colors.background.primary,
-            shadowColor: isDark ? '#000' : '#000',
-          },
-          indicatorStyle,
-        ]}
-      />
-      
-      {/* Segments */}
-      {segments.map((segment, index) => {
-        const isSelected = segment === selectedSegment;
-        return (
+    <View onLayout={handleLayout} style={[styles.container, { backgroundColor: colors.background.secondary }, style]}>
+       {/* Animated indicator */}
+       <Animated.View
+         style={[
+           styles.indicator,
+           {
+            width: segmentWidth || '100%',
+             backgroundColor: colors.background.primary,
+             shadowColor: isDark ? '#000' : '#000',
+           },
+           indicatorStyle,
+         ]}
+         pointerEvents="none"
+       />
+
+       {/* Segments */}
+       {segments.map((segment) => {
+         const isSelected = segment === selectedSegment;
+         return (
           <TouchableOpacity
             key={segment}
-            style={[styles.segment, { width: segmentWidth }]}
+            style={[styles.segment, { width: segmentWidth || undefined, zIndex: 2 }]}
             onPress={() => onSegmentChange(segment)}
             activeOpacity={0.7}
           >
@@ -77,16 +85,16 @@ export function SegmentedControl<T extends string>({
                 textTransform: 'capitalize',
               }}
             >
-              {segment}
+              {labelFormatter ? labelFormatter(segment) : segment}
             </Text>
           </TouchableOpacity>
         );
       })}
-    </View>
-  );
-}
+     </View>
+   );
+ }
 
-const styles = StyleSheet.create({
+ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     borderRadius: 12,

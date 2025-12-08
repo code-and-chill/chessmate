@@ -4,7 +4,7 @@ import { VStack, Text, Card, Button } from '@/ui';
 export const PreferencesPanel: React.FC = () => {
   return (
     <VStack gap={4} fullWidth>
-      <Text variant="heading">Preferences</Text>
+      <Text variant="caption">Preferences</Text>
       <Card>
         <VStack gap={2}>
           <Text variant="body">Notifications: Enabled</Text>

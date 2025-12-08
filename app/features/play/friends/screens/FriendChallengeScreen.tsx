@@ -1,21 +1,15 @@
 import React, {useState, useEffect} from 'react';
-import {StyleSheet, TextInput, Share} from 'react-native';
+import {TextInput, Share} from 'react-native';
 import {useRouter} from 'expo-router';
-// AnimatedBlock removed — animations handled at DLS level when needed
 import {
     VStack,
     RatedToggle,
     Text,
-    spacingTokens,
-    spacingScale,
-    textVariants,
-    radiusTokens,
-    shadowTokens,
     FeatureScreenLayout,
 } from '@/ui';
 import {Panel} from '@/ui/primitives/Panel';
 import { Button } from '@/ui/primitives/Button';
-import ModeTabs from '../components/ModeTabs';
+import ModeTabs from '@/ui/components/ModeTabs';
 import Section from '../components/Section';
 import {useAuth} from '@/contexts/AuthContext';
 import {useGame} from '@/contexts/GameContext';

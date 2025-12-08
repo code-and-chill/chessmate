@@ -79,12 +79,20 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const createLocalGame = useCallback(async (options: LocalGameOptions) => {
     setIsCreatingGame(true);
     try {
-      return await playApi.createGame({
+      const game = await playApi.createGame({
         timeControl: options.timeControl,
         colorPreference: options.colorPreference,
         rated: options.rated ?? false,
         opponentAccountId: options.opponentAccountId,
       });
+
+      // Ensure the created game is tracked locally so UI updates and context consumers can see it
+      if (game && game.gameId) {
+        setActiveGames((prev: Map<string, GameState>) => new Map(prev).set(game.gameId, game as GameState));
+        setCurrentGameId(game.gameId);
+      }
+
+      return game as GameState;
     } finally {
       setIsCreatingGame(false);
     }

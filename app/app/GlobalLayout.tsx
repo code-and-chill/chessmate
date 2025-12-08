@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { View, StyleSheet, Platform, TouchableOpacity } from 'react-native';
 import { useState } from 'react';
 import { IconSymbol } from '@/ui/primitives/icon-symbol';
-import { Sidebar, type SidebarItem } from './Sidebar';
+import { Sidebar, type SidebarItem } from '@/ui/components/Sidebar';
 import { useThemeTokens } from '@/ui/hooks/useThemeTokens';
 
 const sidebarItems: SidebarItem[] = [
@@ -67,7 +67,7 @@ export function GlobalLayout({ children }: GlobalLayoutProps) {
       {/* Main Content */}
       <View style={styles.content}>{children}</View>
 
-      {/* Overlay for mobile when sidebar is open */}
+      {/* Overlay for mobile when the sidebar is open */}
       {Platform.OS !== 'web' && sidebarVisible && (
         <TouchableOpacity
           style={[styles.overlay, { backgroundColor: colors.overlay }]}

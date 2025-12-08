@@ -91,7 +91,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 - Removed direct mock client import
 - Uses `authApi` from `ApiContext` via `useApiClients()` hook
 - Auto-login now conditional on `useMockApi` flag
-- No more mock-specific methods like `getMockSession()`
+- No mock-only APIs are exposed; use the standardized `authApi.getSession()` or `authApi.login()` for session bootstrapping
 - Clean separation: only manages auth state, not client selection
 
 ## Architecture Benefits
@@ -201,8 +201,7 @@ npm start
 - [x] Remove `token` dependency from `ApiContext` (no more circular dependency)
 - [x] Update `AuthContext` to import `useApiClients` instead of direct mock import
 - [x] Replace `authClient` usage with `authApi` from context
-- [x] Update auto-login to use `authApi.login()` instead of `getMockSession()`
-- [x] Make auto-login conditional on `useMockApi` flag
+- [x] Update auto-login to use `authApi.getSession()` or `authApi.login()` instead of any mock-only helpers
 - [x] Fix TypeScript errors (LiveGameApiClient and PlayApiClient token parameters)
 - [x] Test auto-login functionality
 - [x] Test login/logout flows

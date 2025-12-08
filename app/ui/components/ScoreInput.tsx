@@ -1,8 +1,3 @@
-/**
- * ScoreInput Component
- * app/ui/components/ScoreInput.tsx
- */
-
 import { Box } from '../primitives/Box';
 import { Text } from '../primitives/Text';
 import { Button } from '../primitives/Button';

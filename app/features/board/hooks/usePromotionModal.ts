@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { parseFENToBoard } from '@/core/utils';
+import {fenToBoard} from "@/core/utils/chess/logic";
 
 export interface PromotionState {
   isVisible: boolean;
@@ -21,10 +21,9 @@ export function usePromotionModal(): [PromotionState, PromotionActions] {
   const checkPromotion = useCallback((
     from: string,
     to: string,
-    fen: string,
-    _sideToMove: 'w' | 'b'
+    fen: string
   ): boolean => {
-    const board = parseFENToBoard(fen);
+    const board = fenToBoard(fen);
     const fromRank = 8 - parseInt(from[1]);
     const fromFile = from.charCodeAt(0) - 'a'.charCodeAt(0);
     const piece = board[fromRank]?.[fromFile];

@@ -1,330 +1,188 @@
-import { useState, useCallback } from 'react';
-import { Pressable, Text, StyleSheet, View, useWindowDimensions } from 'react-native';
-import type { LayoutChangeEvent } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
-import Animated, { FadeInUp } from 'react-native-reanimated';
-import { 
-  GameActions, 
-  GameHeaderCard,
-  GameResultModal, 
-  PawnPromotionModal,
-  PlayerCard,
-  MoveList,
-  type PieceType 
-} from '@/features/game';
-import { createPlayScreenConfig, getHydratedBoardProps } from '@/features/board/config';
-import { ChessBoard } from '@/features/board/components/ChessBoard';
-import { useGameState, usePromotionModal, useGameTimer } from '@/features/board/hooks';
-import { useReducedMotion } from '@/features/board/hooks/useReducedMotion';
-import { Box } from '@/ui/primitives/Box';
-import { VStack } from '@/ui/primitives/Stack';
-import { Card } from '@/ui/primitives/Card';
-import { Panel } from '@/ui/primitives/Panel';
-import { Surface } from '@/ui/primitives/Surface';
-import { useThemeTokens } from '@/ui/hooks/useThemeTokens';
-import { spacingTokens } from '@/ui/tokens/spacing';
-import { getLayoutType, calculateBoardSize, type LayoutType } from '@/ui/layouts/ResponsiveGameLayout';
+import {useState, useCallback, useEffect, useMemo} from 'react';
+import {StyleSheet, View, Text} from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
+import {FadeInUp} from 'react-native-reanimated';
+import {GameResultModal, PawnPromotionModal, type PieceType} from '@/features/game';
+import {createPlayScreenConfig, getHydratedBoardProps} from '@/features/board/config';
+import {useGameState, usePromotionModal, useGameTimer} from '@/features/board/hooks';
+import {useReducedMotion} from '@/features/board/hooks/useReducedMotion';
+import {Box} from '@/ui/primitives/Box';
+import {VStack} from '@/ui/primitives/Stack';
+import {Surface} from '@/ui/primitives/Surface';
+import {useThemeTokens} from '@/ui/hooks/useThemeTokens';
+import {spacingTokens} from '@/ui/tokens/spacing';
+import {useBoardLayout} from '@/features/board/hooks/useBoardLayout';
+import {BoardColumn} from '@/features/board/components/BoardColumn';
+import {MovesColumn} from '@/features/board/components/MovesColumn';
+import {useGameParticipant} from '@/features/game/hooks/useGameParticipant';
+import {getPlayerColor} from '@/features/board/utils/getPlayerColor';
+import {useAuth} from '@/contexts/AuthContext';
+import {useBoardTheme} from '@/contexts/BoardThemeContext';
 
 export interface PlayScreenProps {
-  gameId?: string;
+    gameId?: string;
+    initialGame?: Partial<import('../hooks/useGameState').GameState> | null;
 }
 
-export function PlayScreen(_props: PlayScreenProps = {}): React.ReactElement {
-  const router = useRouter();
-  const { colors } = useThemeTokens();
-  const screenConfig = createPlayScreenConfig();
-  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
-  
-  // Custom hooks for separation of concerns
-  const [gameState, { makeMove, endGame }] = useGameState();
-  const [promotionState, promotionActions] = usePromotionModal();
-  const [timerState, { handleTimeExpire }] = useGameTimer(endGame);
-  
-  // UI state
-  const [showResultModal, setShowResultModal] = useState(false);
-  const reduceMotion = useReducedMotion();
-  
-  // Track measured content dimensions for accurate sizing (handles sidebar, collapsed states, etc.)
-  const [contentDimensions, setContentDimensions] = useState<{ width: number; height: number } | null>(null);
-  
-  // Handle layout measurement to get actual content area dimensions
-  const handleContentLayout = (event: LayoutChangeEvent) => {
-    const { width: measuredWidth, height: measuredHeight } = event.nativeEvent.layout;
-    // Only update if dimensions changed significantly (avoid unnecessary re-renders)
-    if (
-      !contentDimensions ||
-      Math.abs(measuredWidth - contentDimensions.width) > 1 ||
-      Math.abs(measuredHeight - contentDimensions.height) > 1
-    ) {
-      setContentDimensions({ width: measuredWidth, height: measuredHeight });
-    }
-  };
-  
-  // Use measured content dimensions, fall back to window dimensions on first render
-  const effectiveWidth = contentDimensions?.width ?? windowWidth;
-  const effectiveHeight = contentDimensions?.height ?? windowHeight;
-  
-  // Use standardized responsive layout utilities based on actual content width
-  const layoutType = getLayoutType(effectiveWidth);
-  const isHorizontalLayout = layoutType !== 'mobile';
-  const isDesktopLayout = layoutType === 'desktop';
-  
-  // Calculate board size using measured content dimensions
-  const { boardSize: BOARD_SIZE, squareSize: SQUARE_SIZE } = calculateBoardSize(
-    layoutType,
-    effectiveWidth,
-    effectiveHeight
-  );
+export function PlayScreen({ initialGame }: PlayScreenProps = {}): React.ReactElement {
+    const {colors} = useThemeTokens();
+    const { boardTheme, pieceTheme, isLoading: themeLoading } = useBoardTheme();
+    const screenConfig = createPlayScreenConfig({
+        theme: {
+            boardTheme: boardTheme as any,
+            pieceTheme: pieceTheme as any,
+        } as any,
+    });
 
-  /**
-   * Handle move from the chess board
-   * Checks for pawn promotion before making the move
-   */
-  const handleMove = useCallback(
-    (from: string, to: string) => {
-      const needsPromotion = promotionActions.checkPromotion(
-        from,
-        to,
-        gameState.fen,
-        gameState.sideToMove
-      );
+    const [gameState, gameActions] = useGameState(initialGame ?? undefined);
+    const {makeMove, endGame, offerDraw} = gameActions;
+    const auth = useAuth();
 
-      if (needsPromotion) {
-        promotionActions.showPromotion(from, to);
-        return;
-      }
+    const participant = useGameParticipant(gameState as any, auth?.user?.id ?? null);
+    const playerColor = getPlayerColor(participant);
 
-      makeMove(from, to);
-      
-      // Show result modal if game ended
-      if (gameState.status === 'ended') {
-        setShowResultModal(true);
-      }
-    },
-    [gameState.fen, gameState.sideToMove, gameState.status, makeMove, promotionActions]
-  );
+    const [promotionState, promotionActions] = usePromotionModal();
+    const [timerState, {handleTimeExpire}] = useGameTimer(endGame);
 
-  // Board props for BoardAndMovesContainer
-  const boardProps = {
-    ...getHydratedBoardProps(screenConfig),
-    fen: gameState.fen,
-    sideToMove: gameState.sideToMove,
-    myColor: gameState.sideToMove,
-    orientation: (gameState.sideToMove === 'w' ? 'white' : 'black') as 'white' | 'black',
-    lastMove: gameState.lastMove,
-    isInteractive: gameState.status === 'in_progress',
-    onMove: handleMove,
-  };
+    const [showResultModal, setShowResultModal] = useState(false);
+    const reduceMotion = useReducedMotion();
 
-  /**
-   * Handle pawn promotion selection
-   */
-  const handlePawnPromotion = useCallback(
-    (piece: PieceType) => {
-      if (!promotionState.move) return;
+    const {
+        boardSize: BOARD_SIZE,
+        squareSize: SQUARE_SIZE,
+        isHorizontalLayout,
+        boardColumnFlex,
+        movesColumnFlex,
+        onLayout: handleContentLayout,
+    } = useBoardLayout();
 
-      const { from, to } = promotionState.move;
-      makeMove(from, to, piece);
-      promotionActions.hidePromotion();
+    const handleMove = useCallback(
+        (from: string, to: string) => {
+            const needsPromotion = promotionActions.checkPromotion(from, to, gameState.fen, gameState.sideToMove);
+            if (needsPromotion) {
+                promotionActions.showPromotion(from, to);
+                return;
+            }
+            makeMove(from, to);
+        },
+        [promotionActions, makeMove, gameState.fen, gameState.sideToMove]
+    );
 
-      if (gameState.status === 'ended') {
-        setShowResultModal(true);
-      }
-    },
-    [promotionState.move, makeMove, promotionActions, gameState.status]
-  );
+    const boardProps = useMemo(() => {
+        const rawPlayers = (gameState as any).players as string[] | undefined;
+        const looksLikePlaceholderPlayers = Array.isArray(rawPlayers) && rawPlayers.length === 2 && rawPlayers.every(p => typeof p === 'string' && p.startsWith('Player'));
+        const isLocal = (gameState as any).isLocal || (gameState as any).mode === 'local' || looksLikePlaceholderPlayers || !auth?.user?.id;
+        const orientation = isLocal ? (gameState.sideToMove === 'w' ? 'white' : 'black') : (playerColor === 'w' ? 'white' : 'black');
+        const myColor = isLocal ? (gameState.sideToMove as any) : playerColor;
 
-  /**
-   * Handle player resignation
-   */
-  const handleResign = useCallback(() => {
-    const winner = gameState.sideToMove === 'w' ? '0-1' : '1-0';
-    const resigningPlayer = gameState.sideToMove === 'w' ? 'White' : 'Black';
-    endGame(winner, `${resigningPlayer} resigned`);
-    setShowResultModal(true);
-  }, [gameState.sideToMove, endGame]);
+        return {
+            ...getHydratedBoardProps(screenConfig),
+            fen: gameState.fen,
+            sideToMove: gameState.sideToMove,
+            myColor,
+            orientation,
+            isLocalGame: isLocal,
+            lastMove: gameState.lastMove,
+            isInteractive: gameState.status === 'in_progress',
+            onMove: handleMove,
+        };
+    }, [gameState, auth?.user?.id, playerColor, screenConfig, handleMove]);
 
-  /**
-   * Handle draw offer
-   */
-  const handleOfferDraw = useCallback(() => {
-    console.log('Draw offered - TODO: implement draw offer logic');
-  }, []);
+    const handlePawnPromotion = useCallback(
+        (piece: PieceType) => {
+            if (!promotionState.move) return;
+            const {from, to} = promotionState.move;
+            makeMove(from, to, piece);
+            promotionActions.hidePromotion();
+        },
+        [promotionState.move, makeMove, promotionActions]
+    );
 
-  /**
-   * Create animation configuration based on accessibility
-   */
-  const createAnimConfig = useCallback(
-    (delay: number) => (reduceMotion ? undefined : FadeInUp.duration(250).delay(delay)),
-    [reduceMotion]
-  );
+    const handleResign = useCallback(() => {
+        const winner = gameState.sideToMove === 'w' ? '0-1' : '1-0';
+        const resigningPlayer = gameState.sideToMove === 'w' ? 'White' : 'Black';
+        endGame(winner, `${resigningPlayer} resigned`);
+    }, [gameState.sideToMove, endGame]);
 
-  return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background.primary }]}>
-      <View style={styles.container}>
-        {/* Floating Gear Icon - Theme Settings */}
-        <Pressable
-          style={[styles.gearButton, { backgroundColor: colors.accent.primary }]}
-          onPress={() => router.push('/settings/board-theme')}
-        >
-          <Text style={styles.gearIcon}>⚙️</Text>
-        </Pressable>
+    const handleOfferDraw = useCallback(() => offerDraw(), [offerDraw]);
 
-        <Surface variant="subtle" style={{ flex: 1 }}>
-          <Box 
-            flex={1} 
-            style={{ paddingHorizontal: spacingTokens[1], paddingTop: spacingTokens[2] }}
-            onLayout={handleContentLayout}
-          >
-            <VStack flex={1} gap={spacingTokens[2]}>
-              {/* Game Header */}
-              <GameHeaderCard
-                status={gameState.status === 'in_progress' ? 'live' : 'ended'}
-                gameMode="Blitz"
-                timeControl="10+0"
-                isRated={true}
-              />
+    const createAnimConfig = useCallback((delay: number) => (reduceMotion ? undefined : FadeInUp.duration(250).delay(delay)), [
+        reduceMotion,
+    ]);
 
-              {/* Main Game Area - Responsive Layout (chess.com style - board fills screen) */}
-              <Box style={{ 
-                flexDirection: isHorizontalLayout ? 'row' : 'column', 
-                flex: 1, 
-                gap: spacingTokens[2],
-                alignItems: 'stretch',
-              }}>
-                {/* Board Column (70% on desktop, 65% on tablet - chess.com style) */}
-                <VStack 
-                  flex={isHorizontalLayout ? (isDesktopLayout ? 0.70 : 0.65) : 1} 
-                  gap={spacingTokens[1]}
-                  style={{ 
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                  }}
-                >
-                  {/* Top Player Card (Opponent) */}
-                  <Animated.View entering={createAnimConfig(0)} style={{ width: BOARD_SIZE }}>
-                    <PlayerCard
-                      color="b"
-                      name="Opponent"
-                      rating={1500}
-                      isSelf={false}
-                      isActive={gameState.sideToMove === 'b'}
-                      remainingMs={timerState.blackTimeMs}
-                      capturedPieces={gameState.capturedByWhite}
-                      onTimeExpire={() => handleTimeExpire('b')}
-                    />
-                  </Animated.View>
+    useEffect(() => setShowResultModal(gameState.status === 'ended' && !!gameState.result), [gameState.status, gameState.result]);
 
-                  {/* Chess Board */}
-                  <Animated.View entering={createAnimConfig(50)} style={{ width: BOARD_SIZE, height: BOARD_SIZE }}>
-                    <ChessBoard
-                      {...boardProps}
-                      size={BOARD_SIZE}
-                      squareSize={SQUARE_SIZE}
-                    />
-                  </Animated.View>
+    return (
+        <SafeAreaView style={[styles.container, {backgroundColor: colors.background.primary}]}>
+            <View style={styles.container}>
+                {isHorizontalLayout ? (
+                    <Box style={{ flexDirection: 'row', flex: 1, gap: spacingTokens[2], alignItems: 'stretch' }}>
+                        <BoardColumn
+                            boardSize={BOARD_SIZE}
+                            squareSize={SQUARE_SIZE}
+                            boardProps={boardProps}
+                            gameState={gameState}
+                            timerState={timerState}
+                            onTimeExpire={handleTimeExpire}
+                            onResign={handleResign}
+                            onOfferDraw={handleOfferDraw}
+                            drawOfferPending={gameState.offerPending ?? false}
+                            anim={createAnimConfig}
+                            isCompact={true}
+                            flex={boardColumnFlex}
+                            colors={colors}
+                        />
 
-                  {/* Bottom Player Card (You) */}
-                  <Animated.View entering={createAnimConfig(150)} style={{ width: BOARD_SIZE }}>
-                    <PlayerCard
-                      color="w"
-                      name="Player"
-                      rating={1450}
-                      isSelf={true}
-                      isActive={gameState.sideToMove === 'w'}
-                      remainingMs={timerState.whiteTimeMs}
-                      capturedPieces={gameState.capturedByBlack}
-                      onTimeExpire={() => handleTimeExpire('w')}
-                    />
-                  </Animated.View>
+                        <MovesColumn moves={gameState.moves} anim={createAnimConfig(100)} flex={movesColumnFlex} />
+                    </Box>
+                ) : (
+                    <VStack flex={1} gap={spacingTokens[2]}>
+                        <BoardColumn
+                            boardSize={BOARD_SIZE}
+                            squareSize={SQUARE_SIZE}
+                            boardProps={boardProps}
+                            gameState={gameState}
+                            timerState={timerState}
+                            onTimeExpire={handleTimeExpire}
+                            onResign={handleResign}
+                            onOfferDraw={handleOfferDraw}
+                            drawOfferPending={gameState.offerPending ?? false}
+                            anim={createAnimConfig}
+                            isCompact={false}
+                            flex={boardColumnFlex}
+                            colors={colors}
+                        />
 
-                  {/* Game Actions (mobile only - shown below board) */}
-                  {!isHorizontalLayout && (
-                    <Animated.View entering={createAnimConfig(200)} style={{ width: BOARD_SIZE }}>
-                      <GameActions
-                        status={gameState.status}
-                        result={gameState.result}
-                        endReason={gameState.endReason}
-                        sideToMove={gameState.sideToMove}
-                        onResign={handleResign}
-                        onOfferDraw={handleOfferDraw}
-                      />
-                    </Animated.View>
-                  )}
-                </VStack>
+                        <MovesColumn moves={gameState.moves} anim={createAnimConfig(100)} flex={movesColumnFlex} />
+                    </VStack>
+                )}
 
-                {/* Move List - Glassmorphic Panel on desktop (30%), Card on tablet (35%) - chess.com style */}
-                <Animated.View 
-                  entering={createAnimConfig(100)} 
-                  style={{ 
-                    flex: isHorizontalLayout ? (isDesktopLayout ? 0.30 : 0.35) : 0,
-                    minHeight: isHorizontalLayout ? 0 : 200,
-                    maxHeight: isHorizontalLayout ? undefined : 300,
-                    alignSelf: 'stretch',
-                  }}
-                >
-                  {isDesktopLayout ? (
-                    <Panel variant="glass" padding={0} style={{ flex: 1, overflow: 'hidden' }}>
-                      <MoveList moves={gameState.moves} />
-                    </Panel>
-                  ) : (
-                    <Card variant="default" size="md" padding={0} style={{ flex: 1 }}>
-                      <MoveList moves={gameState.moves} />
-                    </Card>
-                  )}
-                </Animated.View>
-              </Box>
-            </VStack>
-          </Box>
-        </Surface>
+                {__DEV__ && (
+                    <View style={{ position: 'absolute', top: 12, right: 12, backgroundColor: 'rgba(0,0,0,0.6)', padding: 8, borderRadius: 6 }}>
+                        <View style={{ maxWidth: 220 }}>
+                            <View style={{ marginBottom: 6 }}>
+                                <Text style={{ color: '#fff', fontSize: 12 }}>isLocal: {(gameState as any).isLocal ? 'true' : 'false'}</Text>
+                                <Text style={{ color: '#fff', fontSize: 12 }}>sideToMove: {String(gameState.sideToMove)}</Text>
+                                <Text style={{ color: '#fff', fontSize: 12 }}>orientation: {String(boardProps.orientation)}</Text>
+                                <Text style={{ color: '#fff', fontSize: 12 }}>myColor: {String(boardProps.myColor)}</Text>
+                                <Text style={{ color: '#fff', fontSize: 12 }}>status: {String(gameState.status)}</Text>
+                            </View>
+                        </View>
+                    </View>
+                )}
 
-        {/* Modals */}
-        <PawnPromotionModal
-          visible={promotionState.isVisible}
-          color={gameState.sideToMove}
-          onSelect={handlePawnPromotion}
-          onCancel={promotionActions.hidePromotion}
-        />
+                <PawnPromotionModal visible={promotionState.isVisible} color={gameState.sideToMove}
+                                    onSelect={handlePawnPromotion} onCancel={promotionActions.hidePromotion}/>
 
-        {gameState.result && (
-          <GameResultModal
-            visible={showResultModal}
-            result={gameState.result}
-            reason={gameState.endReason}
-            isPlayerWhite={true}
-            onClose={() => setShowResultModal(false)}
-          />
-        )}
-      </View>
-    </SafeAreaView>
-  );
+                {gameState.result && (
+                    <GameResultModal visible={showResultModal} result={gameState.result} reason={gameState.endReason}
+                                     isPlayerWhite={playerColor === 'w'} onClose={() => setShowResultModal(false)}/>
+                )}
+            </View>
+        </SafeAreaView>
+    );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-  },
-  container: {
-    flex: 1,
-  },
-  gearButton: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 9999,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 12,
-  },
-  gearIcon: {
-    fontSize: 28,
-  },
+    container: {flex: 1},
 });

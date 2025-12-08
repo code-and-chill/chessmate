@@ -1,34 +1,12 @@
-/**
- * Piece Component
- * 
- * Renders individual chess pieces with theme support.
- * Handles both SVG and emoji-based piece sets.
- * 
- * Features:
- * - Multi-theme support via registry
- * - Dynamic sizing and coloring
- * - Performance optimized with React.memo
- * - Graceful fallback for missing pieces
- * - Accessibility labels
- * 
- * @see docs/PIECE_SYSTEM_UPGRADE_PLAN.md
- */
-
 import React, { useMemo } from 'react';
-import { View, Text, StyleSheet, Platform } from 'react-native';
+import { View, StyleSheet, Platform } from 'react-native';
 import type { PieceProps } from '../types/pieces';
-import { pieceSets } from '../config/pieceSetRegistry';
-import { getPieceName } from '../types/pieces';
+import { pieceSets } from '@/features/board';
+import { getPieceName, parsePieceKey } from '../types/pieces';
+import Animated, { Easing, useAnimatedStyle, useSharedValue, withSequence, withTiming } from 'react-native-reanimated';
+import { enhancedMotionTokens } from '@/ui/tokens/enhanced-motion';
+import { shadowTokens } from '@/ui/tokens/shadows';
 
-/**
- * Piece Component
- * 
- * @example
- * ```tsx
- * <Piece piece="wK" theme="minimal" size={45} />
- * <Piece piece="bQ" theme="minimal" size={60} color="#667EEA" />
- * ```
- */
 export const Piece = React.memo<PieceProps>(({
   piece,
   theme,
@@ -36,19 +14,71 @@ export const Piece = React.memo<PieceProps>(({
   color = 'currentColor',
   style,
   accessibilityLabel,
+  animation,
 }) => {
-  // Get piece set, fallback to minimal if theme not found
-  const pieceSet = useMemo(() => {
-    if (!pieceSets[theme]) {
-      if (__DEV__) {
-        console.warn(`Piece theme "${theme}" not found, falling back to minimal`);
-      }
-      return pieceSets.minimal || pieceSets.classic;
+  // Shared animation values
+  const translateX = useSharedValue(0);
+  const translateY = useSharedValue(0);
+  const scale = useSharedValue(1);
+  const opacity = useSharedValue(1);
+
+  const getScreenPosition = (file: number, rank: number, orientation: 'white' | 'black', squareSize: number) => {
+    const displayFile = orientation === 'white' ? file : 7 - file;
+    const displayRank = orientation === 'white' ? 7 - rank : rank;
+    return {
+      x: displayFile * squareSize,
+      y: displayRank * squareSize,
+    };
+  };
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [
+      { translateX: translateX.value },
+      { translateY: translateY.value },
+      { scale: scale.value },
+    ],
+    opacity: opacity.value,
+  }));
+
+  const { fromFile, fromRank, toFile, toRank, squareSize, orientation, isCapture, isOverlay = false } = animation;
+
+  // Compute positions
+  const fromPos = getScreenPosition(fromFile, fromRank, orientation, squareSize);
+  const toPos = getScreenPosition(toFile, toRank, orientation, squareSize);
+  const deltaX = toPos.x - fromPos.x;
+  const deltaY = toPos.y - fromPos.y;
+
+  React.useEffect(() => {
+    translateX.value = withTiming(deltaX, {
+      duration: enhancedMotionTokens.duration.normal,
+      easing: Easing.out(Easing.cubic),
+    });
+
+    translateY.value = withTiming(deltaY, {
+      duration: enhancedMotionTokens.duration.normal,
+      easing: Easing.out(Easing.cubic),
+    });
+
+    if (isCapture) {
+      scale.value = withSequence(
+        withTiming(1.15, { duration: 100 }),
+        withTiming(1, { duration: 150 })
+      );
     }
-    return pieceSets[theme];
+  }, [deltaX, deltaY, isCapture, translateX, translateY, scale]);
+
+  // Get piece set (fall back to minimal for missing or emoji themes)
+  const pieceSet = useMemo(() => {
+    const set = pieceSets[theme];
+    if (!set || set.type === 'emoji') {
+      if (__DEV__ && set?.type === 'emoji') {
+        console.warn(`Piece theme "${theme}" is emoji-based and deprecated; falling back to 'minimal' SVG theme.`);
+      }
+      return pieceSets.minimal;
+    }
+    return set;
   }, [theme]);
 
-  // Get piece component/emoji from set
   const PieceComponent = useMemo(() => {
     const component = pieceSet.pieces[piece];
     if (!component) {
@@ -58,48 +88,115 @@ export const Piece = React.memo<PieceProps>(({
       return null;
     }
     return component;
-  }, [pieceSet, piece]);
+  }, [pieceSet.pieces, piece, theme]);
 
-  if (!PieceComponent) {
-    return null;
-  }
+  const shouldRenderPlaceholder = false;
 
-  // Generate accessibility label
   const a11yLabel = accessibilityLabel || getPieceName(piece);
 
-  // Handle emoji pieces (classic theme)
-  if (pieceSet.type === 'emoji') {
+  if (isOverlay) {
     return (
-      <View
-        style={[styles.container, { width: size, height: size }, style]}
+      <Animated.View
+        style={[
+          {
+            position: 'absolute',
+            width: squareSize,
+            height: squareSize,
+            left: fromPos.x,
+            top: fromPos.y,
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 1000,
+            ...shadowTokens.sm,
+          },
+          animatedStyle,
+        ]}
         accessible
         accessibilityLabel={a11yLabel}
         accessibilityRole="image"
       >
-        <Text style={[styles.emoji, { fontSize: size * 0.85, color }]}>
-          {PieceComponent}
-        </Text>
-      </View>
+        <View style={[styles.container, { width: size, height: size }, style]}>
+          {shouldRenderPlaceholder ? (
+            <View
+              style={{
+                width: size,
+                height: size,
+                borderRadius: size / 2,
+                backgroundColor: color || 'rgba(0,0,0,0.1)',
+              }}
+            />
+          ) : (
+            (() => {
+              const { color: pieceColor } = parsePieceKey(piece);
+              const strokeColor = pieceColor === 'w' ? '#000' : color;
+              const strokeWidth = Math.max(0.5, Math.round(size * 0.06));
+              return (
+                <PieceComponent
+                  width={size}
+                  height={size}
+                  color={color}
+                  fill={color}
+                  stroke={strokeColor}
+                  strokeWidth={strokeWidth}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  style={styles.svg}
+                />
+              );
+            })()
+          )}
+        </View>
+      </Animated.View>
     );
   }
 
-  // Handle SVG pieces
   return (
-    <View
-      style={[styles.container, { width: size, height: size }, style]}
+    <Animated.View
+      style={[
+        {
+          width: size,
+          height: size,
+          justifyContent: 'center',
+          alignItems: 'center',
+        },
+        animatedStyle,
+      ]}
       accessible
       accessibilityLabel={a11yLabel}
       accessibilityRole="image"
     >
-      <PieceComponent
-        width={size}
-        height={size}
-        color={color}
-        fill={color}
-        stroke={color}
-        style={styles.svg}
-      />
-    </View>
+      <View style={[styles.container, { width: size, height: size }, style]}>
+        {shouldRenderPlaceholder ? (
+          <View
+            style={{
+              width: size,
+              height: size,
+              borderRadius: size / 2,
+              backgroundColor: color || 'rgba(0,0,0,0.1)',
+            }}
+          />
+        ) : (
+          (() => {
+            const { color: pieceColor } = parsePieceKey(piece);
+            const strokeColor = pieceColor === 'w' ? '#000' : color;
+            const strokeWidth = Math.max(0.5, Math.round(size * 0.06));
+            return (
+              <PieceComponent
+                width={size}
+                height={size}
+                color={color}
+                fill={color}
+                stroke={strokeColor}
+                strokeWidth={strokeWidth}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                style={styles.svg}
+              />
+            );
+          })()
+        )}
+      </View>
+    </Animated.View>
   );
 });
 
@@ -124,9 +221,5 @@ const styles = StyleSheet.create({
   svg: {
     width: '100%',
     height: '100%',
-  },
-  emoji: {
-    textAlign: 'center',
-    lineHeight: undefined, // Let platform handle it
   },
 });

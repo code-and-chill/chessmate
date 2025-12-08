@@ -20,6 +20,17 @@
 
 ## Design Tokens
 
+> **Note (DEPRECATION):** The legacy file `app/ui/design-tokens.ts` has been deprecated. Please import tokens from the canonical files under `app/ui/tokens/` (for example `app/ui/tokens/colors.ts`, `app/ui/tokens/typography.ts`, `app/ui/tokens/spacing.ts`). The repository includes a short compatibility shim in `app/ui/design-tokens.ts` while code is migrated.
+
+Example canonical imports:
+
+```ts
+import { semanticColors } from '@/ui/tokens/colors';
+import { typographyTokens, textVariants } from '@/ui/tokens/typography';
+import { spacingTokens } from '@/ui/tokens/spacing';
+```
+
+
 ### 1. Color Tokens
 
 ```typescript

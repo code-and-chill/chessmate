@@ -1,4 +1,5 @@
-import { StyleSheet, TouchableOpacity } from 'react-native';
+import { StyleSheet } from 'react-native';
+import { InteractivePressable } from '@/ui';
 import { useRouter, usePathname } from 'expo-router';
 import Animated, {
   useAnimatedStyle,
@@ -115,7 +116,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ items, onItemPress }) => {
             </Box>
 
             {/* Logout Button */}
-            <TouchableOpacity
+            <InteractivePressable
               onPress={handleLogout}
               style={{
                 ...styles.authButton,
@@ -131,12 +132,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ items, onItemPress }) => {
               >
                 Logout
               </Text>
-            </TouchableOpacity>
+            </InteractivePressable>
           </>
         ) : (
           <>
             {/* Login Button */}
-            <TouchableOpacity
+            <InteractivePressable
               onPress={() => router.push('/login')}
               style={{
                 ...styles.authButton,
@@ -152,10 +153,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ items, onItemPress }) => {
               >
                 Sign In
               </Text>
-            </TouchableOpacity>
+            </InteractivePressable>
 
             {/* Sign Up Button */}
-            <TouchableOpacity
+            <InteractivePressable
               onPress={() => router.push('/register')}
               style={{
                 ...styles.authButton,
@@ -171,7 +172,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ items, onItemPress }) => {
               >
                 Sign Up
               </Text>
-            </TouchableOpacity>
+            </InteractivePressable>
           </>
         )}
       </Box>
@@ -209,12 +210,7 @@ const SidebarItem: React.FC<SidebarItemProps> = ({ item, isActive, onPress }) =>
 
   return (
     <Animated.View style={animatedStyle}>
-      <TouchableOpacity
-        onPress={onPress}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
-        activeOpacity={0.9}
-      >
+      <InteractivePressable onPress={onPress} onPressIn={handlePressIn} onPressOut={handlePressOut}>
         <Box
           padding={3}
           shadow={isActive ? 'sm' : undefined}
@@ -245,7 +241,7 @@ const SidebarItem: React.FC<SidebarItemProps> = ({ item, isActive, onPress }) =>
             </Text>
           </Box>
         </Box>
-      </TouchableOpacity>
+      </InteractivePressable>
     </Animated.View>
   );
 };

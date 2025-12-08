@@ -1,8 +1,3 @@
-/**
- * RoundSelector Component
- * app/ui/components/RoundSelector.tsx
- */
-
 import { Pressable, ScrollView } from 'react-native';
 import { Box } from '../primitives/Box';
 import { Text } from '../primitives/Text';

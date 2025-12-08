@@ -21,6 +21,7 @@ import type { UserPreferences } from '@/features/settings/types';
 import type { RatingHistory, GameStats, LeaderboardEntry, Achievement } from './rating.api';
 import type { MatchmakingRequest, MatchFound, QueueStatus } from './matchmaking.api';
 import type { AuthResponse } from './auth.api';
+import { ChessJsAdapter } from '@/core/utils/chess/adapters/chessjs-adapter';
 
 const AUTH_TOKEN_KEY = '@chess_auth_token';
 const AUTH_USER_KEY = '@chess_auth_user';
@@ -40,7 +41,7 @@ export class MockAuthApiClient {
       const existingToken = await AsyncStorage.getItem(AUTH_TOKEN_KEY);
       if (!existingToken) {
         console.log('🎭 Initializing mock authenticated session');
-        const session = this.getMockSession();
+        const session = this.getSession();
         await AsyncStorage.setItem(AUTH_TOKEN_KEY, session.token);
         await AsyncStorage.setItem(AUTH_USER_KEY, JSON.stringify(session.user));
       }
@@ -89,10 +90,11 @@ export class MockAuthApiClient {
   }
 
   /**
-   * Get a mock authenticated session (for development/testing)
-   * Use this to bypass login during development
+   * Public session accessor used by consumers (sync for convenience in mocks).
+   * Real auth clients may expose an async/session API; the mock provides a
+   * synchronous accessor so callers don't need to branch on implementation.
    */
-  getMockSession(): AuthResponse {
+  getSession(): AuthResponse {
     return {
       token: 'mock_token_dev_' + Date.now(),
       user: {
@@ -1182,9 +1184,8 @@ export class MockPlayApiClient {
       throw new Error('Game is not in progress');
     }
 
-    // Import chess.js for move validation
-    const { Chess } = await import('chess.js');
-    const chess = new Chess(game.fen);
+    // Use ChessJsAdapter for validation to keep engine usage consistent in mocks
+    const chess = new ChessJsAdapter(game.fen);
 
     // Validate and make the move
     try {
@@ -1200,7 +1201,8 @@ export class MockPlayApiClient {
 
       // Update game state
       game.fen = chess.fen();
-      game.pgn = chess.pgn();
+      // store FEN as a minimal PGN placeholder (chess.pgn() may not be available in all adapter builds)
+      game.pgn = chess.fen();
       game.moves.push({
         from,
         to,

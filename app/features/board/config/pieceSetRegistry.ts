@@ -123,7 +123,7 @@ import SketchBP from '@/assets/pieces/sketch/bP.svg';
 
 /**
  * Minimal Flat Theme
- * 
+ *
  * Lichess-inspired clean outlines with thin strokes.
  * Best for: mobile devices, minimalist aesthetic, light/dark mode.
  */
@@ -346,34 +346,6 @@ export const sketchPieceSet: PieceSet = {
 };
 
 /**
- * Classic Theme (Emoji Fallback)
- * 
- * Unicode emoji pieces for backward compatibility.
- * DEPRECATED: Will be removed after SVG migration complete.
- */
-export const classicPieceSet: PieceSet = {
-  name: 'classic',
-  displayName: 'Classic',
-  description: 'Unicode emoji pieces (legacy)',
-  premium: false,
-  type: 'emoji',
-  pieces: {
-    wK: '♔' as any,
-    wQ: '♕' as any,
-    wR: '♖' as any,
-    wB: '♗' as any,
-    wN: '♘' as any,
-    wP: '♙' as any,
-    bK: '♚' as any,
-    bQ: '♛' as any,
-    bR: '♜' as any,
-    bB: '♝' as any,
-    bN: '♞' as any,
-    bP: '♟' as any,
-  },
-};
-
-/**
  * Central Piece Set Registry
  * 
  * Add new themes here as they're implemented.
@@ -383,7 +355,6 @@ export const pieceSets: Record<PieceTheme, PieceSet> = {
   minimal: minimalPieceSet,
   solid: solidPieceSet,
   outline: outlinePieceSet,
-  classic: classicPieceSet,
   neon: neonPieceSet,
   glass: glassPieceSet,
   wood: woodPieceSet,
@@ -418,7 +389,7 @@ export const getAvailableThemes = (): PieceTheme[] => {
 };
 
 /**
- * Check if theme is available
+ * Check if a theme is available
  * 
  * @param theme - Theme identifier to check
  * @returns True if theme exists in registry

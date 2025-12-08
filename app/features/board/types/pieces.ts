@@ -1,13 +1,5 @@
-/**
- * ChessMate Piece System Types
- * 
- * Type definitions for the SVG-based piece rendering system.
- * Supports multiple themes with extensible architecture.
- * 
- * @see docs/PIECE_SYSTEM_UPGRADE_PLAN.md
- */
-
 import type { SvgProps } from 'react-native-svg';
+import type { Piece as EnginePiece } from '@/core/utils/chess';
 
 /**
  * Standard chess piece notation (12 keys)
@@ -26,13 +18,6 @@ export type PieceKey =
   | 'wK' | 'wQ' | 'wR' | 'wB' | 'wN' | 'wP'
   | 'bK' | 'bQ' | 'bR' | 'bB' | 'bN' | 'bP';
 
-/**
- * Available piece theme styles
- * 
- * Theme categories:
- * - SVG themes: minimal, solid, outline (lightweight, scalable)
- * - PNG themes: glass, wood, marble (textured, premium)
- */
 export type PieceTheme = 
   | 'minimal'  // Lichess-style thin outlines
   | 'solid'    // Material Design filled silhouettes
@@ -40,7 +25,9 @@ export type PieceTheme =
   | 'classic'  // Emoji fallback (deprecated)
   | 'neon'     // Future: Glowing edges
   | 'glass'    // Future: Translucent PNG
-  | 'wood';    // Future: Wood texture PNG
+  | 'wood'     // Future: Wood texture PNG
+  | 'pixel'    // Retro pixel art theme
+  | 'sketch';  // Hand-drawn sketch theme
 
 /**
  * Piece set definition
@@ -88,6 +75,22 @@ export interface PieceProps {
   
   /** Accessibility label */
   accessibilityLabel?: string;
+
+  animation: {
+    fromFile: number;
+    fromRank: number;
+    toFile: number;
+    toRank: number;
+    squareSize: number;
+    orientation: 'white' | 'black';
+    /**
+     * When true, the animation coordinates are interpreted as board-level absolute
+     * positions and the piece will be rendered as an overlay positioned over the board.
+     * When false, the piece renders inline inside its parent square (no absolute left/top).
+     */
+    isOverlay?: boolean;
+    isCapture: boolean;
+  };
 }
 
 /**
@@ -142,3 +145,10 @@ export const ALL_PIECE_KEYS: PieceKey[] = [
   'wK', 'wQ', 'wR', 'wB', 'wN', 'wP',
   'bK', 'bQ', 'bR', 'bB', 'bN', 'bP',
 ];
+
+
+export type Piece = EnginePiece;
+
+export const getPieceKey = (piece: Piece): PieceKey => {
+    return buildPieceKey(piece.color, piece.type);
+};

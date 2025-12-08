@@ -5,7 +5,7 @@
 
 import type { RuntimeConfig, Environment, LogLevel } from './types';
 import { getConfigForEnvironment } from './environments';
-import { validateConfig, assertValidConfig } from './validator';
+import { validateConfig } from './validator';
 import { initializeConfigStore } from './store';
 
 /**

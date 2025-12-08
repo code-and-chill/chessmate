@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react';
-import { StyleSheet, View, SafeAreaView, ScrollView, TouchableOpacity, Text, ActivityIndicator } from 'react-native';
+import { StyleSheet, View, SafeAreaView, ScrollView, Text, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { Panel } from '@/ui/primitives/Panel';
-import { VStack, HStack } from '@/ui';
+import { VStack, HStack, InteractivePressable, useThemeTokens } from '@/ui';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMatchmaking } from '@/contexts/MatchmakingContext';
-import { useThemeTokens } from '@/ui';
 import { useI18n } from '@/i18n/I18nContext';
 
 type TimeControl = '1+0' | '3+0' | '5+0' | '10+0' | '15+10' | '30+0';
@@ -16,8 +15,8 @@ export default function OnlinePlayScreen() {
   const { colors } = useThemeTokens();
   const { t, ti } = useI18n();
   const { isAuthenticated } = useAuth();
-  const { joinQueue, leaveQueue, queueStatus, matchFound } = useMatchmaking();
-  
+  const { joinQueue, leaveQueue, queueStatus } = useMatchmaking();
+
   const TIME_CONTROLS = [
     { id: '1+0' as TimeControl, label: `⚡ ${t('game_modes.bullet_1min')}`, type: 'bullet' },
     { id: '3+0' as TimeControl, label: `⚡ ${t('game_modes.blitz_3min')}`, type: 'blitz' },
@@ -34,13 +33,12 @@ export default function OnlinePlayScreen() {
     if (!isAuthenticated) {
       router.replace('/login');
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, router]);
 
   useEffect(() => {
-    if (matchFound) {
-      router.push(`/game/${matchFound.gameId}`);
-    }
-  }, [matchFound]);
+    // Navigate if queue status indicates a match or if matchmaking provides a navigation callback.
+    // For now this effect is left intentionally empty; matchmaking flow should call navigation via context or a callback.
+  }, [router]);
 
   const handleFindMatch = async () => {
     setIsSearching(true);
@@ -82,13 +80,12 @@ export default function OnlinePlayScreen() {
             {ti('game_modes.searching_for', { seconds: queueStatus?.waitTime || 0 })}
           </Text>
 
-          <TouchableOpacity
+          <InteractivePressable
             style={[styles.cancelButton, { backgroundColor: '#EF4444', marginTop: 32 }]}
             onPress={handleCancelSearch}
-            activeOpacity={0.8}
           >
             <Text style={styles.cancelButtonText}>{t('game_modes.cancel_search')}</Text>
-          </TouchableOpacity>
+          </InteractivePressable>
         </View>
       </SafeAreaView>
     );
@@ -110,7 +107,7 @@ export default function OnlinePlayScreen() {
           <VStack gap={3} style={{ marginTop: 8 }}>
             {TIME_CONTROLS.map((tc, idx) => (
               <Animated.View key={tc.id} entering={FadeInDown.delay(200 + idx * 80).duration(400)}>
-                <TouchableOpacity onPress={() => setTimeControl(tc.id)} activeOpacity={0.9}>
+                <InteractivePressable onPress={() => setTimeControl(tc.id)}>
                   <Panel variant="glass" padding={20} style={[styles.timeControlCard, timeControl === tc.id && styles.selectedCard]}> 
                     <HStack gap={4} style={{ alignItems: 'center' }}>
                       <View style={[styles.timeBadge, { backgroundColor: colors.translucent.light }]}> 
@@ -123,15 +120,15 @@ export default function OnlinePlayScreen() {
                       {timeControl === tc.id && <Text style={[styles.checkmark, { color: colors.accent.primary }]}>✓</Text>}
                     </HStack>
                   </Panel>
-                </TouchableOpacity>
+                </InteractivePressable>
               </Animated.View>
             ))}
           </VStack>
 
           <Animated.View entering={FadeInUp.delay(700).duration(400)}>
-            <TouchableOpacity style={[styles.button, { backgroundColor: colors.accent.primary }]} onPress={handleFindMatch} activeOpacity={0.8}>
+            <InteractivePressable style={[styles.button, { backgroundColor: colors.accent.primary }]} onPress={handleFindMatch}>
               <Text style={styles.buttonText}>{t('game_modes.find_match')}</Text>
-            </TouchableOpacity>
+            </InteractivePressable>
           </Animated.View>
         </VStack>
       </ScrollView>

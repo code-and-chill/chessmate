@@ -18,9 +18,6 @@
  */
 
 export { ChessBoard } from './components/ChessBoard';
-export { Piece } from './components/Piece';
-export { BoardAndMovesContainer } from './components/BoardAndMovesContainer';
-export type { BoardAndMovesContainerProps } from './components/BoardAndMovesContainer';
 export { PlayScreen } from './screens/PlayScreen';
 export type { PlayScreenProps } from './screens/PlayScreen';
 
@@ -33,11 +30,9 @@ export {
 } from './config/pieceSetRegistry';
 
 // Types
-export type { BoardProps, Square, Piece } from './types/board.types';
 export type { 
   PieceKey, 
-  PieceTheme, 
-  PieceSet, 
+  PieceSet,
   PieceProps 
 } from './types/pieces';
 export { 
@@ -48,4 +43,5 @@ export {
 } from './types/pieces';
 
 // Component prop types (for advanced usage)
-export type { ChessBoardProps, Color } from './components/ChessBoard';
+export type { ChessBoardProps } from './components/ChessBoard';
+export type { Color } from '@/core/utils/chess';

@@ -1,11 +1,3 @@
-/**
- * Avatar Primitive Component
- * app/ui/primitives/Avatar.tsx
- * 
- * Theme-aware avatar with image support and status indicator.
- * Compliance: 90% (theme-aware, aligned sizes, image support, status indicator)
- */
-
 import { View, Image } from 'react-native';
 import { Text } from './Text';
 import { useColors } from '../hooks/useThemeTokens';

@@ -2,20 +2,17 @@ import React, { createContext, useContext, useState, useEffect, type ReactNode }
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   BoardTheme,
-  ThemeMode,
-  PieceTheme,
   getBoardColors,
   defaultThemeConfig,
   BoardColors,
 } from '@/features/board/config/themeConfig';
+import type { PieceTheme } from '@/features/board/types/pieces';
 
 const STORAGE_KEY = '@chessmate:board_theme';
 
 type BoardThemeContextType = {
-  mode: ThemeMode;
   boardTheme: BoardTheme;
   pieceTheme: PieceTheme;
-  setMode: (mode: ThemeMode) => void;
   setBoardTheme: (theme: BoardTheme) => void;
   setPieceTheme: (theme: PieceTheme) => void;
   getBoardColors: () => BoardColors;
@@ -29,9 +26,8 @@ interface BoardThemeProviderProps {
 }
 
 export const BoardThemeProvider: React.FC<BoardThemeProviderProps> = ({ children }) => {
-  const [mode, setModeState] = useState<ThemeMode>(defaultThemeConfig.mode);
-  const [boardTheme, setBoardThemeState] = useState<BoardTheme>(defaultThemeConfig.boardTheme);
-  const [pieceTheme, setPieceThemeState] = useState<PieceTheme>(defaultThemeConfig.pieceTheme);
+  const [boardTheme, setBoardThemeState] = useState<BoardTheme>(defaultThemeConfig.boardTheme as BoardTheme);
+  const [pieceTheme, setPieceThemeState] = useState<PieceTheme>(defaultThemeConfig.pieceTheme as PieceTheme);
   const [isLoading, setIsLoading] = useState(true);
 
   // Load from storage on mount
@@ -43,9 +39,8 @@ export const BoardThemeProvider: React.FC<BoardThemeProviderProps> = ({ children
         const stored = await AsyncStorage.getItem(STORAGE_KEY);
         if (stored && mounted) {
           const config = JSON.parse(stored);
-          setModeState(config.mode || defaultThemeConfig.mode);
-          setBoardThemeState(config.boardTheme || defaultThemeConfig.boardTheme);
-          setPieceThemeState(config.pieceTheme || defaultThemeConfig.pieceTheme);
+          setBoardThemeState((config.boardTheme as BoardTheme) || (defaultThemeConfig.boardTheme as BoardTheme));
+          setPieceThemeState((config.pieceTheme as PieceTheme) || (defaultThemeConfig.pieceTheme as PieceTheme));
         }
       } catch (error) {
         console.error('Failed to load board theme:', error);
@@ -63,7 +58,7 @@ export const BoardThemeProvider: React.FC<BoardThemeProviderProps> = ({ children
     };
   }, []);
 
-  const saveThemeToStorage = async (config: { mode: ThemeMode; boardTheme: BoardTheme; pieceTheme: PieceTheme }) => {
+  const saveThemeToStorage = async (config: { boardTheme: BoardTheme; pieceTheme: PieceTheme }) => {
     try {
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(config));
     } catch (error) {
@@ -71,34 +66,26 @@ export const BoardThemeProvider: React.FC<BoardThemeProviderProps> = ({ children
     }
   };
 
-  const setMode = (newMode: ThemeMode) => {
-    setModeState(newMode);
-    saveThemeToStorage({ mode: newMode, boardTheme, pieceTheme });
-  };
-
   const setBoardTheme = (newTheme: BoardTheme) => {
     setBoardThemeState(newTheme);
-    saveThemeToStorage({ mode, boardTheme: newTheme, pieceTheme });
+    saveThemeToStorage({ boardTheme: newTheme, pieceTheme });
   };
 
   const setPieceTheme = (newTheme: PieceTheme) => {
     setPieceThemeState(newTheme);
-    saveThemeToStorage({ mode, boardTheme, pieceTheme: newTheme });
+    saveThemeToStorage({ boardTheme, pieceTheme: newTheme });
   };
 
   const getColors = () => {
     const safeBoardTheme = boardTheme || defaultThemeConfig.boardTheme;
-    const safeMode = mode || defaultThemeConfig.mode;
-    return getBoardColors(safeBoardTheme, safeMode);
+    return getBoardColors(safeBoardTheme);
   };
 
   return (
     <BoardThemeContext.Provider
       value={{
-        mode,
         boardTheme,
         pieceTheme,
-        setMode,
         setBoardTheme,
         setPieceTheme,
         getBoardColors: getColors,

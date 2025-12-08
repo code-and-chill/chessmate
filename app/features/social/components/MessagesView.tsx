@@ -4,8 +4,8 @@
  */
 
 import { useState } from 'react';
-import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { useThemeTokens } from '@/ui';
+import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { InteractivePressable, useThemeTokens } from '@/ui';
 import { useI18n } from '@/i18n/I18nContext';
 
 export interface MessagesViewProps {
@@ -49,7 +49,7 @@ export function MessagesView({ onBack }: MessagesViewProps) {
 
 function ChatPreview({ name, lastMessage, time, unread, avatar, colors }: any) {
   return (
-    <TouchableOpacity style={[styles.chatPreview, { backgroundColor: colors.background.secondary }]}>
+    <InteractivePressable style={[styles.chatPreview, { backgroundColor: colors.background.secondary }]} onPress={() => { /* open conversation */ }}>
       <Text style={styles.chatAvatar}>{avatar}</Text>
       <View style={styles.chatContent}>
         <View style={styles.chatHeader}>
@@ -65,7 +65,7 @@ function ChatPreview({ name, lastMessage, time, unread, avatar, colors }: any) {
           <Text style={[styles.unreadText, { color: colors.accentForeground.primary }]}>{unread}</Text>
         </View>
       )}
-    </TouchableOpacity>
+    </InteractivePressable>
   );
 }
 

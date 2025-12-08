@@ -4,8 +4,8 @@
  */
 
 import { useState } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useThemeTokens } from '@/ui';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { InteractivePressable, useThemeTokens } from '@/ui';
 import { useI18n } from '@/i18n/I18nContext';
 import { useLeaderboard } from '../hooks';
 import type { LeaderboardType, LeaderboardEntry } from '../types';
@@ -27,30 +27,30 @@ export function LeaderboardView({ onBack }: LeaderboardViewProps) {
 
       {/* Leaderboard Tabs */}
       <View style={styles.categoryTabs}>
-        <TouchableOpacity
+        <InteractivePressable
           style={[styles.categoryTab, { backgroundColor: colors.background.tertiary }, selectedType === 'global' && { backgroundColor: colors.accent.primary }]}
           onPress={() => setSelectedType('global')}
         >
           <Text style={[styles.categoryTabText, { color: colors.foreground.primary }, selectedType === 'global' && { color: colors.accentForeground.primary }]}>
             {t('social.global')}
           </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
+        </InteractivePressable>
+        <InteractivePressable
           style={[styles.categoryTab, { backgroundColor: colors.background.tertiary }, selectedType === 'friends' && { backgroundColor: colors.accent.primary }]}
           onPress={() => setSelectedType('friends')}
         >
           <Text style={[styles.categoryTabText, { color: colors.foreground.primary }, selectedType === 'friends' && { color: colors.accentForeground.primary }]}>
             {t('social.friends')}
           </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
+        </InteractivePressable>
+        <InteractivePressable
           style={[styles.categoryTab, { backgroundColor: colors.background.tertiary }, selectedType === 'club' && { backgroundColor: colors.accent.primary }]}
           onPress={() => setSelectedType('club')}
         >
           <Text style={[styles.categoryTabText, { color: colors.foreground.primary }, selectedType === 'club' && { color: colors.accentForeground.primary }]}>
             {t('social.clubs')}
           </Text>
-        </TouchableOpacity>
+        </InteractivePressable>
       </View>
 
       {loading ? (

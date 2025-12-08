@@ -34,22 +34,6 @@ export const GameActions: React.FC<GameActionsProps> = ({ status = 'in_progress'
       if (result === '1/2-1/2') return { text: '½ - ½', winner: 'Draw' };
       return { text: 'Game Over', winner: '' };
     };
-
-    const getStatusBadge = () => {
-      switch (status) {
-        case 'in_progress':
-          return <Badge variant="success" size="lg">Live</Badge>;
-        case 'ended':
-          return <Badge variant="neutral" size="lg">Finished</Badge>;
-        case 'waiting_for_opponent':
-          return <Badge variant="warning" size="lg">Waiting</Badge>;
-        case 'preparing':
-          return <Badge variant="info" size="lg">Preparing</Badge>;
-        default:
-          return null;
-      }
-    };
-
     const getStatusMessage = () => {
       switch (status) {
         case 'waiting_for_opponent':

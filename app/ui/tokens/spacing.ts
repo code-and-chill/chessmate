@@ -26,7 +26,7 @@ export const spacingTokens = {
 export const spacingScale = {
   // Component internal spacing
   xs: spacingTokens[1],      // 4px - minimal internal padding
-  sm: spacingTokens[2],      // 8px - compact components
+  sm: spacingTokens[2],      // 8px - compact spacing
   md: spacingTokens[3],      // 12px - default gap
   lg: spacingTokens[4],      // 16px - comfortable padding
   xl: spacingTokens[5],      // 24px - spacious
@@ -46,6 +46,14 @@ export const spacingScale = {
   avatarSm: 32,
   avatarMd: 40,
   avatarLg: 48,
+
+  // Semantic sizes for board preview (avoid local magic numbers)
+  boardPreviewLarge: 400,
+  boardPreviewSmall: 360,
+  previewMinWidth: 300,
+  // Layout width tokens
+  previewContentMaxWidth: 480,
+  settingsPanelMaxWidth: 500,
 } as const;
 
 export type SpacingToken = typeof spacingTokens[keyof typeof spacingTokens];

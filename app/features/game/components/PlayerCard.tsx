@@ -1,10 +1,3 @@
-/**
- * PlayerCard Component
- * app/features/game/components/PlayerCard.tsx
- * 
- * Enterprise-grade player display with avatar, color badge, name, rating, clock, and captured pieces
- */
-
 import React, { useState, useEffect } from 'react';
 import type { ViewStyle } from 'react-native';
 import Animated, { 
@@ -16,14 +9,12 @@ import Animated, {
   interpolate,
 } from 'react-native-reanimated';
 import { Box } from '@/ui/primitives/Box';
-import { HStack, VStack } from '@/ui/primitives/Stack';
+import { HStack } from '@/ui/primitives/Stack';
 import { Avatar } from '@/ui/primitives/Avatar';
-import { Badge } from '@/ui/primitives/Badge';
 import { Text } from '@/ui/primitives/Text';
 import { Panel } from '@/ui/primitives/Panel';
 import { useThemeTokens } from '@/ui/hooks/useThemeTokens';
 import { spacingTokens } from '@/ui/tokens/spacing';
-import { colorTokens, getColor } from '@/ui/tokens/colors';
 import { typographyTokens } from '@/ui/tokens/typography';
 import { formatClock } from '@/util/time';
 
@@ -63,7 +54,6 @@ export const PlayerCard = React.memo<PlayerCardProps>(({
   color,
   name,
   rating,
-  isSelf,
   isActive = false,
   remainingMs,
   capturedPieces = [],
@@ -162,8 +152,6 @@ export const PlayerCard = React.memo<PlayerCardProps>(({
             <Avatar
               name={name}
               size="sm"
-              backgroundColor={color === 'w' ? colors.background.tertiary : colors.foreground.primary}
-              textColor={color === 'w' ? colors.foreground.primary : colors.background.tertiary}
             />
             <Box
               style={{

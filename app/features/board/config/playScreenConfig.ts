@@ -1,32 +1,11 @@
-/**
- * Play Screen Configuration
- *
- * Combines board and theme configurations for the play screen.
- * Provides a single point of customization for the screen's appearance and behavior.
- * 
- * Architecture:
- * - BoardConfig: Layout and interactivity (size, squares, etc.)
- * - ThemeConfig: Colors and visual theme
- * - PlayScreenConfig: Combines both + screen-specific settings
- * 
- * Hydration:
- * PlayScreenConfig is "hydrated" into the view layer:
- * - screenConfigObj.board spreads into ChessBoard
- * - screenConfigObj.board.boardTheme/themeMode are separate props passed to ChessBoard
- * - This keeps concerns separated while providing unified configuration
- */
-
 import type { BoardConfig } from './boardConfig';
 import { defaultBoardConfig } from './boardConfig';
-import type { ThemeConfig, BoardTheme, ThemeMode } from './themeConfig';
+import type { ThemeConfig, BoardTheme } from './themeConfig';
 import { defaultThemeConfig } from './themeConfig';
 
 export interface PlayScreenConfig {
   board: BoardConfig;
   theme: ThemeConfig;
-
-  /** API base URL for live game service */
-  apiBaseUrl: string;
 
   /** Polling interval for game updates in milliseconds */
   pollInterval: number;
@@ -40,8 +19,7 @@ export interface PlayScreenConfig {
  */
 export const defaultPlayScreenConfig: PlayScreenConfig = {
   board: defaultBoardConfig,
-  theme: defaultThemeConfig,
-  apiBaseUrl: 'http://localhost:8001',
+  theme: defaultThemeConfig as unknown as ThemeConfig,
   pollInterval: 1000,
   moveListWidth: 200,
 };
@@ -83,5 +61,5 @@ export const createPlayScreenConfig = (
 export const getHydratedBoardProps = (config: PlayScreenConfig) => ({
   ...config.board,
   boardTheme: config.theme.boardTheme as BoardTheme,
-  themeMode: config.theme.mode as ThemeMode,
+  pieceTheme: config.theme.pieceTheme as any,
 });

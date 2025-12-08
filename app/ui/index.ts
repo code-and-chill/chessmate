@@ -118,7 +118,6 @@ export { RoundSelector } from './components/RoundSelector';
 export { ActionBar } from './components/ActionBar';
 export { StatusBadge } from './components/StatusBadge';
 export type { GameStatus } from './components/StatusBadge';
-export { BoardThemeSelector } from './components/BoardThemeSelector';
 
 // Re-export new chess components (DLS)
 export { GameCard } from './components/chess/GameCard';
@@ -209,7 +208,6 @@ export { IconSymbol } from './primitives/icon-symbol';
 export { Icon, type IconName, type IconProps } from './icons';
 
 // Re-export enhanced components
-export { EmptyState as EnhancedEmptyState, type EmptyStateProps as EnhancedEmptyStateProps } from './components/EmptyState';
 export { Skeleton, SkeletonCard, SkeletonList } from './primitives/SkeletonLoader';
 export { FeatureScreenLayout } from './components/FeatureScreenLayout';
 export { FeatureCard } from './components/FeatureCard';
@@ -217,7 +215,7 @@ export { StatCard } from './components/StatCard';
 export { ChoiceChip } from './primitives/ChoiceChip';
 export { Tabs } from './components/Tabs';
 export type { TabItem } from './components/Tabs';
-export { GlobalLayout } from './components/GlobalLayout';
+export { GlobalLayout } from '@/app/GlobalLayout';
 export { SegmentedControl } from './components/SegmentedControl';
 export { RatedToggle } from './components/RatedToggle';
 

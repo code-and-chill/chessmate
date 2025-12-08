@@ -1,10 +1,3 @@
-/**
- * GameHeader Component
- * app/features/game/components/GameHeader.tsx
- * 
- * Clean header showing game title and metadata in hierarchical format
- */
-
 import React from 'react';
 import { HStack, VStack } from '@/ui/primitives/Stack';
 import { Text } from '@/ui/primitives/Text';
@@ -19,6 +12,7 @@ export interface GameHeaderProps {
   gameMode?: string;
   timeControl?: string;
   isRated?: boolean;
+  variant?: 'glass' | 'solid' | 'translucent';
 }
 
 export const GameHeader: React.FC<GameHeaderProps> = ({
@@ -26,11 +20,12 @@ export const GameHeader: React.FC<GameHeaderProps> = ({
   gameMode = 'Blitz',
   timeControl = '10+0',
   isRated = true,
+  variant = 'glass',
 }) => {
   const { colors } = useThemeTokens();
 
   return (
-    <Panel variant="glass" padding={spacingTokens[3]}>
+    <Panel variant={variant} padding={spacingTokens[3]}>
       <VStack gap={spacingTokens[3]}>
         {/* Metadata Line */}
         <HStack gap={spacingTokens[2]} alignItems="center">

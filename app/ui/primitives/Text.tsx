@@ -1,23 +1,22 @@
 import React from 'react';
-import { Text as RNText, TextStyle } from 'react-native';
+import { Text as RNText, TextProps as RNTextProps } from 'react-native';
 import { typographyTokens, textVariants } from '../tokens/typography';
 
 type TextVariant = keyof typeof textVariants;
 
-type Props = {
-  children?: React.ReactNode;
+type Props = RNTextProps & {
   variant?: TextVariant;
   color?: string;
   mono?: boolean;
   weight?: keyof typeof typographyTokens.fontWeight;
   size?: keyof typeof typographyTokens.fontSize;
-  style?: TextStyle;
-} & React.ComponentProps<typeof RNText>;
+  style?: RNTextProps['style'];
+};
 
 export const Text = React.forwardRef<RNText, Props>(
   ({ children, variant = 'body', color, mono, weight, size, style, ...rest }, ref) => {
     // Defensive check: fallback to 'body' if invalid variant
-    const v = textVariants[variant] ?? textVariants.body;
+    const v = (textVariants as any)[variant] ?? textVariants.body;
 
     const finalFontSize = size
       ? typographyTokens.fontSize[size]
@@ -51,7 +50,7 @@ export const Text = React.forwardRef<RNText, Props>(
       }
     }
 
-    const textStyle: TextStyle = {
+    const textStyle = {
       fontFamily,
       fontSize: finalFontSize,
       lineHeight: finalFontSize * v.lineHeight,

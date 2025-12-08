@@ -46,6 +46,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (savedToken && savedUser) {
         setToken(savedToken);
         setUser(JSON.parse(savedUser));
+        setIsLoading(false);
+        return;
+      }
+
+      // No saved token/user — ask the authApi for a session if it exposes one.
+      if (authApi && typeof (authApi as any).getSession === 'function') {
+          const sessionOrPromise = (authApi as any).getSession();
+          const session = sessionOrPromise instanceof Promise ? await sessionOrPromise : sessionOrPromise;
+          if (session && session.token && session.user) {
+              await AsyncStorage.setItem(AUTH_TOKEN_KEY, session.token);
+              await AsyncStorage.setItem(AUTH_USER_KEY, JSON.stringify(session.user));
+              setToken(session.token);
+              setUser(session.user);
+              setIsLoading(false);
+              return;
+          }
       }
     } catch (error) {
       console.error('Failed to load auth state:', error);

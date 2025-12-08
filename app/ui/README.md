@@ -28,7 +28,7 @@ app/ui/
 ├── DLS.md                    # Complete implementation guide (700+ lines)
 ├── INTEGRATION.md            # Integration & usage guide
 ├── index.ts                  # Main export file
-├── design-tokens.ts          # Legacy token file (use tokens/ directory)
+├── design-tokens.ts          # Legacy token file (DEPRECATED — use tokens/ directory)
 ├── tokens/
 │   ├── colors.ts             # 6 color palettes + semantic colors
 │   ├── typography.ts         # Font families, sizes, weights, variants

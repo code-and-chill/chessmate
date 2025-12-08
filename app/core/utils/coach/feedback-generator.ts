@@ -9,10 +9,7 @@
  * - Game result
  */
 
-import type { MoveQuality } from '@/ui';
-
 export type GameResult = 'win' | 'loss' | 'draw';
-export type GamePhase = 'opening' | 'middlegame' | 'endgame';
 export type CoachSentiment = 'positive' | 'neutral' | 'cautionary' | 'critical';
 
 export interface GameAnalysis {

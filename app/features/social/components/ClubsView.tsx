@@ -3,10 +3,10 @@
  * features/social/components/ClubsView.tsx
  */
 
-import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { Card } from '@/ui/primitives/Card';
-import { VStack, HStack } from '@/ui';
+import { VStack, HStack, InteractivePressable } from '@/ui';
 import { useThemeTokens } from '@/ui/hooks/useThemeTokens';
 import { useI18n } from '@/i18n/I18nContext';
 
@@ -38,9 +38,9 @@ export function ClubsView({ onBack }: ClubsViewProps) {
           {/* Header */}
           <Animated.View entering={FadeInUp.delay(100).duration(400)}>
             <VStack gap={1} style={styles.header}>
-              <TouchableOpacity onPress={onBack} style={styles.backButton}>
+              <InteractivePressable onPress={onBack} style={styles.backButton}>
                 <Text style={[styles.backButtonText, { color: colors.accent.primary }]}>← {t('common.back')}</Text>
-              </TouchableOpacity>
+              </InteractivePressable>
               <Text style={[styles.title, { color: colors.foreground.primary }]}>{t('social.clubs')}</Text>
               <Text style={[styles.subtitle, { color: colors.foreground.secondary }]}>{ti('social.member_of_clubs', { count: myClubs.length })}</Text>
             </VStack>
@@ -49,9 +49,9 @@ export function ClubsView({ onBack }: ClubsViewProps) {
           {/* Create Club Button Card */}
           <Animated.View entering={FadeInDown.delay(200).duration(400)}>
             <Card variant="gradient" size="md" style={{ padding: 20 }}>
-              <TouchableOpacity style={[styles.createButton, { backgroundColor: colors.accent.primary }]}>
+              <InteractivePressable style={[styles.createButton, { backgroundColor: colors.accent.primary }]} onPress={() => { /* TODO: create club */ }}>
                 <Text style={styles.createButtonText}>+ {t('social.create_club')}</Text>
-              </TouchableOpacity>
+              </InteractivePressable>
             </Card>
           </Animated.View>
 
@@ -94,9 +94,9 @@ function ClubCard({ name, members, activity, icon, role, colors, t, ti }: any) {
             {role && <Text style={[styles.clubRole, { color: colors.accent.primary }]}>👤 {role}</Text>}
           </VStack>
         </HStack>
-        <TouchableOpacity style={[role ? styles.viewButton : styles.joinButton, { backgroundColor: role ? 'transparent' : colors.accent.primary, borderColor: colors.accent.primary }]}>
+        <InteractivePressable style={[role ? styles.viewButton : styles.joinButton, { backgroundColor: role ? 'transparent' : colors.accent.primary, borderColor: colors.accent.primary }]} onPress={() => { /* TODO: join/view */ }}>
           <Text style={[role ? styles.viewButtonText : styles.joinButtonText, { color: role ? colors.accent.primary : '#FFFFFF' }]}>{role ? t('social.view') : t('social.join')}</Text>
-        </TouchableOpacity>
+        </InteractivePressable>
       </View>
     </Card>
   );
