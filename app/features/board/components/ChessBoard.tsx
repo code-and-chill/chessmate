@@ -27,7 +27,7 @@ export interface ChessBoardProps extends BoardConfig {
     fen?: string;
     sideToMove?: Color;
     myColor?: Color;
-    boardTheme?: BoardTheme;
+    boardTheme?: BoardTheme | any;
     pieceTheme?: PieceTheme;
     orientation?: 'white' | 'black';
     showLegalMoves?: boolean;
@@ -55,7 +55,7 @@ export const ChessBoard = React.forwardRef<View, ChessBoardProps>(
          onMove,
      }, ref) => {
         const {boardTheme: contextBoardTheme, pieceTheme: contextPieceTheme} = useBoardTheme();
-        const boardTheme = propBoardTheme || contextBoardTheme;
+        // boardTheme may be a string key (BoardTheme) or an object with colors
         const finalPieceTheme = (propPieceTheme ?? contextPieceTheme) as PieceTheme | undefined;
 
         const [reduceMotion, setReduceMotion] = useState(false);
@@ -74,7 +74,14 @@ export const ChessBoard = React.forwardRef<View, ChessBoardProps>(
 
         const boardSize = size || 320;
         const squareSize = providedSquareSize || Math.floor(boardSize / 8);
-        const themeColors = getBoardColors(boardTheme);
+        // Resolve theme colors: if propBoardTheme is an object with color keys, use it directly
+        const themeColors = useMemo(() => {
+            if (propBoardTheme && typeof propBoardTheme === 'object' && 'lightSquare' in propBoardTheme) {
+                return propBoardTheme as any;
+            }
+            const key = (propBoardTheme as BoardTheme) || contextBoardTheme;
+            return getBoardColors(key as BoardTheme);
+        }, [propBoardTheme, contextBoardTheme]);
         const {colors} = useThemeTokens();
 
         const { selectedSquare, legalMoves, animatingPiece, handleSquarePress, isMyKingInCheck } = useBoardController({
