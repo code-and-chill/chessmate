@@ -1,6 +1,9 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useColorScheme } from 'react-native';
 import { ThemeMode, ThemeContext, semanticColors, typographyTokens } from '@/ui';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const STORAGE_KEY = 'themeMode';
 
 type ThemeProviderProps = {
   children: React.ReactNode;
@@ -12,7 +15,33 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   defaultMode = 'auto',
 }) => {
   const systemColorScheme = useColorScheme();
-  const [mode, setMode] = useState<ThemeMode>(defaultMode);
+  const [mode, setModeState] = useState<ThemeMode>(defaultMode);
+
+  useEffect(() => {
+    // load persisted mode if available
+    (async () => {
+      try {
+        const stored = await AsyncStorage.getItem(STORAGE_KEY);
+        if (stored === 'light' || stored === 'dark' || stored === 'auto') {
+          setModeState(stored as ThemeMode);
+        }
+      } catch {
+        // ignore
+      }
+    })();
+  }, []);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        await AsyncStorage.setItem(STORAGE_KEY, mode);
+      } catch {
+        // ignore
+      }
+    })();
+  }, [mode]);
+
+  const setMode = (m: ThemeMode) => setModeState(m);
 
   const isDark = useMemo(() => {
     if (mode === 'auto') {

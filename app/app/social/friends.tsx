@@ -1,12 +1,15 @@
-import { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, SafeAreaView, ScrollView, FlatList, TextInput, Alert } from 'react-native';
+import { useState, useEffect, useCallback } from 'react';
+import { StyleSheet, View, Text, TouchableOpacity, FlatList, TextInput, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Card } from '@/ui/primitives/Card';
-import { VStack } from '@/ui';
+import { VStack, useThemeTokens } from '@/ui';
 import { useSocial } from '@/contexts/SocialContext';
 import type { Friend, FriendRequest } from '@/contexts/SocialContext';
-import { useThemeTokens } from '@/ui';
+import { GlobalContainer } from '@/ui/primitives/GlobalContainer';
+import { spacingScale, spacingTokens } from '@/ui/tokens/spacing';
+import { typographyTokens } from '@/ui/tokens/typography';
+import { radiusScale } from '@/ui/tokens/radii';
 
 export default function FriendsScreen() {
   const router = useRouter();
@@ -18,7 +21,6 @@ export default function FriendsScreen() {
     acceptFriendRequest,
     declineFriendRequest,
     removeFriend,
-    isLoading,
   } = useSocial();
   
   const [friends, setFriends] = useState<Friend[]>([]);
@@ -26,11 +28,7 @@ export default function FriendsScreen() {
   const [selectedTab, setSelectedTab] = useState<'friends' | 'requests' | 'add'>('friends');
   const [searchQuery, setSearchQuery] = useState('');
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       const [friendsData, requestsData] = await Promise.all([
         getFriends(),
@@ -40,17 +38,17 @@ export default function FriendsScreen() {
       setRequests(requestsData || []);
     } catch (error) {
       console.error('Failed to load friends data:', error);
-      // Silently fail - user needs to be authenticated
-      // Set empty arrays as fallback
       setFriends([]);
       setRequests([]);
     }
-  };
+  }, [getFriends, getFriendRequests]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const handleSendRequest = async () => {
     if (!searchQuery.trim()) return;
-
-    // In real app, search for user by username/email first
     await sendFriendRequest(searchQuery);
     Alert.alert('Request Sent', `Friend request sent to ${searchQuery}`);
     setSearchQuery('');
@@ -101,18 +99,18 @@ export default function FriendsScreen() {
 
   const renderFriendCard = ({ item, index }: { item: Friend; index: number }) => (
     <Animated.View entering={FadeInDown.delay(index * 50).duration(400)}>
-      <Card variant="default" size="md" style={{ marginBottom: 12 }}>
+      <Card variant="default" size="md" style={{ marginBottom: spacingScale.md }}>
         <View style={styles.friendCard}>
           <View style={styles.friendInfo}>
-            <View style={[styles.avatar, { backgroundColor: colors.accent.primary }]}>
-              <Text style={[styles.avatarText, { color: colors.accentForeground.primary }]}>
-                {item.username[0].toUpperCase()}
+            <View style={[styles.avatar, { backgroundColor: colors.accent.primary }]}> 
+              <Text style={[styles.avatarText, { color: colors.accentForeground.primary }]}> 
+                {item.username[0].toUpperCase()} 
               </Text>
             </View>
             <VStack gap={1} style={{ flex: 1 }}>
               <View style={styles.friendHeader}>
                 <Text style={[styles.friendName, { color: colors.foreground.primary }]}>{item.username}</Text>
-                {item.isOnline && <View style={[styles.onlineBadge, { backgroundColor: colors.success }]} />}
+                {item.online && <View style={[styles.onlineBadge, { backgroundColor: colors.success }]} />}
               </View>
               <Text style={[styles.friendRating, { color: colors.foreground.secondary }]}>Rating: {item.rating}</Text>
             </VStack>
@@ -157,18 +155,18 @@ export default function FriendsScreen() {
 
   const renderRequestCard = ({ item, index }: { item: FriendRequest; index: number }) => (
     <Animated.View entering={FadeInDown.delay(index * 50).duration(400)}>
-      <Card variant="default" size="md" style={{ marginBottom: 12 }}>
+      <Card variant="default" size="md" style={{ marginBottom: spacingScale.md }}>
         <View style={styles.requestCard}>
           <View style={styles.requestInfo}>
-            <View style={[styles.avatar, { backgroundColor: colors.accent.primary }]}>
-              <Text style={[styles.avatarText, { color: colors.accentForeground.primary }]}>
-                {item.fromUsername[0].toUpperCase()}
+            <View style={[styles.avatar, { backgroundColor: colors.accent.primary }]}> 
+              <Text style={[styles.avatarText, { color: colors.accentForeground.primary }]}> 
+                {item.from.username[0].toUpperCase()}
               </Text>
             </View>
             <VStack gap={1} style={{ flex: 1 }}>
-              <Text style={[styles.friendName, { color: colors.foreground.primary }]}>{item.fromUsername}</Text>
+              <Text style={[styles.friendName, { color: colors.foreground.primary }]}>{item.from.username}</Text>
               <Text style={[styles.requestDate, { color: colors.foreground.secondary }]}>
-                {new Date(item.timestamp).toLocaleDateString('en-US', {
+                {new Date(item.sentAt).toLocaleDateString('en-US', {
                   month: 'short',
                   day: 'numeric',
                 })}
@@ -205,217 +203,212 @@ export default function FriendsScreen() {
     </Animated.View>
   );
 
-  const onlineFriends = friends.filter((f) => f.isOnline);
-  const offlineFriends = friends.filter((f) => !f.isOnline);
+  const onlineFriends = friends.filter((f) => f.online);
+  const offlineFriends = friends.filter((f) => !f.online);
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background.primary }]}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <VStack style={styles.content} gap={6}>
-          {/* Header */}
-          <Animated.View entering={FadeInDown.delay(100).duration(500)}>
-            <Text style={[styles.title, { color: colors.foreground.primary }]}>Friends</Text>
-            <Text style={[styles.subtitle, { color: colors.foreground.secondary }]}>
-              {friends.length} friends • {onlineFriends.length} online
-            </Text>
-          </Animated.View>
+    <GlobalContainer scrollable contentContainerStyle={styles.scrollContent} style={styles.container}>
+      <VStack style={styles.content} gap={6}>
+        <Animated.View entering={FadeInDown.delay(100).duration(500)}>
+          <Text style={[styles.title, { color: colors.foreground.primary }]}>{'Friends'}</Text>
+          <Text style={[styles.subtitle, { color: colors.foreground.secondary }]}> 
+            {friends.length} friends • {onlineFriends.length} online
+          </Text>
+        </Animated.View>
 
-          {/* Tabs */}
-          <Animated.View entering={FadeInDown.delay(200).duration(500)}>
-            <View style={styles.tabs}>
-              <TouchableOpacity
-                style={[
-                  styles.tab, 
-                  { 
-                    backgroundColor: colors.background.secondary,
-                    borderColor: colors.background.tertiary,
-                  },
-                  selectedTab === 'friends' && { 
-                    backgroundColor: colors.background.tertiary,
-                    borderColor: colors.accent.primary,
-                  }
-                ]}
-                onPress={() => setSelectedTab('friends')}
-              >
-                <Text style={[
-                  styles.tabText, 
-                  { color: colors.foreground.secondary },
-                  selectedTab === 'friends' && { color: colors.foreground.primary }
-                ]}>
-                  Friends ({friends.length})
+        <Animated.View entering={FadeInDown.delay(200).duration(500)}>
+          <View style={styles.tabs}>
+            <TouchableOpacity
+              style={[
+                styles.tab, 
+                { 
+                  backgroundColor: colors.background.secondary,
+                  borderColor: colors.background.tertiary,
+                },
+                selectedTab === 'friends' && { 
+                  backgroundColor: colors.background.tertiary,
+                  borderColor: colors.accent.primary,
+                }
+              ]}
+              onPress={() => setSelectedTab('friends')}
+            >
+              <Text style={[
+                styles.tabText, 
+                { color: colors.foreground.secondary },
+                selectedTab === 'friends' && { color: colors.foreground.primary }
+              ]}>
+                {`Friends (${friends.length})`}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.tab, 
+                { 
+                  backgroundColor: colors.background.secondary,
+                  borderColor: colors.background.tertiary,
+                },
+                selectedTab === 'requests' && { 
+                  backgroundColor: colors.background.tertiary,
+                  borderColor: colors.accent.primary,
+                }
+              ]}
+              onPress={() => setSelectedTab('requests')}
+            >
+              <Text style={[
+                styles.tabText, 
+                { color: colors.foreground.secondary },
+                selectedTab === 'requests' && { color: colors.foreground.primary }
+              ]}>
+                {`Requests (${requests.filter((r) => r.status === 'pending').length})`}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.tab, 
+                { 
+                  backgroundColor: colors.background.secondary,
+                  borderColor: colors.background.tertiary,
+                },
+                selectedTab === 'add' && { 
+                  backgroundColor: colors.background.tertiary,
+                  borderColor: colors.accent.primary,
+                }
+              ]}
+              onPress={() => setSelectedTab('add')}
+            >
+              <Text style={[
+                styles.tabText, 
+                { color: colors.foreground.secondary },
+                selectedTab === 'add' && { color: colors.foreground.primary }
+              ]}>
+                {'Add Friend'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </Animated.View>
+
+        {selectedTab === 'friends' && (
+          <VStack gap={4}>
+            {onlineFriends.length > 0 && (
+              <VStack gap={2}>
+                <Text style={[styles.sectionTitle, { color: colors.foreground.primary }]}> 
+                  {`Online (${onlineFriends.length})`}
                 </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  styles.tab, 
-                  { 
-                    backgroundColor: colors.background.secondary,
-                    borderColor: colors.background.tertiary,
-                  },
-                  selectedTab === 'requests' && { 
-                    backgroundColor: colors.background.tertiary,
-                    borderColor: colors.accent.primary,
-                  }
-                ]}
-                onPress={() => setSelectedTab('requests')}
-              >
-                <Text style={[
-                  styles.tabText, 
-                  { color: colors.foreground.secondary },
-                  selectedTab === 'requests' && { color: colors.foreground.primary }
-                ]}>
-                  Requests ({requests.filter((r) => r.status === 'pending').length})
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  styles.tab, 
-                  { 
-                    backgroundColor: colors.background.secondary,
-                    borderColor: colors.background.tertiary,
-                  },
-                  selectedTab === 'add' && { 
-                    backgroundColor: colors.background.tertiary,
-                    borderColor: colors.accent.primary,
-                  }
-                ]}
-                onPress={() => setSelectedTab('add')}
-              >
-                <Text style={[
-                  styles.tabText, 
-                  { color: colors.foreground.secondary },
-                  selectedTab === 'add' && { color: colors.foreground.primary }
-                ]}>
-                  Add Friend
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </Animated.View>
-
-          {/* Content */}
-          {selectedTab === 'friends' && (
-            <VStack gap={4}>
-              {onlineFriends.length > 0 && (
-                <VStack gap={2}>
-                  <Text style={[styles.sectionTitle, { color: colors.foreground.primary }]}>
-                    Online ({onlineFriends.length})
-                  </Text>
-                  <FlatList
-                    data={onlineFriends}
-                    renderItem={renderFriendCard}
-                    keyExtractor={(item) => item.id}
-                    scrollEnabled={false}
-                  />
-                </VStack>
-              )}
-              
-              {offlineFriends.length > 0 && (
-                <VStack gap={2}>
-                  <Text style={[styles.sectionTitle, { color: colors.foreground.primary }]}>
-                    Offline ({offlineFriends.length})
-                  </Text>
-                  <FlatList
-                    data={offlineFriends}
-                    renderItem={renderFriendCard}
-                    keyExtractor={(item) => item.id}
-                    scrollEnabled={false}
-                  />
-                </VStack>
-              )}
-
-              {friends.length === 0 && (
-                <Card variant="default" size="md">
-                  <View style={styles.emptyState}>
-                    <Text style={styles.emptyIcon}>👥</Text>
-                    <Text style={[styles.emptyTitle, { color: colors.foreground.primary }]}>
-                      No friends yet
-                    </Text>
-                    <Text style={[styles.emptyText, { color: colors.foreground.secondary }]}>
-                      Add friends to play and chat together
-                    </Text>
-                    <TouchableOpacity
-                      style={[styles.emptyButton, { backgroundColor: colors.accent.primary }]}
-                      onPress={() => setSelectedTab('add')}
-                    >
-                      <Text style={[styles.emptyButtonText, { color: colors.accentForeground.primary }]}>
-                        Add Friend
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-                </Card>
-              )}
-            </VStack>
-          )}
-
-          {selectedTab === 'requests' && (
-            <VStack gap={2}>
-              {requests.filter((r) => r.status === 'pending').length === 0 ? (
-                <Card variant="default" size="md">
-                  <View style={styles.emptyState}>
-                    <Text style={styles.emptyIcon}>📭</Text>
-                    <Text style={[styles.emptyTitle, { color: colors.foreground.primary }]}>
-                      No pending requests
-                    </Text>
-                    <Text style={[styles.emptyText, { color: colors.foreground.secondary }]}>
-                      Friend requests will appear here
-                    </Text>
-                  </View>
-                </Card>
-              ) : (
                 <FlatList
-                  data={requests.filter((r) => r.status === 'pending')}
-                  renderItem={renderRequestCard}
+                  data={onlineFriends}
+                  renderItem={renderFriendCard}
                   keyExtractor={(item) => item.id}
                   scrollEnabled={false}
                 />
-              )}
-            </VStack>
-          )}
+              </VStack>
+            )}
+            
+            {offlineFriends.length > 0 && (
+              <VStack gap={2}>
+                <Text style={[styles.sectionTitle, { color: colors.foreground.primary }]}> 
+                  {`Offline (${offlineFriends.length})`}
+                </Text>
+                <FlatList
+                  data={offlineFriends}
+                  renderItem={renderFriendCard}
+                  keyExtractor={(item) => item.id}
+                  scrollEnabled={false}
+                />
+              </VStack>
+            )}
 
-          {selectedTab === 'add' && (
-            <Animated.View entering={FadeInDown.duration(500)}>
+            {friends.length === 0 && (
               <Card variant="default" size="md">
-                <VStack gap={4} style={{ padding: 20 }}>
-                  <Text style={[styles.addFriendTitle, { color: colors.foreground.primary }]}>
-                    Add Friend
+                <View style={styles.emptyState}>
+                  <Text style={styles.emptyIcon}>👥</Text>
+                  <Text style={[styles.emptyTitle, { color: colors.foreground.primary }]}> 
+                    No friends yet
                   </Text>
-                  <Text style={[styles.addFriendText, { color: colors.foreground.secondary }]}>
-                    Enter username or email to send a friend request
+                  <Text style={[styles.emptyText, { color: colors.foreground.secondary }]}> 
+                    Add friends to play and chat together
                   </Text>
-                  
-                  <TextInput
-                    style={[styles.searchInput, { 
-                      backgroundColor: colors.background.secondary,
-                      borderColor: colors.background.tertiary,
-                      color: colors.foreground.primary,
-                    }]}
-                    placeholder="Username or email"
-                    placeholderTextColor={colors.foreground.muted}
-                    value={searchQuery}
-                    onChangeText={setSearchQuery}
-                    autoCapitalize="none"
-                  />
-                  
                   <TouchableOpacity
-                    style={[
-                      styles.sendButton,
-                      { backgroundColor: colors.accent.primary },
-                      !searchQuery.trim() && { opacity: 0.5 },
-                    ]}
-                    onPress={handleSendRequest}
-                    disabled={!searchQuery.trim()}
+                    style={[styles.emptyButton, { backgroundColor: colors.accent.primary }]}
+                    onPress={() => setSelectedTab('add')}
                   >
-                    <Text style={[styles.sendButtonText, { color: colors.accentForeground.primary }]}>
-                      Send Request
+                    <Text style={[styles.emptyButtonText, { color: colors.accentForeground.primary }]}> 
+                      Add Friend
                     </Text>
                   </TouchableOpacity>
-                </VStack>
+                </View>
               </Card>
-            </Animated.View>
-          )}
-        </VStack>
-      </ScrollView>
-    </SafeAreaView>
+            )}
+          </VStack>
+        )}
+
+        {selectedTab === 'requests' && (
+          <VStack gap={2}>
+            {requests.filter((r) => r.status === 'pending').length === 0 ? (
+              <Card variant="default" size="md">
+                <View style={styles.emptyState}>
+                  <Text style={styles.emptyIcon}>📭</Text>
+                  <Text style={[styles.emptyTitle, { color: colors.foreground.primary }]}> 
+                    No pending requests
+                  </Text>
+                  <Text style={[styles.emptyText, { color: colors.foreground.secondary }]}> 
+                    Friend requests will appear here
+                  </Text>
+                </View>
+              </Card>
+            ) : (
+              <FlatList
+                data={requests.filter((r) => r.status === 'pending')}
+                renderItem={renderRequestCard}
+                keyExtractor={(item) => item.id}
+                scrollEnabled={false}
+              />
+            )}
+          </VStack>
+        )}
+
+        {selectedTab === 'add' && (
+          <Animated.View entering={FadeInDown.duration(500)}>
+            <Card variant="default" size="md">
+              <VStack gap={4} style={{ padding: spacingScale.cardPadding }}>
+                <Text style={[styles.addFriendTitle, { color: colors.foreground.primary }]}> 
+                  Add Friend
+                </Text>
+                <Text style={[styles.addFriendText, { color: colors.foreground.secondary }]}> 
+                  Enter username or email to send a friend request
+                </Text>
+                
+                <TextInput
+                  style={[styles.searchInput, { 
+                    backgroundColor: colors.background.secondary,
+                    borderColor: colors.background.tertiary,
+                    color: colors.foreground.primary,
+                  }]}
+                  placeholder="Username or email"
+                  placeholderTextColor={colors.foreground.muted}
+                  value={searchQuery}
+                  onChangeText={setSearchQuery}
+                  autoCapitalize="none"
+                />
+                
+                <TouchableOpacity
+                  style={[
+                    styles.sendButton,
+                    { backgroundColor: colors.accent.primary },
+                    !searchQuery.trim() && { opacity: 0.5 },
+                  ]}
+                  onPress={handleSendRequest}
+                  disabled={!searchQuery.trim()}
+                >
+                  <Text style={[styles.sendButtonText, { color: colors.accentForeground.primary }]}> 
+                    Send Request
+                  </Text>
+                </TouchableOpacity>
+              </VStack>
+            </Card>
+          </Animated.View>
+        )}
+      </VStack>
+    </GlobalContainer>
   );
 }
 
@@ -424,176 +417,175 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 40,
+    paddingBottom: spacingScale.sectionGap,
   },
   content: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
+    paddingHorizontal: spacingScale.gutter,
+    paddingTop: spacingScale.gutter,
   },
   title: {
-    fontSize: 36,
-    fontWeight: 'bold',
+    fontSize: typographyTokens.fontSize['4xl'],
+    fontWeight: typographyTokens.fontWeight.bold,
     textAlign: 'center',
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: typographyTokens.fontSize.base,
     textAlign: 'center',
-    marginTop: 4,
+    marginTop: spacingScale.xs,
   },
   tabs: {
     flexDirection: 'row',
-    gap: 8,
   },
   tab: {
     flex: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 8,
-    borderRadius: 12,
+    paddingVertical: spacingScale.md,
+    paddingHorizontal: spacingScale.md,
+    borderRadius: radiusScale.button,
     alignItems: 'center',
     borderWidth: 2,
   },
   tabText: {
-    fontSize: 13,
-    fontWeight: '600',
+    fontSize: typographyTokens.fontSize.sm,
+    fontWeight: typographyTokens.fontWeight.semibold,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
+    fontSize: typographyTokens.fontSize.lg,
+    fontWeight: typographyTokens.fontWeight.bold,
   },
   friendCard: {
-    padding: 16,
+    padding: spacingScale.cardPadding,
   },
   friendInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    marginBottom: 12,
+    gap: spacingScale.gap,
+    marginBottom: spacingScale.md,
   },
   avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: spacingScale.avatarLg,
+    height: spacingScale.avatarLg,
+    borderRadius: spacingScale.avatarLg / 2,
     justifyContent: 'center',
     alignItems: 'center',
   },
   avatarText: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    fontSize: typographyTokens.fontSize.xl,
+    fontWeight: typographyTokens.fontWeight.bold,
   },
   friendHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: spacingScale.gap,
   },
   friendName: {
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: typographyTokens.fontSize.base,
+    fontWeight: typographyTokens.fontWeight.bold,
   },
   onlineBadge: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: spacingScale.sm,
+    height: spacingScale.sm,
+    borderRadius: spacingScale.sm / 2,
   },
   friendRating: {
-    fontSize: 14,
+    fontSize: typographyTokens.fontSize.sm,
   },
   friendActions: {
     flexDirection: 'row',
-    gap: 8,
+    gap: spacingScale.gap,
   },
   actionButton: {
     flex: 1,
-    padding: 12,
-    borderRadius: 10,
+    padding: spacingScale.md,
+    borderRadius: radiusScale.button,
     alignItems: 'center',
   },
   actionButtonText: {
-    fontSize: 20,
+    fontSize: typographyTokens.fontSize.xl,
   },
   requestCard: {
-    padding: 16,
+    padding: spacingScale.cardPadding,
   },
   requestInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    marginBottom: 12,
+    gap: spacingScale.gap,
+    marginBottom: spacingScale.md,
   },
   requestDate: {
-    fontSize: 12,
+    fontSize: typographyTokens.fontSize.xs,
   },
   requestActions: {
     flexDirection: 'row',
-    gap: 8,
+    gap: spacingScale.gap,
   },
   acceptButton: {
     flex: 1,
-    padding: 12,
-    borderRadius: 10,
+    padding: spacingScale.md,
+    borderRadius: radiusScale.button,
     alignItems: 'center',
   },
   acceptButtonText: {
-    fontSize: 14,
-    fontWeight: 'bold',
+    fontSize: typographyTokens.fontSize.sm,
+    fontWeight: typographyTokens.fontWeight.bold,
   },
   declineButton: {
     flex: 1,
-    padding: 12,
-    borderRadius: 10,
+    padding: spacingScale.md,
+    borderRadius: radiusScale.button,
     alignItems: 'center',
   },
   declineButtonText: {
-    fontSize: 14,
-    fontWeight: 'bold',
+    fontSize: typographyTokens.fontSize.sm,
+    fontWeight: typographyTokens.fontWeight.bold,
   },
   addFriendTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    fontSize: typographyTokens.fontSize.xl,
+    fontWeight: typographyTokens.fontWeight.bold,
   },
   addFriendText: {
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: typographyTokens.fontSize.sm,
+    lineHeight: Math.round(typographyTokens.fontSize.base * typographyTokens.lineHeight.normal),
   },
   searchInput: {
-    padding: 16,
-    borderRadius: 12,
-    fontSize: 16,
+    padding: spacingScale.cardPadding,
+    borderRadius: radiusScale.input,
+    fontSize: typographyTokens.fontSize.base,
     borderWidth: 2,
   },
   sendButton: {
-    padding: 16,
-    borderRadius: 12,
+    padding: spacingScale.cardPadding,
+    borderRadius: radiusScale.button,
     alignItems: 'center',
   },
   sendButtonText: {
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: typographyTokens.fontSize.base,
+    fontWeight: typographyTokens.fontWeight.bold,
   },
   emptyState: {
-    padding: 40,
+    padding: spacingScale.xxl,
     alignItems: 'center',
   },
   emptyIcon: {
-    fontSize: 64,
-    marginBottom: 16,
+    fontSize: spacingTokens[9],
+    marginBottom: spacingScale.md,
   },
   emptyTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 8,
+    fontSize: typographyTokens.fontSize.xl,
+    fontWeight: typographyTokens.fontWeight.bold,
+    marginBottom: spacingScale.sm,
   },
   emptyText: {
-    fontSize: 14,
+    fontSize: typographyTokens.fontSize.sm,
     textAlign: 'center',
-    marginBottom: 24,
+    marginBottom: spacingScale.xl,
   },
   emptyButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 12,
+    paddingVertical: spacingScale.md,
+    paddingHorizontal: spacingScale.xl,
+    borderRadius: radiusScale.button,
   },
   emptyButtonText: {
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: typographyTokens.fontSize.base,
+    fontWeight: typographyTokens.fontWeight.bold,
   },
 });

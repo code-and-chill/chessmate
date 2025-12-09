@@ -28,15 +28,15 @@
  * ```
  */
 
+import React from 'react';
 import type { ReactNode } from 'react';
-import { StyleSheet, View, Text, SafeAreaView, Platform, Dimensions } from 'react-native';
+import { StyleSheet, View, Text, Platform, useWindowDimensions } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { VStack } from '@/ui/primitives/Stack';
 import { useColors } from '@/ui/hooks/useThemeTokens';
 import { typographyTokens } from '@/ui/tokens/typography';
-
-const { width } = Dimensions.get('window');
-const isDesktop = Platform.OS === 'web' && width >= 1024;
+import { spacingScale } from '@/ui/tokens/spacing';
+import { GlobalContainer } from '@/ui/primitives/GlobalContainer';
 
 interface FeatureScreenLayoutProps {
   /** Large title displayed at the top (e.g., "Play Chess") */
@@ -63,41 +63,65 @@ export function FeatureScreenLayout({
   maxWidth = 600,
 }: FeatureScreenLayoutProps) {
   const colors = useColors();
-  
+  const { width, height } = useWindowDimensions();
+  const isLandscape = width > height;
+  const isDesktop = Platform.OS === 'web' && width >= 1024;
+  const isCompact = (Platform.OS !== 'web' && isLandscape) || width <= 480;
+  const containerPadding = isCompact ? spacingScale.gutter : spacingScale.md;
+
+  const contentStyle = {
+    maxWidth,
+    padding: containerPadding,
+    ...(isDesktop ? styles.contentDesktop : {}),
+    alignSelf: 'center',
+  } as const;
+
+  const cardsStyle = { ...styles.cardsContainer, alignItems: 'stretch' } as const;
+
+  const wrappedChildren = React.Children.map(children, (child) => (
+    <View style={{ width: '100%', minWidth: 0 }}>{child as React.ReactNode}</View>
+  ));
+
+  const scrollContentContainerStyle = [
+    styles.scrollContent,
+    isDesktop ? { alignItems: 'center' } : { alignItems: 'stretch' },
+  ];
+
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background.primary }]}>
-      <View style={[styles.gradientBg, { backgroundColor: colors.background.primary }]} />
-      
-      <VStack 
-        gap={8} 
-        // @ts-expect-error - React Native style array type mismatch
-        style={[
-          styles.content,
-          { maxWidth },
-          isDesktop ? styles.contentDesktop : undefined,
-        ]}
-      >
-        {/* Header Section */}
-        <Animated.View entering={FadeInUp.duration(400).delay(100)}>
-          <VStack gap={3} style={styles.headerSection}>
-            <Text style={[styles.title, { color: colors.accent.primary }]}>{title}</Text>
-            <Text style={[styles.subtitle, { color: colors.foreground.secondary }]}>{subtitle}</Text>
-          </VStack>
-        </Animated.View>
+    <GlobalContainer scrollable contentContainerStyle={scrollContentContainerStyle} style={styles.container}>
+      <View style={{ ...styles.gradientBg, backgroundColor: colors.background.primary }} />
 
-        {/* Optional Stats Row */}
-        {statsRow && (
-          <Animated.View entering={FadeInUp.duration(400).delay(150)}>
-            {statsRow}
+      <View style={contentStyle}>
+        <VStack gap={8}>
+          {/* Header Section */}
+          <Animated.View entering={FadeInUp.duration(400).delay(100)}>
+            <VStack gap={3} style={styles.headerSection}>
+              <Text style={[styles.title, { color: colors.accent.primary }]}>{title}</Text>
+              <Text style={[styles.subtitle, { color: colors.foreground.secondary }]}>{subtitle}</Text>
+            </VStack>
           </Animated.View>
-        )}
 
-        {/* Cards Container */}
-        <VStack gap={4} style={styles.cardsContainer}>
-          {children}
+          {/* Optional Stats Row */}
+          {statsRow && (
+            <Animated.View entering={FadeInUp.duration(400).delay(150)}>
+              {statsRow}
+            </Animated.View>
+          )}
+
+          {/* Cards Container */}
+          <VStack gap={4} style={cardsStyle}>
+            {wrappedChildren}
+          </VStack>
         </VStack>
-      </VStack>
-    </SafeAreaView>
+      </View>
+
+      {/* Debug Badge - Dev Only */}
+      {__DEV__ && (
+        <View style={{ position: 'absolute', top: 8, left: 8, zIndex: 9999, backgroundColor: '#00000066', paddingHorizontal: 6, paddingVertical: 3, borderRadius: 6 }}>
+          <Text style={{ color: '#fff', fontSize: 10 }}>{`w:${Math.round(width)} pad:${containerPadding} max:${maxWidth}`}</Text>
+        </View>
+      )}
+    </GlobalContainer>
   );
 }
 
@@ -105,6 +129,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     position: 'relative',
+  },
+  scrollContent: {
+    width: '100%',
+    paddingBottom: spacingScale.sectionGap,
   },
   gradientBg: {
     ...StyleSheet.absoluteFillObject,

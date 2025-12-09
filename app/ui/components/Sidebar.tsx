@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { InteractivePressable } from '@/ui';
+import { InteractivePressable, Box, Text, IconSymbol, useThemeTokens, spacingScale, radiusTokens, getSidebarWidthForBreakpoint, getCurrentBreakpoint, SegmentedControl } from '@/ui';
 import { useRouter, usePathname } from 'expo-router';
 import Animated, {
   useAnimatedStyle,
@@ -7,14 +7,8 @@ import Animated, {
   useSharedValue,
 } from 'react-native-reanimated';
 
-import { Box } from '../primitives/Box';
-import { Text } from '../primitives/Text';
-import { IconSymbol } from '../primitives/icon-symbol';
-import { useThemeTokens } from '../hooks/useThemeTokens';
-import { spacingTokens } from '../tokens/spacing';
-import { radiusTokens } from '../tokens/radii';
 import { useAuth } from '@/contexts/AuthContext';
-import React from "react";
+import React from 'react';
 
 export interface SidebarItem {
   id: string;
@@ -32,7 +26,7 @@ export interface SidebarProps {
 export const Sidebar: React.FC<SidebarProps> = ({ items, onItemPress }) => {
   const router = useRouter();
   const pathname = usePathname();
-  const { colors, mode } = useThemeTokens();
+  const { colors, mode, setMode } = useThemeTokens();
   const { isAuthenticated, user, logout } = useAuth();
 
   const handlePress = (item: SidebarItem) => {
@@ -49,10 +43,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ items, onItemPress }) => {
     }
   };
 
+  const bp = getCurrentBreakpoint();
+  const sidebarWidth = getSidebarWidthForBreakpoint(bp);
+
   return (
     <Box
       style={{
         ...styles.container,
+        width: sidebarWidth > 0 ? sidebarWidth : '100%',
         backgroundColor: mode === 'dark' ? colors.background.primary : colors.background.secondary,
       }}
     >
@@ -72,7 +70,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ items, onItemPress }) => {
       {/* Navigation Items */}
       <Box style={styles.nav}>
         {items.map((item) => (
-          <SidebarItem
+          <SidebarListItem
             key={item.id}
             item={item}
             isActive={pathname === item.route || pathname.startsWith(item.route + '/')}
@@ -89,6 +87,17 @@ export const Sidebar: React.FC<SidebarProps> = ({ items, onItemPress }) => {
           borderTopColor: colors.background.tertiary,
         }}
       >
+        {/* Theme control - DLS SegmentedControl (light / dark) */}
+        <Box style={{ marginBottom: spacingScale.sm }}>
+          <SegmentedControl
+            segments={[ 'light', 'dark' ]}
+            selectedSegment={mode === 'dark' ? 'dark' : 'light'}
+            onSegmentChange={(s) => setMode(s as any)}
+            labelFormatter={(s) => (s === 'light' ? '☀' : '🌙')}
+            style={{ width: '100%' }}
+          />
+        </Box>
+
         {isAuthenticated ? (
           <>
             {/* User Info */}
@@ -100,12 +109,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ items, onItemPress }) => {
                 borderRadius: radiusTokens.lg,
               }}
             >
-              <Box style={styles.avatar}>
+              <Box style={{ ...styles.avatar, width: spacingScale.avatarMd, height: spacingScale.avatarMd, borderRadius: spacingScale.avatarMd / 2 }}>
                 <Text variant="body" weight="bold" style={{ color: colors.accentForeground.primary }}>
                   {user?.username?.charAt(0).toUpperCase() || 'U'}
                 </Text>
               </Box>
-              <Box style={{ flex: 1, marginLeft: spacingTokens[3] }}>
+              <Box style={{ flex: 1, marginLeft: spacingScale.md }}>
                 <Text variant="body" weight="semibold" style={{ color: colors.foreground.primary }}>
                   {user?.username || 'User'}
                 </Text>
@@ -128,7 +137,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ items, onItemPress }) => {
               <Text
                 variant="body"
                 weight="medium"
-                style={{ color: colors.foreground.secondary, marginLeft: spacingTokens[2] }}
+                style={{ color: colors.foreground.secondary, marginLeft: spacingScale.sm }}
               >
                 Logout
               </Text>
@@ -149,7 +158,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ items, onItemPress }) => {
               <Text
                 variant="body"
                 weight="semibold"
-                style={{ color: colors.accentForeground.primary, marginLeft: spacingTokens[2] }}
+                style={{ color: colors.accentForeground.primary, marginLeft: spacingScale.sm }}
               >
                 Sign In
               </Text>
@@ -168,7 +177,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ items, onItemPress }) => {
               <Text
                 variant="body"
                 weight="medium"
-                style={{ color: colors.foreground.secondary, marginLeft: spacingTokens[2] }}
+                style={{ color: colors.foreground.secondary, marginLeft: spacingScale.sm }}
               >
                 Sign Up
               </Text>
@@ -186,7 +195,7 @@ interface SidebarItemProps {
   onPress: () => void;
 }
 
-const SidebarItem: React.FC<SidebarItemProps> = ({ item, isActive, onPress }) => {
+const SidebarListItem: React.FC<SidebarItemProps> = ({ item, isActive, onPress }) => {
   const { colors } = useThemeTokens();
   const scale = useSharedValue(1);
 
@@ -226,15 +235,19 @@ const SidebarItem: React.FC<SidebarItemProps> = ({ item, isActive, onPress }) =>
           <Box style={styles.itemContent}>
             <IconSymbol
               name={item.icon as any}
-              size={24}
+              size={spacingScale.iconSize}
               color={isActive ? colors.accent.primary : colors.foreground.secondary}
             />
             <Text
               variant="body"
               weight={isActive ? 'semibold' : 'normal'}
+              numberOfLines={1}
+              ellipsizeMode="tail"
               style={{
                 color: isActive ? colors.accent.primary : colors.foreground.secondary,
-                marginLeft: spacingTokens[3],
+                marginLeft: spacingScale.md,
+                flexShrink: 1,
+                minWidth: 0,
               }}
             >
               {item.title}
@@ -248,21 +261,20 @@ const SidebarItem: React.FC<SidebarItemProps> = ({ item, isActive, onPress }) =>
 
 const styles = StyleSheet.create({
   container: {
-    width: 240,
     height: '100%',
     borderRightWidth: 1,
   },
   header: {
     borderBottomWidth: 1,
-    paddingVertical: spacingTokens[4],
+    paddingVertical: spacingScale.md,
   },
   nav: {
     flex: 1,
-    paddingTop: spacingTokens[2],
-    paddingHorizontal: spacingTokens[2],
+    paddingTop: spacingScale.sm,
+    paddingHorizontal: spacingScale.sm,
   },
   item: {
-    marginBottom: spacingTokens[1],
+    marginBottom: spacingScale.xs,
     borderRadius: radiusTokens.lg,
     overflow: 'hidden',
   },
@@ -272,23 +284,23 @@ const styles = StyleSheet.create({
   itemContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: spacingTokens[2],
-    paddingHorizontal: spacingTokens[3],
+    paddingVertical: spacingScale.sm,
+    paddingHorizontal: spacingScale.md,
   },
   authSection: {
     borderTopWidth: 1,
-    paddingTop: spacingTokens[3],
-    gap: spacingTokens[2],
+    paddingTop: spacingScale.md,
+    gap: spacingScale.sm,
   },
   userInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: spacingTokens[3],
+    padding: spacingScale.md,
   },
   avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: spacingScale.avatarMd,
+    height: spacingScale.avatarMd,
+    borderRadius: spacingScale.avatarMd / 2,
     backgroundColor: '#667EEA',
     justifyContent: 'center',
     alignItems: 'center',
@@ -297,7 +309,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: spacingTokens[3],
-    paddingHorizontal: spacingTokens[4],
+    paddingVertical: spacingScale.md,
+    paddingHorizontal: spacingScale.lg,
   },
 });

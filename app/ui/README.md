@@ -47,15 +47,6 @@ app/ui/
 │   ├── Avatar.tsx            # User avatar
 │   ├── Divider.tsx           # Line separator
 │   └── Surface.tsx           # Gradient backdrop
-├── components/               # 6 chess-specific components
-│   ├── MatchCard.tsx         # Match display
-│   ├── ScoreInput.tsx        # Score adjuster
-│   ├── PlayerRow.tsx         # Player info
-│   ├── TournamentHeader.tsx  # Tournament title
-│   ├── RoundSelector.tsx     # Round picker
-│   └── ActionBar.tsx         # Bottom actions
-├── theme/
-│   └── ThemeProvider.tsx     # Theme context provider
 └── hooks/
     └── useThemeTokens.ts     # Theme hooks (useThemeTokens, useColors, useIsDark)
 ```
@@ -227,7 +218,7 @@ microInteractions.scaleHover;     // 1.01 (hover effect)
 microInteractions.opacityDisabled; // 0.5 (disabled state)
 ```
 
-## Primitive Components (10 Total)
+## Primitive Components (11 Total)
 
 ### Box – Flexbox Container
 
@@ -239,16 +230,43 @@ microInteractions.opacityDisabled; // 0.5 (disabled state)
   radius="md"
   shadow="card"
   backgroundColor="#fff"
-  flexDirection="row"
-  justifyContent="space-between"
-  alignItems="center"
-  flex={1}
 >
-  {/* Content */}
+  ...
 </Box>
 ```
 
-**Props:** padding, margin, gap, radius, shadow, backgroundColor, borderColor, borderWidth, flexDirection, justifyContent, alignItems, flex, style
+### GlobalContainer – Safe-area root & page container
+
+A single, global container primitive for pages and feature screens that consolidates common layout patterns:
+- Wraps content with a SafeAreaView (using react-native-safe-area-context)
+- Optional vertical scrolling via `scrollable` prop
+- Accepts `contentContainerStyle` for centered max-width content (used by `FeatureScreenLayout`)
+- Uses theme colors by default so pages are background-aware
+
+Props
+- scrollable?: boolean — wrap children in a ScrollView when true
+- style?: ViewStyle — outer container style
+- contentContainerStyle?: ViewStyle — layout style applied to the scroll content (or inner view)
+- backgroundColor?: string — override the default themed background
+
+Example
+
+```tsx
+import { GlobalContainer } from '@/ui';
+
+export function MyFeatureScreen() {
+  return (
+    <GlobalContainer scrollable contentContainerStyle={{ maxWidth: 640, padding: 24 }}>
+      {/* Page header */}
+      <Header />
+      {/* Cards or content that may scroll */}
+      <FeatureCard ... />
+    </GlobalContainer>
+  );
+}
+```
+
+Use `GlobalContainer` as the canonical page-level container in the DLS for consistent safe-area handling and scroll behavior.
 
 ### Text – Typography
 

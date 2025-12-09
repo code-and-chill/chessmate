@@ -1,9 +1,13 @@
 import type React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Pressable, Platform, useColorScheme } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { IconSymbol } from '@/ui/primitives/icon-symbol';
-import { Colors, Spacing, ZIndex } from '@/core/constants';
-import { useFonts } from '@/ui/hooks/useThemeTokens';
+import { ZIndex } from '@/core/constants';
+import { useFonts, useThemeTokens } from '@/ui/hooks/useThemeTokens';
+import { spacingScale } from '@/ui/tokens/spacing';
+import { getCurrentBreakpoint } from '@/ui/tokens/breakpoints';
+import { getSidebarWidthForBreakpoint } from '@/ui/tokens/layout';
+import { SegmentedControl } from '@/ui';
 
 export interface NavigationSidebarProps {
   currentRoute?: string;
@@ -32,9 +36,12 @@ interface QuickAction {
  */
 export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({ currentRoute = '/' }) => {
   const router = useRouter();
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
+  const { colors } = useThemeTokens();
   const fonts = useFonts();
+  const { mode, setMode } = useThemeTokens();
+
+  const bp = getCurrentBreakpoint();
+  const sidebarWidth = getSidebarWidthForBreakpoint(bp);
 
   const navigationItems: NavItem[] = [
     { id: 'play', label: 'Play', icon: 'gamecontroller.fill', route: '/' },
@@ -50,19 +57,19 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({ currentRou
       label: 'New Game',
       icon: 'plus.circle.fill',
       variant: 'primary',
-      onPress: () => router.push('/play/new'),
+      onPress: () => router.push('/play/new' as any),
     },
     {
       id: 'play-bot',
       label: 'Play Bot',
       icon: 'cpu',
       variant: 'secondary',
-      onPress: () => router.push('/play/bot'),
+      onPress: () => router.push('/play/bot' as any),
     },
   ];
 
   const handleNavigate = (route: string) => {
-    router.push(route);
+    router.push(route as any);
   };
 
   const isActive = (route: string) => {
@@ -70,10 +77,10 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({ currentRou
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <View style={[styles.container, { backgroundColor: colors.background.primary, width: sidebarWidth, borderRightColor: colors.border }]}>
       {/* Logo/Brand */}
       <View style={styles.header}>
-        <Text style={[styles.logo, { fontFamily: fonts.display, color: colors.tint }]}>♔ ChessMate</Text>
+        <Text style={[styles.logo, { fontFamily: fonts.display, color: colors.accent.primary } ]}>♔ ChessMate</Text>
       </View>
 
       {/* Navigation Items */}
@@ -86,7 +93,7 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({ currentRou
               style={({ pressed }) => [
                 styles.navItem,
                 active && styles.navItemActive,
-                { backgroundColor: active ? colors.tint : 'transparent' },
+                { backgroundColor: active ? colors.accent.primary : 'transparent' },
                 pressed && styles.navItemPressed,
               ]}
               onPress={() => handleNavigate(item.route)}
@@ -95,19 +102,19 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({ currentRou
               accessibilityState={{ selected: active }}
             >
               <IconSymbol
-                name={item.icon}
+                name={item.icon as any}
                 size={24}
-                color={active ? '#fff' : colors.icon}
+                color={active ? colors.accentForeground.primary : colors.foreground.secondary}
               />
               <Text style={[
                 styles.navLabel,
-                { fontFamily: fonts.medium, color: active ? '#fff' : colors.text }
+                { fontFamily: fonts.displayMedium, color: active ? colors.accentForeground.primary : colors.foreground.primary }
               ]}>
                 {item.label}
               </Text>
               {item.badge !== undefined && item.badge > 0 && (
-                <View style={[styles.badge, { backgroundColor: '#FF3B30' }]}>
-                  <Text style={[styles.badgeText, { fontFamily: fonts.semibold }]}>{item.badge}</Text>
+                <View style={[styles.badge, { backgroundColor: colors.error }]}>
+                  <Text style={[styles.badgeText, { fontFamily: fonts.primaryMedium }]}>{item.badge}</Text>
                 </View>
               )}
             </Pressable>
@@ -115,9 +122,22 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({ currentRou
         })}
       </View>
 
+      {/* Theme Control (light / dark) */}
+      <View style={styles.themeControlWrap}>
+        <IconSymbol name="sun.max.fill" size={16} color={mode === 'light' ? colors.accent.primary : colors.foreground.secondary} />
+        <SegmentedControl
+          segments={[ 'light', 'dark' ]}
+          selectedSegment={mode === 'dark' ? 'dark' : 'light'}
+          onSegmentChange={(s) => setMode(s as any)}
+          labelFormatter={(s) => (s === 'light' ? '☀' : '🌙')}
+          style={{ marginHorizontal: spacingScale.sm, minWidth: 120 }}
+        />
+        <IconSymbol name="moon.fill" size={16} color={mode === 'dark' ? colors.accent.primary : colors.foreground.secondary} />
+      </View>
+
       {/* Quick Actions */}
       <View style={styles.actionsSection}>
-        <Text style={[styles.sectionTitle, { fontFamily: fonts.semibold, color: colors.icon }]}>Quick Actions</Text>
+        <Text style={[styles.sectionTitle, { fontFamily: fonts.primaryMedium, color: colors.foreground.secondary }]}>Quick Actions</Text>
         {quickActions.map((action) => (
           <Pressable
             key={action.id}
@@ -125,11 +145,11 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({ currentRou
               styles.actionButton,
               action.variant === 'primary' && [
                 styles.actionButtonPrimary,
-                { backgroundColor: colors.tint }
+                { backgroundColor: colors.accent.primary }
               ],
               action.variant === 'secondary' && [
                 styles.actionButtonSecondary,
-                { borderColor: colors.tint }
+                { borderColor: colors.accent.primary }
               ],
               pressed && styles.actionButtonPressed,
             ]}
@@ -138,17 +158,17 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({ currentRou
             accessibilityLabel={action.label}
           >
             <IconSymbol
-              name={action.icon}
+              name={action.icon as any}
               size={20}
-              color={action.variant === 'primary' ? '#fff' : colors.tint}
+              color={action.variant === 'primary' ? colors.accentForeground.primary : colors.foreground.secondary}
             />
             <Text style={[
               styles.actionLabel,
-              { fontFamily: fonts.semibold },
+              { fontFamily: fonts.primaryMedium },
               action.variant === 'primary' && styles.actionLabelPrimary,
               action.variant === 'secondary' && [
                 styles.actionLabelSecondary,
-                { color: colors.tint }
+                { color: colors.accent.primary }
               ],
             ]}>
               {action.label}
@@ -167,8 +187,8 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({ currentRou
         accessibilityRole="button"
         accessibilityLabel="Settings"
       >
-        <IconSymbol name="gearshape.fill" size={24} color={colors.icon} />
-        <Text style={[styles.navLabel, { color: colors.text }]}>Settings</Text>
+        <IconSymbol name="gearshape.fill" size={24} color={colors.foreground.secondary} />
+        <Text style={[styles.navLabel, { color: colors.foreground.primary }]}>Settings</Text>
       </Pressable>
     </View>
   );
@@ -176,12 +196,10 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({ currentRou
 
 const styles = StyleSheet.create({
   container: {
-    width: 240,
     height: '100%',
-    paddingVertical: Spacing.lg,
-    paddingHorizontal: Spacing.md,
+    paddingVertical: spacingScale.xl,
+    paddingHorizontal: spacingScale.md,
     borderRightWidth: 1,
-    borderRightColor: '#e0e0e0',
     zIndex: ZIndex.sidebar,
     ...Platform.select({
       web: {
@@ -191,31 +209,28 @@ const styles = StyleSheet.create({
     }),
   },
   header: {
-    paddingVertical: Spacing.lg,
-    paddingHorizontal: Spacing.sm,
-    marginBottom: Spacing.xl,
+    paddingVertical: spacingScale.xl,
+    paddingHorizontal: spacingScale.sm,
+    marginBottom: spacingScale.xl,
   },
   logo: {
     fontSize: 20,
     fontWeight: '700',
     letterSpacing: 0.5,
-    // fontFamily from theme
   },
   navSection: {
     flex: 1,
-    gap: Spacing.xs,
+    gap: spacingScale.xs,
   },
   navItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.md,
+    paddingVertical: spacingScale.md,
+    paddingHorizontal: spacingScale.md,
     borderRadius: 8,
-    gap: Spacing.md,
+    gap: spacingScale.md,
   },
-  navItemActive: {
-    // backgroundColor set dynamically
-  },
+  navItemActive: {},
   navItemPressed: {
     opacity: 0.7,
     transform: [{ scale: 0.98 }],
@@ -224,7 +239,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '500',
     flex: 1,
-    // fontFamily from theme
   },
   badge: {
     minWidth: 20,
@@ -238,32 +252,35 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 12,
     fontWeight: '600',
-    // fontFamily from theme
   },
   actionsSection: {
-    marginTop: Spacing.xl,
-    gap: Spacing.sm,
+    marginTop: spacingScale.xl,
+    gap: spacingScale.sm,
+  },
+  themeControlWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacingScale.sm,
+    paddingVertical: spacingScale.xs,
+    gap: spacingScale.sm,
   },
   sectionTitle: {
     fontSize: 12,
     fontWeight: '600',
     textTransform: 'uppercase',
     letterSpacing: 1,
-    marginBottom: Spacing.sm,
-    paddingHorizontal: Spacing.sm,
-    // fontFamily from theme
+    marginBottom: spacingScale.sm,
+    paddingHorizontal: spacingScale.sm,
   },
   actionButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.md,
+    paddingVertical: spacingScale.md,
+    paddingHorizontal: spacingScale.md,
     borderRadius: 8,
-    gap: Spacing.sm,
+    gap: spacingScale.sm,
   },
-  actionButtonPrimary: {
-    // backgroundColor set dynamically
-  },
+  actionButtonPrimary: {},
   actionButtonSecondary: {
     backgroundColor: 'transparent',
     borderWidth: 1,
@@ -275,24 +292,20 @@ const styles = StyleSheet.create({
   actionLabel: {
     fontSize: 14,
     fontWeight: '600',
-    // fontFamily from theme
   },
   actionLabelPrimary: {
     color: '#fff',
   },
-  actionLabelSecondary: {
-    // color set dynamically
-  },
+  actionLabelSecondary: {},
   settingsButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.md,
+    paddingVertical: spacingScale.md,
+    paddingHorizontal: spacingScale.md,
     borderRadius: 8,
-    gap: Spacing.md,
-    marginTop: Spacing.xl,
+    gap: spacingScale.md,
+    marginTop: spacingScale.xl,
     borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
-    paddingTop: Spacing.xl,
+    paddingTop: spacingScale.xl,
   },
 });

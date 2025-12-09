@@ -1,33 +1,12 @@
-/**
- * FeatureCard Component
- * 
- * A standardized card for feature screens with consistent animation and interaction.
- * Part of the Design Language System (DLS) Screen Layout Pattern.
- * 
- * @see /app/DLS.md - Tab Screen Pattern documentation
- * 
- * @example
- * ```tsx
- * <FeatureCard
- *   icon="globe"
- *   title="Online Play"
- *   description="Find opponents worldwide"
- *   progress="1245 rating • 34 games"
- *   onPress={() => setMode('online')}
- *   delay={200}
- * />
- * ```
- */
-
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, Platform, useWindowDimensions } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Card } from '@/ui/primitives/Card';
 import { InteractivePressable } from '@/ui/primitives/InteractivePressable';
 import { Icon, type IconName } from '@/ui/icons';
-import { VStack } from '@/ui/primitives/Stack';
 import { useColors } from '@/ui/hooks/useThemeTokens';
+import { DevBadge } from '@/ui/primitives/DevBadge';
 import { typographyTokens } from '@/ui/tokens/typography';
-import { spacingTokens } from '@/ui/tokens/spacing';
+import { spacingScale } from '@/ui/tokens/spacing';
 
 interface FeatureCardProps {
   /** Icon name from icon library (e.g., "globe", "robot", "book") */
@@ -62,79 +41,175 @@ export function FeatureCard({
   variant = 'elevated',
 }: FeatureCardProps) {
   const colors = useColors();
-  
+  const { width, height } = useWindowDimensions();
+  const isLandscape = width > height;
+
+  // Compact mode: on native devices always use compact stacked layout; on web use width threshold
+  const isCompact = Platform.OS !== 'web' || width <= 600;
+
+  const horizontalPadding = Platform.OS === 'ios' && isLandscape ? spacingScale.xl : spacingScale.gutter;
+
+  // Use Card's padding prop in compact mode to control internal padding deterministically
+  const cardPadding = isCompact ? spacingScale.sm : undefined;
+
   return (
-    <Animated.View entering={FadeInDown.duration(500).delay(delay)}>
-      <Card
-        variant={variant}
-        size="lg"
-        hoverable
-        pressable
-        style={styles.card}
-      >
+    <Animated.View entering={FadeInDown.duration(500).delay(delay)} style={{ width: '100%' }}>
+      <DevBadge>{`w:${Math.round(width)} compact:${isCompact ? 'Y' : 'N'}`}</DevBadge>
+      <Card variant={variant} size="lg" hoverable pressable padding={cardPadding} style={{ ...styles.card, minWidth: 0 }}>
         <InteractivePressable
           onPress={onPress}
-          scaleOnPress={true}
+          scaleOnPress
           pressScale={0.98}
-          hapticFeedback={true}
+          hapticFeedback
           hapticStyle="light"
-          style={styles.cardInner}
+          style={[
+            styles.cardInner,
+            isCompact && styles.cardInnerCompact,
+            !isCompact && { paddingHorizontal: horizontalPadding, paddingVertical: spacingScale.sm },
+            isCompact && { width: '100%', overflow: 'hidden', paddingHorizontal: 0, alignSelf: 'stretch' },
+            { minWidth: 0 },
+          ]}
         >
-          <View style={[styles.iconBadge, { backgroundColor: colors.accent.primary + '15' }]}>
-            <Icon name={icon} size={32} color={colors.accent.primary} />
-          </View>
-          <VStack gap={1} style={styles.contentContainer}>
-            <Text style={[styles.title, { color: colors.foreground.primary }]}>{title}</Text>
-            <Text style={[styles.description, { color: colors.foreground.secondary }]}>{description}</Text>
-            {progress && <Text style={[styles.progress, { color: colors.accent.primary }]}>{progress}</Text>}
-          </VStack>
-          <Text style={[styles.arrow, { color: colors.accent.primary }]}>→</Text>
-        </InteractivePressable>
-      </Card>
-    </Animated.View>
-  );
-}
+          {!isCompact && (
+            <View style={[styles.leftZone]}>
+              <View style={[styles.iconBadge, isCompact && styles.iconBadgeCompact, { backgroundColor: colors.accent.primary + '15' }]}>
+                <Icon name={icon} size={isCompact ? spacingScale.iconSize * 0.9 : spacingScale.iconSize * 1.4} color={colors.accent.primary} />
+              </View>
+            </View>
+          )}
 
-const styles = StyleSheet.create({
-  card: {
-    width: '100%',
-  },
-  cardInner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacingTokens[4],
-    padding: spacingTokens[1],
-  },
-  iconBadge: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  contentContainer: {
-    flex: 1,
-  },
-  title: {
-    fontFamily: typographyTokens.fontFamily.displayMedium,
-    fontSize: typographyTokens.fontSize.xl,
-    fontWeight: typographyTokens.fontWeight.bold,
-    marginBottom: spacingTokens[1],
-    letterSpacing: -0.4,
-  },
-  description: {
-    fontFamily: typographyTokens.fontFamily.primary,
-    fontSize: typographyTokens.fontSize.base,
-    lineHeight: 20,
-  },
-  progress: {
-    fontFamily: typographyTokens.fontFamily.primaryMedium,
-    fontSize: typographyTokens.fontSize.sm,
-    fontWeight: typographyTokens.fontWeight.semibold,
-    marginTop: spacingTokens[1],
-  },
-  arrow: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-});
+          <View style={[styles.centerZone, isCompact && { paddingLeft: 0 }]}>
+            <Text
+              style={[
+                styles.title,
+                isCompact && { fontSize: typographyTokens.fontSize.lg },
+                { color: colors.foreground.primary },
+              ]}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              {title}
+            </Text>
+            <Text
+              style={[
+                styles.description,
+                isCompact && { fontSize: typographyTokens.fontSize.sm },
+                { color: colors.foreground.secondary },
+              ]}
+              numberOfLines={2}
+              ellipsizeMode="tail"
+            >
+              {description}
+            </Text>
+            {progress && <Text style={[styles.progress, { color: colors.accent.primary }]}>{progress}</Text>}
+          </View>
+
+          <View style={[styles.rightZone]}>
+            <View style={styles.actionWrap}>
+              <Text style={[styles.arrow, { color: colors.accent.primary }]}>{'→'}</Text>
+            </View>
+          </View>
+         </InteractivePressable>
+       </Card>
+     </Animated.View>
+   );
+ }
+
+ const styles = StyleSheet.create({
+   card: {
+     width: '100%',
+     maxWidth: '100%',
+     alignSelf: 'stretch',
+     overflow: 'hidden',
+   },
+   cardInner: {
+     flexDirection: 'row',
+     alignItems: 'center',
+     gap: spacingScale.gap,
+   },
+   cardInnerCompact: {
+     flexDirection: 'column',
+     alignItems: 'stretch',
+   },
+   iconBadge: {
+     width: spacingScale.avatarLg,
+     height: spacingScale.avatarLg,
+     borderRadius: spacingScale.avatarLg / 2,
+     justifyContent: 'center',
+     alignItems: 'center',
+   },
+   iconBadgeCompact: {
+     marginBottom: spacingScale.sm,
+     alignSelf: 'center',
+     width: spacingScale.avatarMd,
+     height: spacingScale.avatarMd,
+     borderRadius: spacingScale.avatarMd / 2,
+   },
+   iconBadgeRow: {
+     marginRight: spacingScale.md,
+   },
+   contentContainer: {
+     flex: 1,
+     minWidth: 0,
+     width: '100%',
+   },
+   leftZone: {
+     width: 56,
+     justifyContent: 'center',
+     alignItems: 'center',
+   },
+   centerZone: {
+     flex: 1,
+     minWidth: 0,
+     paddingLeft: spacingScale.md,
+     paddingRight: spacingScale.md,
+   },
+   rightZone: {
+     width: 40,
+     justifyContent: 'center',
+     alignItems: 'center',
+   },
+   actionWrap: {
+     width: 32,
+     height: 32,
+     borderRadius: 16,
+     justifyContent: 'center',
+     alignItems: 'center',
+   },
+   title: {
+     fontFamily: typographyTokens.fontFamily.displayMedium,
+     fontSize: typographyTokens.fontSize.xl,
+     fontWeight: typographyTokens.fontWeight.bold,
+     marginBottom: spacingScale.xs,
+     letterSpacing: -0.4,
+     flexShrink: 1,
+     maxWidth: '100%',
+   },
+   description: {
+     fontFamily: typographyTokens.fontFamily.primary,
+     fontSize: typographyTokens.fontSize.base,
+     lineHeight: 20,
+     flexShrink: 1,
+     maxWidth: '100%',
+   },
+   progress: {
+     fontFamily: typographyTokens.fontFamily.primaryMedium,
+     fontSize: typographyTokens.fontSize.sm,
+     fontWeight: typographyTokens.fontWeight.semibold,
+     marginTop: spacingScale.xs,
+   },
+   arrow: {
+     fontWeight: '600',
+     marginLeft: spacingScale.md,
+     flexShrink: 0,
+   },
+   arrowRow: {
+     marginLeft: spacingScale.md,
+     alignSelf: 'center',
+   },
+   arrowCompact: {
+     alignSelf: 'flex-end',
+     marginTop: spacingScale.sm,
+     marginLeft: 0,
+   },
+ });

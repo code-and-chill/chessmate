@@ -1,6 +1,7 @@
 import React from 'react';
 import { Text as RNText, TextProps as RNTextProps } from 'react-native';
 import { typographyTokens, textVariants } from '../tokens/typography';
+import { useColors } from '../hooks/useThemeTokens';
 
 type TextVariant = keyof typeof textVariants;
 
@@ -15,6 +16,8 @@ type Props = RNTextProps & {
 
 export const Text = React.forwardRef<RNText, Props>(
   ({ children, variant = 'body', color, mono, weight, size, style, ...rest }, ref) => {
+    const colors = useColors();
+
     // Defensive check: fallback to 'body' if invalid variant
     const v = (textVariants as any)[variant] ?? textVariants.body;
 
@@ -55,7 +58,7 @@ export const Text = React.forwardRef<RNText, Props>(
       fontSize: finalFontSize,
       lineHeight: finalFontSize * v.lineHeight,
       letterSpacing: ('letterSpacing' in v && v.letterSpacing) || typographyTokens.letterSpacing.normal,
-      color: color || '#000',
+      color: color || colors.foreground.primary,
     };
 
     return (

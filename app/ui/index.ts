@@ -56,6 +56,9 @@ export {
   type Breakpoint,
 } from './tokens/breakpoints';
 
+// Re-export layout tokens
+export { layoutTokens, getSidebarWidthForBreakpoint } from './tokens/layout';
+
 // Re-export all primitive components
 export { Box } from './primitives/Box';
 export { Text } from './primitives/Text';
@@ -201,6 +204,9 @@ export type { SidebarProps, SidebarItem } from './components/Sidebar';
 export { QuickStartModal } from './modals/QuickStartModal';
 export type { QuickStartModalProps, TimeControl } from './modals/QuickStartModal';
 
+// Re-export global primitives
+export { GlobalContainer } from './primitives/GlobalContainer';
+
 // Re-export IconSymbol
 export { IconSymbol } from './primitives/icon-symbol';
 
@@ -215,7 +221,6 @@ export { StatCard } from './components/StatCard';
 export { ChoiceChip } from './primitives/ChoiceChip';
 export { Tabs } from './components/Tabs';
 export type { TabItem } from './components/Tabs';
-export { GlobalLayout } from '@/app/GlobalLayout';
 export { SegmentedControl } from './components/SegmentedControl';
 export { RatedToggle } from './components/RatedToggle';
 
@@ -225,3 +230,6 @@ export { safeStyles, safeStyleArray } from './utilities/safeStyles';
 export type { ThemeMode, ThemeContextType } from './hooks/useThemeTokens';
 export { useThemeTokens, useColors, useIsDark, useTypography, useFonts } from './hooks/useThemeTokens';
 
+// Add explicit re-export for GlobalLayout from the app package so imports like
+// `import { GlobalLayout } from '@/ui'` resolve correctly to the actual component.
+export { GlobalLayout } from '@/app/GlobalLayout';
