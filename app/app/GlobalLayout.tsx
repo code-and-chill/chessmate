@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { View, StyleSheet, Platform, TouchableOpacity, useWindowDimensions } from 'react-native';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { IconSymbol } from '@/ui/primitives/icon-symbol';
 import { Sidebar, type SidebarItem } from '@/ui/components/Sidebar';
 import { useThemeTokens } from '@/ui/hooks/useThemeTokens';
@@ -8,6 +8,7 @@ import { spacingScale } from '@/ui/tokens/spacing';
 import { getCurrentBreakpoint } from '@/ui/tokens/breakpoints';
 import { getSidebarWidthForBreakpoint, default as layoutTokens } from '@/ui/tokens/layout';
 import { GlobalContainer } from '@/ui/primitives/GlobalContainer';
+import { ContentSizeProvider } from '@/contexts/ContentSizeContext';
 
 const sidebarItems: SidebarItem[] = [
 	{
@@ -64,6 +65,12 @@ export function GlobalLayout({ children }: GlobalLayoutProps) {
 
 	const contentPaddingHorizontal = Platform.OS === 'ios' && isLandscape ? spacingScale.xl : spacingScale.gutter;
 
+	const [contentSize, setContentSize] = useState<{ width: number; height: number } | null>(null);
+	const handleLayout = useCallback((e: any) => {
+		const { width: w, height: h } = e.nativeEvent.layout;
+		setContentSize({ width: Math.round(w), height: Math.round(h) });
+	}, []);
+
 	return (
 		<GlobalContainer style={[styles.container, { backgroundColor: colors.background.primary }]}>
 			{(sidebarVisible || (Platform.OS === 'web' && sidebarWebWidth > 0)) && (
@@ -80,9 +87,13 @@ export function GlobalLayout({ children }: GlobalLayoutProps) {
 				>
 					<Sidebar items={sidebarItems} onItemPress={() => Platform.OS !== 'web' && setSidebarVisible(false)} />
 				</View>
-			)}
+				)}
 
-			<View style={[styles.content, { paddingHorizontal: contentPaddingHorizontal }]}>{children}</View>
+			<ContentSizeProvider value={contentSize}>
+				<View style={[styles.content, { paddingHorizontal: contentPaddingHorizontal }]} onLayout={handleLayout}>
+					{children}
+				</View>
+			</ContentSizeProvider>
 
 			{Platform.OS !== 'web' && sidebarVisible && (
 				<TouchableOpacity
@@ -102,6 +113,7 @@ export function GlobalLayout({ children }: GlobalLayoutProps) {
 					<IconSymbol size={24} name="line.3.horizontal" color={colors.accentForeground.primary} />
 				</TouchableOpacity>
 			)}
+
 		</GlobalContainer>
 	);
 }

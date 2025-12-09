@@ -1,5 +1,5 @@
 import React from 'react';
-import Animated from 'react-native-reanimated';
+import Animated, { Layout } from 'react-native-reanimated';
 import { Panel } from '@/ui/primitives/Panel';
 import { Card } from '@/ui/primitives/Card';
 import { MoveList } from '@/features/game';
@@ -21,7 +21,7 @@ export function MovesColumn({ isDesktop, moves, anim, style, flex }: MovesColumn
   if (typeof flex === 'number') containerStyle.flex = flex;
 
   return (
-    <Animated.View entering={anim} style={containerStyle}>
+    <Animated.View entering={anim} layout={Layout.springify()} style={containerStyle}>
       {isDesktopFinal ? (
         <Panel variant="glass" padding={0} style={{ flex: 1, overflow: 'hidden' }}>
           <MoveList moves={moves} />

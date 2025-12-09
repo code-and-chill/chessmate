@@ -100,8 +100,12 @@ const BOARD_THEME_COLORS: Record<BoardTheme, BoardColors> = {
 /**
  * Get board colors based on theme
  */
-export const getBoardColors = (theme: BoardTheme): BoardColors => {
-  return BOARD_THEME_COLORS[theme];
+export const getBoardColors = (theme?: BoardTheme): BoardColors => {
+  // Accept undefined or unknown runtime values and fall back to 'classic'
+  const key = (typeof theme === 'string' && Object.prototype.hasOwnProperty.call(BOARD_THEME_COLORS, theme))
+    ? theme
+    : 'classic';
+  return BOARD_THEME_COLORS[key as BoardTheme];
 };
 
 /**

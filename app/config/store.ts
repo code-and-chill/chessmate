@@ -3,7 +3,7 @@
  * Manages runtime configuration state with change notifications
  */
 
-import type { RuntimeConfig, ConfigChangeEvent, Environment } from './types';
+import type { RuntimeConfig, ConfigChangeEvent } from './types';
 import { validateConfig } from './validator';
 
 /**

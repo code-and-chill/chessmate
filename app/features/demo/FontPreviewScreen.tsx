@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import { ScrollView, View, StyleSheet } from 'react-native';
+import { ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Text, VStack, HStack, Card, useColors } from '@/ui';
 

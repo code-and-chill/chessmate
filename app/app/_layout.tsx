@@ -69,6 +69,8 @@ export default function RootLayout() {
                                 <Stack.Screen name="learning" />
                                  <Stack.Screen name="social" />
                                 <Stack.Screen name="game" />
+                                <Stack.Screen name="not-found" />
+                                <Stack.Screen name="404" />
                                 <Stack.Screen
                                   name="login"
                                   options={{

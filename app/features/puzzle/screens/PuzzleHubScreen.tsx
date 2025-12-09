@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useRouter } from 'expo-router';
-import { VStack, HStack, useThemeTokens } from '@/ui';
+import { VStack, HStack } from '@/ui';
 import { FeatureScreenLayout } from '@/ui/components/FeatureScreenLayout';
 import { FeatureCard } from '@/ui/components/FeatureCard';
 import { StatCard } from '@/ui/components/StatCard';
@@ -9,7 +9,6 @@ import { useI18n } from '@/i18n/I18nContext';
 
 export function PuzzleHubScreen() {
   const router = useRouter();
-  const { colors } = useThemeTokens();
   const { t, ti } = useI18n();
   const { dailyPuzzle, puzzleStats, getDailyPuzzle, getUserStats, isLoading } = usePuzzle();
 

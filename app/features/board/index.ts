@@ -21,14 +21,6 @@ export { ChessBoard } from './components/ChessBoard';
 export { PlayScreen } from './screens/PlayScreen';
 export type { PlayScreenProps } from './screens/PlayScreen';
 
-// Piece set registry
-export {
-  pieceSets,
-  getPieceSetInfo,
-  getAvailableThemes,
-  isThemeAvailable,
-} from './config/pieceSetRegistry';
-
 // Types
 export type { 
   PieceKey, 
@@ -45,3 +37,7 @@ export {
 // Component prop types (for advanced usage)
 export type { ChessBoardProps } from './components/ChessBoard';
 export type { Color } from '@/core/utils/chess';
+
+// Registry & utilities
+export { pieceSets, getPieceSetInfo, getAvailableThemes, isThemeAvailable } from './config/pieceSetRegistry';
+export type { PieceTheme } from './types/pieces';

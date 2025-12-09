@@ -8,7 +8,6 @@ import {useGameState, usePromotionModal, useGameTimer} from '@/features/board/ho
 import {useReducedMotion} from '@/features/board/hooks/useReducedMotion';
 import {Box} from '@/ui/primitives/Box';
 import {VStack} from '@/ui/primitives/Stack';
-import {Surface} from '@/ui/primitives/Surface';
 import {useThemeTokens} from '@/ui/hooks/useThemeTokens';
 import {spacingTokens} from '@/ui/tokens/spacing';
 import {useBoardLayout} from '@/features/board/hooks/useBoardLayout';
@@ -18,6 +17,7 @@ import {useGameParticipant} from '@/features/game/hooks/useGameParticipant';
 import {getPlayerColor} from '@/features/board/utils/getPlayerColor';
 import {useAuth} from '@/contexts/AuthContext';
 import {useBoardTheme} from '@/contexts/BoardThemeContext';
+import { DevBadge } from '@/ui/primitives/DevBadge';
 
 export interface PlayScreenProps {
     gameId?: string;
@@ -25,8 +25,8 @@ export interface PlayScreenProps {
 }
 
 export function PlayScreen({ initialGame }: PlayScreenProps = {}): React.ReactElement {
-    const {colors} = useThemeTokens();
-    const { boardTheme, pieceTheme, isLoading: themeLoading } = useBoardTheme();
+    const { colors } = useThemeTokens();
+    const { boardTheme, pieceTheme } = useBoardTheme();
     const screenConfig = createPlayScreenConfig({
         theme: {
             boardTheme: boardTheme as any,
@@ -53,7 +53,7 @@ export function PlayScreen({ initialGame }: PlayScreenProps = {}): React.ReactEl
         isHorizontalLayout,
         boardColumnFlex,
         movesColumnFlex,
-        onLayout: handleContentLayout,
+        onLayout,
     } = useBoardLayout();
 
     const handleMove = useCallback(
@@ -70,7 +70,7 @@ export function PlayScreen({ initialGame }: PlayScreenProps = {}): React.ReactEl
 
     const boardProps = useMemo(() => {
         const rawPlayers = (gameState as any).players as string[] | undefined;
-        const looksLikePlaceholderPlayers = Array.isArray(rawPlayers) && rawPlayers.length === 2 && rawPlayers.every(p => typeof p === 'string' && p.startsWith('Player'));
+        const looksLikePlaceholderPlayers = Array.isArray(rawPlayers) && rawPlayers.length === 2 && rawPlayers.every(p => p.startsWith('Player'));
         const isLocal = (gameState as any).isLocal || (gameState as any).mode === 'local' || looksLikePlaceholderPlayers || !auth?.user?.id;
         const orientation = isLocal ? (gameState.sideToMove === 'w' ? 'white' : 'black') : (playerColor === 'w' ? 'white' : 'black');
         const myColor = isLocal ? (gameState.sideToMove as any) : playerColor;
@@ -114,7 +114,7 @@ export function PlayScreen({ initialGame }: PlayScreenProps = {}): React.ReactEl
 
     return (
         <SafeAreaView style={[styles.container, {backgroundColor: colors.background.primary}]}>
-            <View style={styles.container}>
+            <View style={styles.container} onLayout={onLayout}>
                 {isHorizontalLayout ? (
                     <Box style={{ flexDirection: 'row', flex: 1, gap: spacingTokens[2], alignItems: 'stretch' }}>
                         <BoardColumn
@@ -158,17 +158,15 @@ export function PlayScreen({ initialGame }: PlayScreenProps = {}): React.ReactEl
                 )}
 
                 {__DEV__ && (
-                    <View style={{ position: 'absolute', top: 12, right: 12, backgroundColor: 'rgba(0,0,0,0.6)', padding: 8, borderRadius: 6 }}>
-                        <View style={{ maxWidth: 220 }}>
-                            <View style={{ marginBottom: 6 }}>
-                                <Text style={{ color: '#fff', fontSize: 12 }}>isLocal: {(gameState as any).isLocal ? 'true' : 'false'}</Text>
-                                <Text style={{ color: '#fff', fontSize: 12 }}>sideToMove: {String(gameState.sideToMove)}</Text>
-                                <Text style={{ color: '#fff', fontSize: 12 }}>orientation: {String(boardProps.orientation)}</Text>
-                                <Text style={{ color: '#fff', fontSize: 12 }}>myColor: {String(boardProps.myColor)}</Text>
-                                <Text style={{ color: '#fff', fontSize: 12 }}>status: {String(gameState.status)}</Text>
-                            </View>
+                    <DevBadge style={{ position: 'absolute', top: 12, right: 12, padding: 8, borderRadius: 6, backgroundColor: 'rgba(0,0,0,0.6)' }} >
+                        <View style={{ marginBottom: 6 }}>
+                            <Text style={{ color: '#fff', fontSize: 12 }}>isLocal: {(gameState as any).isLocal ? 'true' : 'false'}</Text>
+                            <Text style={{ color: '#fff', fontSize: 12 }}>sideToMove: {String(gameState.sideToMove)}</Text>
+                            <Text style={{ color: '#fff', fontSize: 12 }}>orientation: {String(boardProps.orientation)}</Text>
+                            <Text style={{ color: '#fff', fontSize: 12 }}>myColor: {String(boardProps.myColor)}</Text>
+                            <Text style={{ color: '#fff', fontSize: 12 }}>status: {String(gameState.status)}</Text>
                         </View>
-                    </View>
+                    </DevBadge>
                 )}
 
                 <PawnPromotionModal visible={promotionState.isVisible} color={gameState.sideToMove}

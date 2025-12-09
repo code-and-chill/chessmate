@@ -4,11 +4,11 @@ import { VStack, Text, Card, Button } from '@/ui';
 export const AppearancePanel: React.FC = () => {
   return (
     <VStack gap={4} fullWidth>
-      <Text variant="heading">Appearance</Text>
+      <Text>Appearance</Text>
       <Card>
         <VStack gap={2}>
           <Text variant="body">Theme: System</Text>
-          <Button variant="subtle">Change Theme</Button>
+          <Button>Change Theme</Button>
         </VStack>
       </Card>
     </VStack>

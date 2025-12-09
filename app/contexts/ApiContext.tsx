@@ -17,7 +17,8 @@ import {
   MockPlayApiClient,
   PuzzleApiClient,
   LiveGameApiClient,
-  GameApiClient as PlayApiClient
+  GameApiClient as PlayApiClient,
+  PieceThemeApiClient,
 } from '@/services/api';
 
 interface ApiContextType {
@@ -30,6 +31,7 @@ interface ApiContextType {
   puzzleApi: PuzzleApiClient | MockPuzzleApiClient;
   liveGameApi: LiveGameApiClient | MockLiveGameApiClient;
   playApi: PlayApiClient | MockPlayApiClient;
+  pieceThemeApi: PieceThemeApiClient;
   useMockApi: boolean;
 }
 
@@ -61,6 +63,7 @@ export function ApiProvider({ children }: { children: ReactNode }) {
     let liveGameApi: LiveGameApiClient | MockLiveGameApiClient;
     let puzzleApi: PuzzleApiClient | MockPuzzleApiClient;
     let playApi: PlayApiClient | MockPlayApiClient;
+    let pieceThemeApi: PieceThemeApiClient;
 
     if (USE_MOCK_API) {
       // Use mock implementations for testing
@@ -74,6 +77,7 @@ export function ApiProvider({ children }: { children: ReactNode }) {
       liveGameApi = new MockLiveGameApiClient();
       puzzleApi = new MockPuzzleApiClient();
       playApi = new MockPlayApiClient();
+      pieceThemeApi = new PieceThemeApiClient();
     } else {
       // Use real API implementations
       console.log('🌐 Using REAL API clients');
@@ -86,6 +90,7 @@ export function ApiProvider({ children }: { children: ReactNode }) {
       liveGameApi = new LiveGameApiClient(API_BASE_URLS.liveGame, "");
       puzzleApi = new PuzzleApiClient(API_BASE_URLS.puzzle);
       playApi = new PlayApiClient(API_BASE_URLS.play, "");
+      pieceThemeApi = new PieceThemeApiClient();
     }
     
     return {
@@ -98,6 +103,7 @@ export function ApiProvider({ children }: { children: ReactNode }) {
       puzzleApi,
       liveGameApi,
       playApi,
+      pieceThemeApi,
       useMockApi: USE_MOCK_API,
     };
   }, []);

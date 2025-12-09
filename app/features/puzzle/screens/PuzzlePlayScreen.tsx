@@ -1,25 +1,17 @@
-import { useState, useCallback } from 'react';
-import { Dimensions } from 'react-native';
-import Animated, { FadeInUp } from 'react-native-reanimated';
-import { ChessBoard } from '@/features/board';
-import { 
-  MoveList, 
-  PlayerCard, 
-  GameActions, 
-  GameHeaderCard,
-  PawnPromotionModal,
-  type PieceType 
-} from '@/features/game';
-import { createPlayScreenConfig, getHydratedBoardProps, type PlayScreenConfig } from '@/features/board/config';
-import { isCheckmate, isStalemate, parseFENToBoard, applyMoveToFENSimple, type Board } from '@/core/utils';
-import { useReducedMotion } from '@/features/board/hooks/useReducedMotion';
-import { Box } from '@/ui/primitives/Box';
-import { VStack } from '@/ui/primitives/Stack';
-import { Card } from '@/ui/primitives/Card';
-import { useThemeTokens } from '@/ui/hooks/useThemeTokens';
-import { spacingTokens } from '@/ui/tokens/spacing';
-
-// Move application now handled by engine util: applyMoveToFENSimple
+import {useCallback, useState} from 'react';
+import {Dimensions} from 'react-native';
+import Animated, {FadeInUp} from 'react-native-reanimated';
+import {ChessBoard} from '@/features/board';
+import {GameActions, GameHeaderCard, MoveList, PawnPromotionModal, type PieceType, PlayerCard} from '@/features/game';
+import {createPlayScreenConfig, getHydratedBoardProps, type PlayScreenConfig} from '@/features/board/config';
+import {applyMoveToFENSimple, type Board, isCheckmate, isStalemate, parseFENToBoard} from '@/core/utils';
+import {useReducedMotion} from '@/features/board/hooks/useReducedMotion';
+import {Box} from '@/ui/primitives/Box';
+import {VStack} from '@/ui/primitives/Stack';
+import {Card} from '@/ui/primitives/Card';
+import {useThemeTokens} from '@/ui/hooks/useThemeTokens';
+import {spacingTokens} from '@/ui/tokens/spacing';
+import {Move} from "@/core/utils/chess";
 
 interface PuzzlePlayScreenProps {
   puzzleId: string;
@@ -70,9 +62,7 @@ export const PuzzlePlayScreen = ({
     if (!fromSquare || fromSquare.type !== 'p') return false;
     
     const toRank = to[1];
-    const isPromotion = (sideToMove === 'w' && toRank === '8') || (sideToMove === 'b' && toRank === '1');
-    
-    return isPromotion;
+    return (sideToMove === 'w' && toRank === '8') || (sideToMove === 'b' && toRank === '1');
   }, []);
 
   /**

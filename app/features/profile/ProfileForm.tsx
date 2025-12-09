@@ -34,7 +34,7 @@ export const ProfileForm: React.FC = () => {
 
   return (
     <VStack gap={4} alignItems="stretch" fullWidth>
-      <Text variant="heading">{t('profile.heading', 'Profile Information')}</Text>
+      <Text variant="title">{t('profile.heading', 'Profile Information')}</Text>
       <VStack gap={2} alignItems="center">
         <Avatar name={username} />
       </VStack>

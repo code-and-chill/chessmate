@@ -1,10 +1,5 @@
-/**
- * useThemeTokens Hook
- * app/ui/hooks/useThemeTokens.ts
- */
-
 import { createContext, useContext } from 'react';
-import type { semanticColors } from '../tokens/colors';
+import { semanticColors } from '../tokens/colors';
 import type { typographyTokens } from '../tokens/typography';
 
 export type ThemeMode = 'light' | 'dark' | 'auto';
@@ -28,8 +23,9 @@ export const useThemeTokens = (): ThemeContextType => {
 };
 
 export const useColors = () => {
-  const { colors } = useThemeTokens();
-  return colors;
+  const context = useContext(ThemeContext);
+  if (context && context.colors) return context.colors;
+  return semanticColors(false);
 };
 
 export const useIsDark = () => {

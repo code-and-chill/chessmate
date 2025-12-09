@@ -1,18 +1,42 @@
-import React from 'react';
-import Animated from 'react-native-reanimated';
-import { View, Text } from 'react-native';
+import React, { useMemo } from 'react';
+import Animated, { Layout } from 'react-native-reanimated';
+import { View, Text, StyleSheet } from 'react-native';
 import { PlayerCard, GameActions } from '@/features/game';
 import { ChessBoard } from '@/features/board/components/ChessBoard';
 import { VStack } from '@/ui/primitives/Stack';
 import { spacingTokens } from '@/ui/tokens/spacing';
 import { useBoardLayout } from '@/features/board/hooks/useBoardLayout';
 
+export interface BoardProps {
+  // minimal shape used by this component — expand as needed
+  orientation?: 'white' | 'black';
+  myColor?: 'w' | 'b' | string;
+  // any other props are forwarded to ChessBoard
+  [key: string]: any;
+}
+
+export interface GameState {
+  fen: string;
+  sideToMove: 'w' | 'b' | string;
+  status?: string;
+  result?: string;
+  endReason?: string;
+  isLocal?: boolean;
+  capturedByWhite?: any[];
+  capturedByBlack?: any[];
+}
+
+export interface TimerState {
+  whiteTimeMs?: number;
+  blackTimeMs?: number;
+}
+
 export interface BoardColumnProps {
-  boardSize: number;
-  squareSize: number;
-  boardProps: any;
-  gameState: any;
-  timerState: any;
+  boardSize?: number;
+  squareSize?: number;
+  boardProps: BoardProps;
+  gameState: GameState;
+  timerState: TimerState;
   onTimeExpire: (color: 'w' | 'b') => void;
   onResign: () => void;
   onOfferDraw: () => void;
@@ -20,7 +44,7 @@ export interface BoardColumnProps {
   anim: (delay: number) => any;
   isCompact?: boolean;
   flex?: number;
-  colors?: any;
+  colors?: { text?: { primary?: string } } | null;
 }
 
 export function BoardColumn({
@@ -39,56 +63,57 @@ export function BoardColumn({
   colors,
 }: BoardColumnProps) {
   const layout = useBoardLayout();
-  const boardSizeFinal = boardSize ?? layout.boardSize;
-  const squareSizeFinal = squareSize ?? layout.squareSize;
-  const compactFinal = typeof isCompact !== 'undefined' ? isCompact : !layout.isHorizontalLayout;
+
+  const boardSizeFinal = useMemo(() => boardSize ?? layout.boardSize, [boardSize, layout.boardSize]);
+  const squareSizeFinal = useMemo(() => squareSize ?? layout.squareSize, [squareSize, layout.squareSize]);
+  const compactFinal = useMemo(() => (typeof isCompact !== 'undefined' ? isCompact : !layout.isHorizontalLayout), [isCompact, layout.isHorizontalLayout]);
 
   return (
-    <VStack flex={flex} gap={spacingTokens[1]} style={{ justifyContent: 'center', alignItems: 'center' }}>
-      <Animated.View entering={anim(0)} style={{ width: boardSizeFinal }}>
+    <VStack flex={flex} gap={spacingTokens[1]} style={styles.container}>
+      <Animated.View entering={anim(0)} layout={Layout.springify()} style={{ width: boardSizeFinal }}>
         <PlayerCard
           color="b"
           name="Opponent"
           rating={1500}
           isSelf={false}
           isActive={gameState.sideToMove === 'b'}
-          remainingMs={timerState.blackTimeMs}
+          remainingMs={timerState.blackTimeMs ?? 0}
           capturedPieces={gameState.capturedByWhite}
           onTimeExpire={() => onTimeExpire('b')}
         />
       </Animated.View>
 
-      <Animated.View entering={anim(50)} style={{ width: boardSizeFinal, height: boardSizeFinal }}>
-        <ChessBoard key={`${gameState.fen}-${gameState.sideToMove}`} {...boardProps} size={boardSizeFinal} squareSize={squareSizeFinal} />
+      <Animated.View entering={anim(50)} layout={Layout.springify()} style={{ width: boardSizeFinal, height: boardSizeFinal }}>
+        <ChessBoard key={`${gameState.fen}-${gameState.sideToMove}`} {...(boardProps as any)} size={boardSizeFinal} squareSize={squareSizeFinal} />
       </Animated.View>
 
-      <Animated.View entering={anim(150)} style={{ width: boardSizeFinal }}>
+      <Animated.View entering={anim(150)} layout={Layout.springify()} style={{ width: boardSizeFinal }}>
         <PlayerCard
           color="w"
           name="Player"
           rating={1450}
           isSelf={true}
           isActive={gameState.sideToMove === 'w'}
-          remainingMs={timerState.whiteTimeMs}
+          remainingMs={timerState.whiteTimeMs ?? 0}
           capturedPieces={gameState.capturedByBlack}
           onTimeExpire={() => onTimeExpire('w')}
         />
       </Animated.View>
 
       {!compactFinal && (
-        <Animated.View entering={anim(200)} style={{ width: boardSizeFinal }}>
+        <Animated.View entering={anim(200)} layout={Layout.springify()} style={{ width: boardSizeFinal }}>
           <GameActions
-            status={gameState.status}
-            result={gameState.result}
+            status={gameState.status as any}
+            result={gameState.result as any}
             endReason={gameState.endReason}
-            sideToMove={gameState.sideToMove}
+            sideToMove={gameState.sideToMove as any}
             onResign={onResign}
             onOfferDraw={onOfferDraw}
           />
 
           {drawOfferPending && colors && (
             <View style={{ marginTop: 8, alignItems: 'center' }}>
-              <Text style={{ color: colors.text.primary, fontSize: 13 }}>Draw offer sent — awaiting response…</Text>
+              <Text style={{ color: colors.text?.primary ?? '#000', fontSize: 13 }}>Draw offer sent — awaiting response…</Text>
             </View>
           )}
         </Animated.View>
@@ -96,3 +121,10 @@ export function BoardColumn({
     </VStack>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+});
