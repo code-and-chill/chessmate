@@ -6,6 +6,14 @@ import {
   MatchmakingApiClient,
   LearningApiClient,
   SocialApiClient,
+  PuzzleApiClient,
+  LiveGameApiClient,
+  GameApiClient as PlayApiClient,
+  PieceThemeApiClient,
+} from '@/services/api';
+
+// Import mock implementations directly to avoid export binding/circular issues
+import {
   MockAuthApiClient,
   MockAccountApiClient,
   MockRatingApiClient,
@@ -15,11 +23,7 @@ import {
   MockLiveGameApiClient,
   MockPuzzleApiClient,
   MockPlayApiClient,
-  PuzzleApiClient,
-  LiveGameApiClient,
-  GameApiClient as PlayApiClient,
-  PieceThemeApiClient,
-} from '@/services/api';
+} from '@/services/api/mock-clients';
 
 interface ApiContextType {
   authApi: AuthApiClient | MockAuthApiClient;
@@ -28,7 +32,7 @@ interface ApiContextType {
   matchmakingApi: MatchmakingApiClient | MockMatchmakingApiClient;
   learningApi: LearningApiClient | MockLearningApiClient;
   socialApi: SocialApiClient | MockSocialApiClient;
-  puzzleApi: PuzzleApiClient | MockPuzzleApiClient;
+  puzzleApi: any;
   liveGameApi: LiveGameApiClient | MockLiveGameApiClient;
   playApi: PlayApiClient | MockPlayApiClient;
   pieceThemeApi: PieceThemeApiClient;
@@ -67,7 +71,6 @@ export function ApiProvider({ children }: { children: ReactNode }) {
 
     if (USE_MOCK_API) {
       // Use mock implementations for testing
-      console.log('🎭 Using MOCK API clients');
       authApi = new MockAuthApiClient();
       accountApi = new MockAccountApiClient();
       ratingApi = new MockRatingApiClient();
@@ -80,16 +83,15 @@ export function ApiProvider({ children }: { children: ReactNode }) {
       pieceThemeApi = new PieceThemeApiClient();
     } else {
       // Use real API implementations
-      console.log('🌐 Using REAL API clients');
       authApi = new AuthApiClient(API_BASE_URLS.account);
       accountApi = new AccountApiClient(API_BASE_URLS.account);
       ratingApi = new RatingApiClient(API_BASE_URLS.rating);
       matchmakingApi = new MatchmakingApiClient(API_BASE_URLS.matchmaking);
       learningApi = new LearningApiClient(API_BASE_URLS.learning);
       socialApi = new SocialApiClient(API_BASE_URLS.account);
-      liveGameApi = new LiveGameApiClient(API_BASE_URLS.liveGame, "");
+      liveGameApi = new LiveGameApiClient(API_BASE_URLS.liveGame, '');
       puzzleApi = new PuzzleApiClient(API_BASE_URLS.puzzle);
-      playApi = new PlayApiClient(API_BASE_URLS.play, "");
+      playApi = new PlayApiClient(API_BASE_URLS.play, '');
       pieceThemeApi = new PieceThemeApiClient();
     }
     

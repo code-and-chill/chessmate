@@ -91,7 +91,15 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
   const getRandomPuzzle = useCallback(async (filter?: PuzzleFilter): Promise<Puzzle> => {
     setIsLoading(true);
     try {
-      const puzzle = await puzzleApi.getRandomPuzzle(filter) as Puzzle;
+      let env: any;
+      if (typeof (puzzleApi as any).getRandomPuzzle === 'function') {
+        env = await (puzzleApi as any).getRandomPuzzle(filter);
+      } else if (typeof (puzzleApi as any).getRandom === 'function') {
+        env = await (puzzleApi as any).getRandom(filter);
+      } else {
+        throw new Error('No random puzzle method available');
+      }
+      const puzzle = (env?.result ?? env) as Puzzle;
       setCurrentPuzzle(puzzle);
       setError(null);
       return puzzle;
@@ -107,7 +115,15 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
     setIsLoading(true);
     const userId = user?.id || 'guest';
     try {
-      const puzzle = await puzzleApi.getPuzzle(userId) as Puzzle;
+      let resp: any;
+      if (typeof (puzzleApi as any).getPuzzle === 'function') {
+        resp = await (puzzleApi as any).getPuzzle(userId);
+      } else if (typeof (puzzleApi as any).getById === 'function') {
+        resp = await (puzzleApi as any).getById(userId);
+      } else {
+        throw new Error('No getPuzzle method available');
+      }
+      const puzzle = (resp?.result ?? resp) as Puzzle;
       setCurrentPuzzle(puzzle);
       setError(null);
       return puzzle;
@@ -123,7 +139,15 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
     setIsLoading(true);
     const userId = user?.id || 'guest';
     try {
-      const puzzles = await puzzleApi.getPuzzlesByTheme(userId) as Puzzle[];
+      let resp: any;
+      if (typeof (puzzleApi as any).getPuzzlesByTheme === 'function') {
+        resp = await (puzzleApi as any).getPuzzlesByTheme(userId);
+      } else if (typeof (puzzleApi as any).getPuzzlesByTheme === 'undefined' && typeof (puzzleApi as any).getPuzzles === 'function') {
+        resp = await (puzzleApi as any).getPuzzles(userId);
+      } else {
+        resp = [];
+      }
+      const puzzles = (resp?.result ?? resp) as Puzzle[];
       setError(null);
       return puzzles;
     } catch (err: any) {
@@ -156,14 +180,22 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
       setError('Failed to submit attempt');
       throw err;
     }
-  }, [user, puzzleApi]);
+  }, [puzzleApi]);
 
   const getAttemptHistory = useCallback(async (): Promise<PuzzleAttempt[]> => {
     // Use guest ID if not authenticated
     const userId = user?.id || 'guest';
     
     try {
-      const history = await puzzleApi.getUserHistory(userId);
+      let resp: any;
+      if (typeof (puzzleApi as any).getUserHistory === 'function') {
+        resp = await (puzzleApi as any).getUserHistory(userId);
+      } else if (typeof (puzzleApi as any).getHistory === 'function') {
+        resp = await (puzzleApi as any).getHistory(userId);
+      } else {
+        resp = [];
+      }
+      const history = resp?.result ?? resp;
       setError(null);
       // Transform API response to PuzzleAttempt format
       return history.map((item: Record<string, unknown>) => ({
@@ -186,7 +218,15 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
     
     setIsLoading(true);
     try {
-      const apiStats = await puzzleApi.getUserStats(userId) as Record<string, unknown>;
+      let resp: any;
+      if (typeof (puzzleApi as any).getUserStats === 'function') {
+        resp = await (puzzleApi as any).getUserStats(userId);
+      } else if (typeof (puzzleApi as any).getStats === 'function') {
+        resp = await (puzzleApi as any).getStats(userId);
+      } else {
+        resp = {};
+      }
+      const apiStats = resp?.result ?? resp as Record<string, unknown>;
       setError(null);
       // Transform API response to PuzzleStats format
       const stats: PuzzleStats = {

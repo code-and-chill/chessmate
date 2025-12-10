@@ -1,5 +1,5 @@
 import {useState, useCallback, useEffect, useMemo} from 'react';
-import {StyleSheet, View, Text} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {FadeInUp} from 'react-native-reanimated';
 import {GameResultModal, PawnPromotionModal, type PieceType} from '@/features/game';
@@ -17,7 +17,6 @@ import {useGameParticipant} from '@/features/game/hooks/useGameParticipant';
 import {getPlayerColor} from '@/features/board/utils/getPlayerColor';
 import {useAuth} from '@/contexts/AuthContext';
 import {useBoardTheme} from '@/contexts/BoardThemeContext';
-import { DevBadge } from '@/ui/primitives/DevBadge';
 
 export interface PlayScreenProps {
     gameId?: string;
@@ -72,8 +71,8 @@ export function PlayScreen({ initialGame }: PlayScreenProps = {}): React.ReactEl
         const rawPlayers = (gameState as any).players as string[] | undefined;
         const looksLikePlaceholderPlayers = Array.isArray(rawPlayers) && rawPlayers.length === 2 && rawPlayers.every(p => p.startsWith('Player'));
         const isLocal = (gameState as any).isLocal || (gameState as any).mode === 'local' || looksLikePlaceholderPlayers || !auth?.user?.id;
-        const orientation = isLocal ? (gameState.sideToMove === 'w' ? 'white' : 'black') : (playerColor === 'w' ? 'white' : 'black');
-        const myColor = isLocal ? (gameState.sideToMove as any) : playerColor;
+        const orientation = (isLocal ? (gameState.sideToMove === 'w' ? 'white' : 'black') : (playerColor === 'w' ? 'white' : 'black')) as 'white' | 'black';
+        const myColor = (isLocal ? (gameState.sideToMove as any) : playerColor) as 'white' | 'black';
 
         return {
             ...getHydratedBoardProps(screenConfig),
@@ -121,7 +120,7 @@ export function PlayScreen({ initialGame }: PlayScreenProps = {}): React.ReactEl
                             boardSize={BOARD_SIZE}
                             squareSize={SQUARE_SIZE}
                             boardProps={boardProps}
-                            gameState={gameState}
+                            gameState={gameState as any}
                             timerState={timerState}
                             onTimeExpire={handleTimeExpire}
                             onResign={handleResign}
@@ -130,7 +129,6 @@ export function PlayScreen({ initialGame }: PlayScreenProps = {}): React.ReactEl
                             anim={createAnimConfig}
                             isCompact={true}
                             flex={boardColumnFlex}
-                            colors={colors}
                         />
 
                         <MovesColumn moves={gameState.moves} anim={createAnimConfig(100)} flex={movesColumnFlex} />
@@ -141,7 +139,7 @@ export function PlayScreen({ initialGame }: PlayScreenProps = {}): React.ReactEl
                             boardSize={BOARD_SIZE}
                             squareSize={SQUARE_SIZE}
                             boardProps={boardProps}
-                            gameState={gameState}
+                            gameState={gameState as any}
                             timerState={timerState}
                             onTimeExpire={handleTimeExpire}
                             onResign={handleResign}
@@ -150,23 +148,10 @@ export function PlayScreen({ initialGame }: PlayScreenProps = {}): React.ReactEl
                             anim={createAnimConfig}
                             isCompact={false}
                             flex={boardColumnFlex}
-                            colors={colors}
                         />
 
                         <MovesColumn moves={gameState.moves} anim={createAnimConfig(100)} flex={movesColumnFlex} />
                     </VStack>
-                )}
-
-                {__DEV__ && (
-                    <DevBadge style={{ position: 'absolute', top: 12, right: 12, padding: 8, borderRadius: 6, backgroundColor: 'rgba(0,0,0,0.6)' }} >
-                        <View style={{ marginBottom: 6 }}>
-                            <Text style={{ color: '#fff', fontSize: 12 }}>isLocal: {(gameState as any).isLocal ? 'true' : 'false'}</Text>
-                            <Text style={{ color: '#fff', fontSize: 12 }}>sideToMove: {String(gameState.sideToMove)}</Text>
-                            <Text style={{ color: '#fff', fontSize: 12 }}>orientation: {String(boardProps.orientation)}</Text>
-                            <Text style={{ color: '#fff', fontSize: 12 }}>myColor: {String(boardProps.myColor)}</Text>
-                            <Text style={{ color: '#fff', fontSize: 12 }}>status: {String(gameState.status)}</Text>
-                        </View>
-                    </DevBadge>
                 )}
 
                 <PawnPromotionModal visible={promotionState.isVisible} color={gameState.sideToMove}

@@ -2,9 +2,10 @@
  * Services Layer - API Clients
  */
 
-// Import mock clients used to create local instances and re-export all mock clients for consumers
+// Import mock clients used to create local instances
 import { MockAccountApiClient, MockRatingApiClient } from './mock-clients';
-export * from './mock-clients';
+// Re-export mock clients for consumers that import from '@/services/api'
+export { MockAuthApiClient, MockAccountApiClient, MockRatingApiClient, MockMatchmakingApiClient, MockLearningApiClient, MockSocialApiClient, MockLiveGameApiClient, MockPuzzleApiClient, MockPlayApiClient } from './mock-clients';
 
 // API Clients
 export { AuthApiClient } from './auth.api';

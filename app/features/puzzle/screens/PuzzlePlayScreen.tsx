@@ -1,258 +1,312 @@
-import {useCallback, useState} from 'react';
-import {Dimensions} from 'react-native';
-import Animated, {FadeInUp} from 'react-native-reanimated';
-import {ChessBoard} from '@/features/board';
-import {GameActions, GameHeaderCard, MoveList, PawnPromotionModal, type PieceType, PlayerCard} from '@/features/game';
-import {createPlayScreenConfig, getHydratedBoardProps, type PlayScreenConfig} from '@/features/board/config';
-import {applyMoveToFENSimple, type Board, isCheckmate, isStalemate, parseFENToBoard} from '@/core/utils';
-import {useReducedMotion} from '@/features/board/hooks/useReducedMotion';
-import {Box} from '@/ui/primitives/Box';
-import {VStack} from '@/ui/primitives/Stack';
-import {Card} from '@/ui/primitives/Card';
-import {useThemeTokens} from '@/ui/hooks/useThemeTokens';
-import {spacingTokens} from '@/ui/tokens/spacing';
-import {Move} from "@/core/utils/chess";
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { Alert } from 'react-native';
+import { FadeInUp } from 'react-native-reanimated';
+import { PawnPromotionModal, type PieceType } from '@/features/game';
+import { createPlayScreenConfig, getHydratedBoardProps, type PlayScreenConfig } from '@/features/board/config';
+import { moveToFen } from '@/core/utils/chess/logic/parsing';
+import { ChessJsAdapter } from '@/core/utils/chess';
+import { useReducedMotion } from '@/features/board/hooks/useReducedMotion';
+import { useBoardLayout } from '@/features/board/hooks/useBoardLayout';
+import { usePromotionModal } from '@/features/board/hooks/usePromotionModal';
+import { Box } from '@/ui/primitives/Box';
+import { VStack } from '@/ui/primitives/Stack';
+import { useThemeTokens } from '@/ui/hooks/useThemeTokens';
+import { spacingTokens } from '@/ui/tokens/spacing';
+import type { Move } from '@/features/game/types/game.types';
+import { useBoardTheme } from '@/contexts/BoardThemeContext';
+import { DevBadge } from '@/ui/primitives/DevBadge';
+import { BoardColumn } from '@/features/board/components/BoardColumn';
+import { MovesColumn } from '@/features/board/components/MovesColumn';
+import { useApiClients } from '@/contexts/ApiContext';
+import { ChessBoard } from '@/features/board';
+import { Card } from '@/ui/primitives/Card';
+import { usePuzzleAttempt } from '@/features/puzzle/hooks/usePuzzleAttempt';
+import { Text } from '@/ui/primitives/Text';
+import { useI18n } from '@/i18n/I18nContext';
 
 interface PuzzlePlayScreenProps {
-  puzzleId: string;
+  puzzleId?: string;
   onComplete?: (data: Record<string, unknown>) => void;
   screenConfig?: Partial<PlayScreenConfig>;
+  daily?: boolean;
 }
 
-/**
- * PuzzlePlayScreen Component
- *
- * Displays a chess puzzle for the user to solve.
- * Currently a placeholder showing puzzle information.
- */
-export const PuzzlePlayScreen = ({
-  puzzleId: _puzzleId,
-  onComplete: _onComplete,
-  screenConfig,
-}: PuzzlePlayScreenProps) => {
+export const PuzzlePlayScreen: React.FC<PuzzlePlayScreenProps> = ({ puzzleId: _puzzleId, onComplete: _onComplete, screenConfig, daily = false }) => {
   const { colors } = useThemeTokens();
-  const screenConfigObj = createPlayScreenConfig(screenConfig);
+  const { boardTheme, pieceTheme } = useBoardTheme();
+  const screenConfigObj = useMemo(
+    () => createPlayScreenConfig({ ...(screenConfig || {}), theme: { boardTheme: boardTheme as any, pieceTheme: pieceTheme as any } as any }),
+    [screenConfig, boardTheme, pieceTheme],
+  );
+
   const reduceMotion = useReducedMotion();
-  
-  const [error] = useState<string | null>(null);
-  const [puzzleState, setPuzzleState] = useState({
-    status: 'in_progress' as 'in_progress' | 'ended',
-    fen: 'r1bqkb1r/pppp1ppp/2n2n2/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 4 4',
-    moves: [] as Move[],
-    sideToMove: 'w' as 'w' | 'b',
+  const { isHorizontalLayout, boardSize, squareSize, boardColumnFlex, movesColumnFlex, onLayout } = useBoardLayout();
+  const api = useApiClients();
+  const { t } = useI18n();
+
+  const [loading, setLoading] = useState<boolean>(true);
+  const [puzzle, setPuzzle] = useState<any | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [movesPlayed, setMovesPlayed] = useState<string[]>([]);
+  const [rateLimitInfo, setRateLimitInfo] = useState<any | null>(null);
+
+  const [puzzleState, setPuzzleState] = useState<{
+    status: 'in_progress' | 'ended';
+    fen: string;
+    sideToMove: 'w' | 'b';
+    moves: Move[];
+    endReason?: string;
+  }>({
+    status: 'in_progress',
+    fen: '',
+    sideToMove: 'w',
+    moves: [],
     endReason: '',
   });
 
-  // Promotion modal state
-  const [promotionState, setPromotionState] = useState({
-    isVisible: false,
-    move: null as { from: string; to: string } | null,
+  const [promotionState, promotionActions] = usePromotionModal();
+
+  const handleRateLimited = useCallback(() => {
+    Alert.alert(t('rateLimited.title'), t('rateLimited.message'));
+  }, [t]);
+
+  // loadPuzzle will be defined as a stable callback so we can reference it from other callbacks
+  const loadPuzzle = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    setMovesPlayed([]);
+    setRateLimitInfo(null);
+
+    try {
+      let env: any;
+      // support daily mode: call getDailyPuzzle when requested
+      if (daily && typeof (api.puzzleApi as any).getDailyPuzzle === 'function') {
+        env = await (api.puzzleApi as any).getDailyPuzzle();
+      } else {
+        env = await (api.puzzleApi as any).getRandomPuzzle();
+      }
+      if (!env) {
+        setError(t('errors.loadFailed'));
+        setLoading(false);
+        return;
+      }
+
+      // normalize envelope vs direct puzzle result
+      const isEnvelope = typeof env === 'object' && ('ok' in env || 'status' in env || 'result' in env);
+      if (isEnvelope && env.ok === false) {
+        if (env.status === 429) {
+          handleRateLimited();
+          setLoading(false);
+          return;
+        }
+        setError(env.error ?? t('errors.loadFailed'));
+        setLoading(false);
+        return;
+      }
+
+      const data = isEnvelope ? env.result ?? env : env;
+      setPuzzle(data);
+
+      const fen = data?.problem?.fen ?? data?.fen ?? puzzleState.fen;
+      const side = data?.problem?.side_to_move ?? data?.problem?.sideToMove ?? data?.sideToMove ?? puzzleState.sideToMove;
+      setPuzzleState(prev => ({ ...prev, fen, sideToMove: side, moves: [], status: 'in_progress', endReason: '' }));
+      if ((env as any).rateLimit) setRateLimitInfo((env as any).rateLimit);
+    } catch {
+      setError(t('errors.loadFailed'));
+    } finally {
+      setLoading(false);
+    }
+  }, [api.puzzleApi, t, puzzleState.fen, puzzleState.sideToMove, handleRateLimited, daily]);
+
+  // onSolved should reload a new puzzle; keep stable reference
+  const onSolvedCallback = useCallback(() => {
+    void loadPuzzle();
+  }, [loadPuzzle]);
+
+  const { submitDebounced, guidance, rateLimit, cancel } = usePuzzleAttempt({
+    puzzleId: puzzle?.id ?? '',
+    debounceMs: 250,
+    onSolved: onSolvedCallback,
+    onRateLimited: handleRateLimited,
   });
 
-  // Calculate board size (screen width - padding, max 420px)
-  const BOARD_SIZE = Math.min(Dimensions.get('window').width - 48, 420);
+  useEffect(() => {
+    void loadPuzzle();
+  }, [loadPuzzle]);
 
-  /**
-   * Check if a move requires pawn promotion
-   */
-  const checkPromotion = useCallback((from: string, to: string, fen: string, sideToMove: 'w' | 'b'): boolean => {
-    const board = parseFENToBoard(fen);
-    const fromSquare = board.find(p => p.square === from);
-    
-    if (!fromSquare || fromSquare.type !== 'p') return false;
-    
-    const toRank = to[1];
-    return (sideToMove === 'w' && toRank === '8') || (sideToMove === 'b' && toRank === '1');
-  }, []);
-
-  /**
-   * Handle move from the chess board
-   * Checks for pawn promotion before making the move
-   */
-  const handleMove = useCallback((from: string, to: string, promotion?: PieceType) => {
-    const needsPromotion = checkPromotion(from, to, puzzleState.fen, puzzleState.sideToMove);
-
-    if (needsPromotion && !promotion) {
-      setPromotionState({ isVisible: true, move: { from, to } });
-      return;
-    }
-
-    const newMoveNumber = puzzleState.moves.length + 1;
-    const playerColor = puzzleState.sideToMove === 'w' ? 'White' : 'Black';
-    const moveAlgebraic = `${from}${to}${promotion || ''}`;
-    
-    console.log(`[PUZZLE_SCREEN] Move #${newMoveNumber}: ${playerColor} moves ${from} → ${to}`);
-    
-    // Determine the next side to move
-    const nextSideToMove = puzzleState.sideToMove === 'w' ? 'b' : 'w';
-    
-    // Calculate new FEN after move
-    const newFEN = applyMoveToFENSimple(puzzleState.fen, moveAlgebraic);
-    console.log(`[PUZZLE_SCREEN] FEN updated: ${newFEN}`);
-    
-    // Convert FEN to engine Board (Piece objects)
-    const board: Board = parseFENToBoard(newFEN);
-    
-    // Check for checkmate or stalemate for opponent
-    let newStatus: 'in_progress' | 'ended' = 'in_progress';
-    let endReason = '';
-    
-    if (isCheckmate(board, nextSideToMove)) {
-      newStatus = 'ended';
-      endReason = `Puzzle Solved! ${playerColor} wins!`;
-      console.log(`[PUZZLE_SCREEN] CHECKMATE DETECTED: ${playerColor} wins!`);
-    } else if (isStalemate(board, nextSideToMove)) {
-      newStatus = 'ended';
-      endReason = 'Stalemate - Game is a draw';
-      console.log(`[PUZZLE_SCREEN] STALEMATE DETECTED: Game is a draw`);
-    }
-    
-    // Create the move object
-    const moveObj: Move = {
-      moveNumber: newMoveNumber,
-      color: puzzleState.sideToMove,
-      san: moveAlgebraic
-    };
-
-    const updatedMoves = [...puzzleState.moves, moveObj];
-
-    // Update state
-    setPuzzleState(prev => ({
-      ...prev,
-      moves: updatedMoves,
-      fen: newFEN,
-      sideToMove: nextSideToMove,
-      status: newStatus,
-      endReason: endReason,
-    }));
-
-    console.log(`[PUZZLE_SCREEN] Side to move AFTER: ${nextSideToMove}`);
-    console.log(`[PUZZLE_SCREEN] Total moves: ${updatedMoves.length}`);
-  }, [puzzleState, checkPromotion]);
-
-  /**
-   * Handle pawn promotion selection
-   */
-  const handlePawnPromotion = useCallback((piece: PieceType) => {
-    if (!promotionState.move) return;
-
-    const { from, to } = promotionState.move;
-    handleMove(from, to, piece);
-    setPromotionState({ isVisible: false, move: null });
-  }, [promotionState.move, handleMove]);
-
-  /**
-   * Create animation configuration based on accessibility
-   */
-  const createAnimConfig = useCallback(
-    (delay: number) => (reduceMotion ? undefined : FadeInUp.duration(250).delay(delay)),
-    [reduceMotion]
+  const checkPromotion = useCallback(
+    (from: string, to: string, fen: string, sideToMove: 'w' | 'b') => promotionActions.checkPromotion(from, to, fen, sideToMove),
+    [promotionActions],
   );
 
-  // Board props matching PlayScreen structure
-  const boardProps = {
-    ...getHydratedBoardProps(screenConfigObj),
-    fen: puzzleState.fen,
-    sideToMove: puzzleState.sideToMove,
-    myColor: puzzleState.sideToMove,
-    orientation: (puzzleState.sideToMove === 'w' ? 'white' : 'black') as 'white' | 'black',
-    isInteractive: puzzleState.status === 'in_progress',
-    onMove: handleMove,
-  };
+  const handleMove = useCallback(
+    (from: string, to: string, promotion?: string) => {
+      const needsPromotion = checkPromotion(from, to, puzzleState.fen, puzzleState.sideToMove);
+      if (needsPromotion && !promotion) {
+        promotionActions.showPromotion(from, to);
+        return;
+      }
 
-  if (error) {
-    return (
-      <Box flex={1} style={{ backgroundColor: colors.background.primary, justifyContent: 'center', alignItems: 'center', padding: spacingTokens[5] }}>
-        <Card variant="elevated" size="md">
-          <VStack gap={spacingTokens[3]} style={{ alignItems: 'center' }}>
-            <Text variant="body" style={{ color: colors.status.error, textAlign: 'center' }}>
-              {error}
-            </Text>
-          </VStack>
-        </Card>
-      </Box>
-    );
-  }
+      const moveAlgebraic = `${from}${to}${promotion ?? ''}`;
+      const newMoves = [...movesPlayed, moveAlgebraic];
+      setMovesPlayed(newMoves);
+      const nextSideToMove = puzzleState.sideToMove === 'w' ? 'b' : 'w';
+      const newFEN = moveToFen(puzzleState.fen, moveAlgebraic);
+
+      const adapter = new ChessJsAdapter(newFEN);
+      let newStatus: 'in_progress' | 'ended' = 'in_progress';
+      let endReason = '';
+      if (adapter.isCheckmate()) {
+        newStatus = 'ended';
+        endReason = t('puzzle.solved') ?? 'Puzzle Solved!';
+      } else if (adapter.isStalemate()) {
+        newStatus = 'ended';
+        endReason = t('puzzle.stalemate') ?? 'Stalemate - Game is a draw';
+      }
+
+      const moveObj: Move = { moveNumber: puzzleState.moves.length + 1, color: puzzleState.sideToMove, san: moveAlgebraic };
+      setPuzzleState(prev => ({ ...prev, moves: [...prev.moves, moveObj], fen: newFEN, sideToMove: nextSideToMove, status: newStatus, endReason }));
+
+      // map internal puzzle status to API attempt status enum
+      const attemptStatus = newStatus === 'in_progress' ? 'IN_PROGRESS' : (adapter.isCheckmate() ? 'SUCCESS' : 'FAILED');
+      submitDebounced({ isDaily: false, movesPlayed: newMoves, status: attemptStatus as any, timeSpentMs: 0, hintsUsed: 0 });
+    },
+    [puzzleState, movesPlayed, promotionActions, checkPromotion, submitDebounced, t],
+  );
+
+  const handlePawnPromotion = useCallback(
+    (piece: PieceType) => {
+      if (!promotionState.move) return;
+      const { from, to } = promotionState.move;
+      handleMove(from, to, piece as string);
+      promotionActions.hidePromotion();
+    },
+    [promotionState.move, handleMove, promotionActions],
+  );
+
+  const createAnimConfig = useCallback((delay: number) => (reduceMotion ? undefined : FadeInUp.duration(250).delay(delay)), [reduceMotion]);
+
+  const interactive = puzzleState.status === 'in_progress' && ((rateLimit?.remaining ?? rateLimitInfo?.remaining) ?? 1) > 0;
+
+  const boardProps = useMemo(
+    () => ({
+      ...getHydratedBoardProps(screenConfigObj),
+      fen: puzzleState.fen,
+      sideToMove: puzzleState.sideToMove,
+      myColor: puzzleState.sideToMove,
+      isInteractive: interactive,
+      onMove: handleMove,
+    }),
+    [screenConfigObj, puzzleState, handleMove, interactive],
+  );
+
+  const hidePlayerSection = daily || (puzzle?.problem?.show_player_section === false) || (puzzle?.problem?.showPlayerSection === false) || (puzzle?.show_player_section === false) || (puzzle?.showPlayerSection === false);
 
   return (
-    <Box flex={1} style={{ backgroundColor: colors.background.primary, padding: spacingTokens[4] }}>
-      <VStack flex={1} gap={spacingTokens[4]}>
-        {/* Game Header */}
-        <GameHeaderCard
-          status={puzzleState.status === 'in_progress' ? 'live' : 'ended'}
-          gameMode="Puzzle"
-          timeControl={`Rating: 1200`}
-          isRated={false}
-        />
-
-        {/* Main Game Area: Left Column (Players + Board + Actions) + Right Column (Move List) */}
-        <Box style={{ flexDirection: 'row', flex: 1, gap: spacingTokens[4] }}>
-          {/* Left Column - 50% */}
-          <VStack flex={1} gap={spacingTokens[4]}>
-            {/* Top Player Card (Puzzle Author/Opponent) */}
-            <Animated.View entering={createAnimConfig(0)}>
-              <PlayerCard
-                color="b"
-                name="Puzzle"
-                rating={1200}
-                isSelf={false}
-                isActive={puzzleState.sideToMove === 'b'}
-                remainingMs={0}
-                capturedPieces={[]}
-              />
-            </Animated.View>
-
-            {/* Chess Board */}
-            <Animated.View entering={createAnimConfig(50)} style={{ alignItems: 'center' }}>
-              <Card variant="elevated" size="md" padding={0}>
-                <ChessBoard
-                  {...boardProps}
-                  size={BOARD_SIZE}
-                  squareSize={BOARD_SIZE / 8}
-                />
-              </Card>
-            </Animated.View>
-
-            {/* Bottom Player Card (You) */}
-            <Animated.View entering={createAnimConfig(150)}>
-              <PlayerCard
-                color="w"
-                name="You"
-                rating={0}
-                isSelf={true}
-                isActive={puzzleState.sideToMove === 'w'}
-                remainingMs={0}
-                capturedPieces={[]}
-              />
-            </Animated.View>
-
-            {/* Game Actions */}
-            <Animated.View entering={createAnimConfig(200)}>
-              <GameActions
-                status={puzzleState.status}
-                result={puzzleState.status === 'ended' ? '1-0' : undefined}
-                endReason={puzzleState.endReason}
-                sideToMove={puzzleState.sideToMove}
-              />
-            </Animated.View>
-          </VStack>
-
-          {/* Right Column - 50% - Full Height Move List */}
-          <Animated.View entering={createAnimConfig(100)} style={{ flex: 1 }}>
-            <Card variant="default" size="md" padding={0} style={{ flex: 1 }}>
-              <MoveList moves={puzzleState.moves} />
-            </Card>
-          </Animated.View>
+    <>
+      {loading && (
+        <Box style={{ padding: 16 }}>
+          <Text>{t('loading') ?? 'Loading...'}</Text>
         </Box>
-      </VStack>
+      )}
 
-      {/* Pawn Promotion Modal */}
-      <PawnPromotionModal
-        visible={promotionState.isVisible}
-        color={puzzleState.sideToMove}
-        onSelect={handlePawnPromotion}
-        onCancel={() => setPromotionState({ isVisible: false, move: null })}
-      />
-    </Box>
+      {!loading && error && (
+        <Box style={{ padding: 16 }}>
+          <Text>{error}</Text>
+        </Box>
+      )}
+
+      {!loading && !error && puzzle && (
+        <Box style={{ flex: 1 }} onLayout={onLayout}>
+          {hidePlayerSection ? (
+            <Box style={{ flexDirection: isHorizontalLayout ? 'row' : 'column', flex: 1, gap: spacingTokens[4] }}>
+              <Box style={{ alignItems: 'center', width: isHorizontalLayout ? boardSize : '100%' }}>
+                <Card variant="elevated" size="md" padding={0}>
+                  {boardProps.fen ? <ChessBoard {...boardProps} size={boardSize} squareSize={squareSize} /> : null}
+                </Card>
+              </Box>
+              <MovesColumn moves={puzzleState.moves} anim={createAnimConfig(100)} flex={movesColumnFlex} />
+            </Box>
+          ) : isHorizontalLayout ? (
+            <Box style={{ flexDirection: 'row', flex: 1, gap: spacingTokens[4] }}>
+              <BoardColumn
+                boardSize={boardSize}
+                squareSize={squareSize}
+                boardProps={boardProps}
+                gameState={{ fen: puzzleState.fen, sideToMove: puzzleState.sideToMove, status: puzzleState.status, endReason: puzzleState.endReason }}
+                timerState={{ whiteTimeMs: 0, blackTimeMs: 0 }}
+                onTimeExpire={() => {}}
+                onResign={() => {}}
+                onOfferDraw={() => {}}
+                drawOfferPending={false}
+                anim={createAnimConfig}
+                isCompact={true}
+                flex={boardColumnFlex}
+              />
+
+              <MovesColumn moves={puzzleState.moves} anim={createAnimConfig(100)} flex={movesColumnFlex} />
+            </Box>
+          ) : (
+            <VStack flex={1} gap={spacingTokens[4]}>
+              <BoardColumn
+                boardSize={boardSize}
+                squareSize={squareSize}
+                boardProps={boardProps}
+                gameState={{ fen: puzzleState.fen, sideToMove: puzzleState.sideToMove, status: puzzleState.status, endReason: puzzleState.endReason }}
+                timerState={{ whiteTimeMs: 0, blackTimeMs: 0 }}
+                onTimeExpire={() => {}}
+                onResign={() => {}}
+                onOfferDraw={() => {}}
+                drawOfferPending={false}
+                anim={createAnimConfig}
+                isCompact={false}
+                flex={boardColumnFlex}
+              />
+
+              <MovesColumn moves={puzzleState.moves} anim={createAnimConfig(100)} flex={movesColumnFlex} />
+            </VStack>
+          )}
+        </Box>
+      )}
+
+      {guidance && guidance.length > 0 && (
+        <Box style={{ padding: 8, backgroundColor: colors.background.secondary, borderRadius: 6, marginBottom: 8 }}>
+          <Box>
+            <Text>{t('puzzle.suggestedFollowups') ?? 'Suggested followups (progressive):'}</Text>
+          </Box>
+          {guidance.map((g: any, idx: number) => (
+            <Box key={idx}>
+              <Text mono>{JSON.stringify(g)}</Text>
+            </Box>
+          ))}
+        </Box>
+      )}
+
+      {__DEV__ && (
+        <DevBadge style={{ position: 'absolute', top: 12, right: 12 }}>
+          <Box gap={4}>
+            <Box>
+              <Text>{`puzzle: ${puzzle?.id ?? 'n/a'}`}</Text>
+            </Box>
+            <Box>
+              <Text>{`sideToMove: ${puzzleState.sideToMove}`}</Text>
+            </Box>
+            <Box>
+              <Text>{`puzzleFen: ${puzzle?.problem?.fen ?? puzzleState.fen}`}</Text>
+            </Box>
+            <Box>
+              <Text>{`show_player_section: ${String(puzzle?.problem?.show_player_section)}`}</Text>
+            </Box>
+            {rateLimitInfo && (
+              <Box>
+                <Text>{`rate remaining: ${rateLimitInfo.remaining}`}</Text>
+              </Box>
+            )}
+          </Box>
+        </DevBadge>
+      )}
+
+      <PawnPromotionModal visible={promotionState.isVisible} color={puzzleState.sideToMove} onSelect={handlePawnPromotion} onCancel={() => { promotionActions.hidePromotion(); cancel(); }} />
+    </>
   );
 };
