@@ -17,10 +17,13 @@ The board now adapts intelligently to screen sizes:
 - **Mobile (<768px)**: Full width with 32px padding
 
 ```typescript
-import { getBoardSize, getSquareSize } from '@/constants/layout';
+import { LayoutStrategyFactory } from '@/ui/layouts/strategies/LayoutStrategyFactory';
+import { getLayoutType } from '@/ui/tokens/breakpoints';
 
-const boardSize = getBoardSize(); // Auto-calculated
-const squareSize = getSquareSize(); // boardSize / 8
+// Use Layout Strategy Pattern (recommended approach)
+const layoutType = getLayoutType(width);
+const strategy = LayoutStrategyFactory.getStrategy(layoutType);
+const { boardSize, squareSize } = strategy.calculateBoardSize(width, height);
 ```
 
 **Benefits**:
@@ -283,12 +286,14 @@ FocusUtils.announce('Game started', 'polite');
 ## 📱 Responsive Breakpoints
 
 ```typescript
-import { LayoutBreakpoints } from '@/constants/layout';
+import { breakpointValues } from '@/ui/tokens/breakpoints';
 
-LayoutBreakpoints.mobile;   // 0px
-LayoutBreakpoints.tablet;   // 768px
-LayoutBreakpoints.desktop;  // 1024px
-LayoutBreakpoints.large;    // 1440px
+breakpointValues.xs;   // 0px
+breakpointValues.sm;   // 576px
+breakpointValues.md;   // 768px
+breakpointValues.lg;   // 1024px
+breakpointValues.xl;   // 1280px
+breakpointValues.xxl;  // 1920px
 ```
 
 **Helper Functions**:
@@ -297,11 +302,11 @@ import {
   getLayoutType,
   shouldShowSidebar,
   shouldShowMoveListSideBySide,
-} from '@/constants/layout';
+} from '@/ui/tokens/breakpoints';
 
-const layout = getLayoutType(); // 'mobile' | 'tablet' | 'desktop'
-const showSidebar = shouldShowSidebar(); // true on desktop only
-const sideBySide = shouldShowMoveListSideBySide(); // true on tablet/desktop
+const layout = getLayoutType(width); // 'mobile' | 'tablet' | 'desktop'
+const showSidebar = shouldShowSidebar(width); // true on desktop only
+const sideBySide = shouldShowMoveListSideBySide(width); // true on tablet/desktop
 ```
 
 ## 🎯 Complete Example

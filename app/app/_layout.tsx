@@ -6,8 +6,9 @@ import { useColorScheme, Platform } from 'react-native';
 import 'react-native-reanimated';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-import {GlobalLayout, ThemeProvider } from '@/ui';
-import { 
+import { ThemeProvider } from '@/ui';
+import { GlobalLayout } from './GlobalLayout';
+import {
   ApiProvider,
   AuthProvider, 
   GameProvider, 

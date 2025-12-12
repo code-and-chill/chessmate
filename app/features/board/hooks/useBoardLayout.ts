@@ -1,7 +1,8 @@
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { useWindowDimensions } from 'react-native';
-import { getLayoutType, calculateBoardSize } from '@/ui/layouts/ResponsiveGameLayout';
 import { useContentSize } from '@/contexts/ContentSizeContext';
+import {LayoutStrategyFactory} from "@/ui";
+import {getLayoutType} from "@/ui/tokens/breakpoints";
 
 export interface BoardLayout {
   layoutType: string;
@@ -18,11 +19,12 @@ export interface BoardLayout {
 
 export function computeBoardLayout(effectiveWidth: number, effectiveHeight: number) {
   const layoutType = getLayoutType(effectiveWidth);
-  const isHorizontalLayout = layoutType !== 'mobile';
+  const strategy = LayoutStrategyFactory.getStrategy(layoutType);
+  const { boardSize, squareSize } = strategy.calculateBoardSize(effectiveWidth, effectiveHeight);
+  const boardColumnFlex = strategy.getBoardColumnFlex();
+  const movesColumnFlex = strategy.getMovesColumnFlex();
+  const isHorizontalLayout = strategy.isHorizontalLayout();
   const isDesktopLayout = layoutType === 'desktop';
-  const { boardSize, squareSize } = calculateBoardSize(layoutType, effectiveWidth, effectiveHeight);
-  const boardColumnFlex = isHorizontalLayout ? (isDesktopLayout ? 0.7 : 0.65) : 1;
-  const movesColumnFlex = isHorizontalLayout ? (isDesktopLayout ? 0.3 : 0.35) : 0;
 
   return {
     layoutType,

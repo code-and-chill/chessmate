@@ -87,9 +87,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
       });
 
       // Ensure the created game is tracked locally so UI updates and context consumers can see it
-      if (game && game.gameId) {
-        setActiveGames((prev: Map<string, GameState>) => new Map(prev).set(game.gameId, game as GameState));
-        setCurrentGameId(game.gameId);
+      const createdId = (game as any).gameId ?? (game as any).id ?? null;
+      if (game && createdId) {
+        setActiveGames((prev: Map<string, GameState>) => new Map(prev).set(createdId, game as GameState));
+        setCurrentGameId(createdId);
       }
 
       return game as GameState;
@@ -114,8 +115,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
       );
 
       const game = await liveGameApi.getGame(gameId);
-      setActiveGames((prev: Map<string, GameState>) => new Map(prev).set(gameId, game));
-      return { gameId, inviteCode };
+      const fetchedId = (game as any).gameId ?? (game as any).id ?? gameId;
+      setActiveGames((prev: Map<string, GameState>) => new Map(prev).set(fetchedId, game));
+      return { gameId: fetchedId, inviteCode };
     } finally {
       setIsCreatingGame(false);
     }
@@ -127,7 +129,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     setIsCreatingGame(true);
     try {
       const { gameId } = await liveGameApi.joinFriendGame(user.id, inviteCode);
-      return gameId;
+      return gameId as string;
     } finally {
       setIsCreatingGame(false);
     }

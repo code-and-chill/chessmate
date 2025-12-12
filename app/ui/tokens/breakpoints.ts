@@ -152,3 +152,45 @@ export const getSpacingMultiplier = (): number => {
   const bp = getCurrentBreakpoint();
   return spacingMultipliers[bp];
 };
+
+/**
+ * Layout type mapping (simplified breakpoint system)
+ * Maps breakpoints to layout types: mobile, tablet, desktop
+ * 
+ * This provides a unified interface for layout decisions across the app.
+ * Replaces the legacy LayoutBreakpoints system in core/constants/layout.ts
+ */
+export type LayoutType = 'mobile' | 'tablet' | 'desktop';
+
+/**
+ * Get layout type based on screen width
+ * 
+ * @param width - Screen width in pixels (optional, uses current screen if not provided)
+ * @returns Layout type: 'mobile' | 'tablet' | 'desktop'
+ */
+export const getLayoutType = (width?: number): LayoutType => {
+  const screenWidth = width ?? getScreenDimensions().width;
+  
+  if (screenWidth >= breakpointValues.lg) {
+    return 'desktop';
+  }
+  if (screenWidth >= breakpointValues.md) {
+    return 'tablet';
+  }
+  return 'mobile';
+};
+
+/**
+ * Check if the sidebar should be shown (desktop only)
+ */
+export const shouldShowSidebar = (width?: number): boolean => {
+  return getLayoutType(width) === 'desktop';
+};
+
+/**
+ * Check if a move list should be shown side-by-side (tablet and desktop)
+ */
+export const shouldShowMoveListSideBySide = (width?: number): boolean => {
+  const layout = getLayoutType(width);
+  return layout === 'desktop' || layout === 'tablet';
+};

@@ -1,7 +1,7 @@
 // Re-export all tokens
 export { colorTokens, semanticColors, getColor } from './tokens/colors';
 export { typographyTokens, textVariants } from './tokens/typography';
-export { spacingTokens, spacingScale } from './tokens/spacing';
+export { spacingTokens, spacingScale, spacingGroups, layoutSpacing, touchTargets } from './tokens/spacing';
 export { radiusTokens, radiusScale } from './tokens/radii';
 export { shadowTokens } from './tokens/shadows';
 export { motionTokens, microInteractions } from './tokens/motion';
@@ -25,22 +25,6 @@ export {
   getElevationTransition,
   type ElevationLevel,
 } from './tokens/elevation';
-export {
-  materialTokens,
-  svgPatterns,
-  pieceShadow,
-  squareGlow,
-  boardBorder,
-  getMaterial,
-  getMaterialDataUri,
-  getPieceShadow,
-  getSquareGlow,
-  getBoardBorder,
-  type MaterialType,
-  type PieceShadowLevel,
-  type SquareGlowLevel,
-  type BoardBorderStyle,
-} from './tokens/materials';
 export { boardThemes, defaultTheme, getBoardTheme, getAllThemes, getAllThemeIds, type BoardTheme, type BoardThemeId } from './tokens/board-themes';
 export {
   breakpointValues,
@@ -76,6 +60,29 @@ export { Badge } from './primitives/Badge';
 
 // Re-export stack components
 export { VStack, HStack, Spacer } from './primitives/Stack';
+
+// Re-export atomic layout components
+export { LayoutContainer } from './primitives/LayoutContainer';
+export type { LayoutContainerProps } from './primitives/LayoutContainer';
+export { LayoutGrid } from './primitives/LayoutGrid';
+export type { LayoutGridProps } from './primitives/LayoutGrid';
+export { LayoutSpacer } from './primitives/LayoutSpacer';
+export type { LayoutSpacerProps } from './primitives/LayoutSpacer';
+
+// Re-export molecular layout components
+export { BoardSection } from './layouts/molecules/BoardSection';
+export type { BoardSectionProps } from './layouts/molecules/BoardSection';
+export { MoveListSection } from './layouts/molecules/MoveListSection';
+export type { MoveListSectionProps } from './layouts/molecules/MoveListSection';
+export { NavigationGroup } from './layouts/molecules/NavigationGroup';
+export type { NavigationGroupProps, NavItem as NavigationGroupNavItem } from './layouts/molecules/NavigationGroup';
+
+// Re-export layout strategies
+export { LayoutStrategyFactory } from './layouts/strategies/LayoutStrategyFactory';
+export { MobileLayoutStrategy } from './layouts/strategies/MobileLayoutStrategy';
+export { TabletLayoutStrategy } from './layouts/strategies/TabletLayoutStrategy';
+export { DesktopLayoutStrategy } from './layouts/strategies/DesktopLayoutStrategy';
+export type { ILayoutStrategy } from './layouts/strategies/LayoutStrategy';
 
 // Re-export form components
 export { Checkbox } from './primitives/Checkbox';
@@ -191,8 +198,6 @@ export {
 // Re-export navigation
 export { NavigationSidebar } from './navigation/NavigationSidebar';
 export type { NavigationSidebarProps } from './navigation/NavigationSidebar';
-export { BottomNav } from './navigation/BottomNav';
-export type { NavItem } from './navigation/BottomNav';
 export { Sidebar } from './components/Sidebar';
 export type { SidebarProps, SidebarItem } from './components/Sidebar';
 

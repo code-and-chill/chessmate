@@ -1,10 +1,3 @@
-/**
- * Radius Tokens
- * app/ui/tokens/radii.ts
- * 
- * Scale: 4px (sm) | 8px (md) | 12px (lg)
- */
-
 export const radiusTokens = {
   none: 0,
   sm: 4,     // Small elements (badges, tags)

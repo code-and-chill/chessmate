@@ -7,7 +7,7 @@ export class MockGameApiClient implements IGameApiClient {
     await delay(100);
     // return a minimal GameState-shaped object
     return {
-      id: `play_${Date.now()}`,
+      gameId: `play_${Date.now()}`,
       fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
       moves: [],
       sideToMove: 'w',
@@ -34,7 +34,7 @@ export class MockGameApiClient implements IGameApiClient {
     const isLocal = String(gameId).startsWith('local-') || String(gameId).startsWith('play_local');
 
     return {
-      id: gameId,
+      gameId: gameId,
       fen: startingFen,
       moves: [],
       sideToMove: 'w',

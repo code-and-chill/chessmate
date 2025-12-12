@@ -1,10 +1,3 @@
----
-title: Copilot Instructions
-status: active
-last_reviewed: 2025-12-02
-type: standard
----
-
 Please always read the repository's `AGENTS.md` and `README.md` before making any changes.
 
 ## Core Workflow: Think → Verify → Act

@@ -1,10 +1,3 @@
-/**
- * Motion Tokens
- * app/ui/tokens/motion.ts
- * 
- * Motion scale: 120-180ms (buttons) | 180-250ms (cards) | 250-300ms (pages)
- */
-
 export const motionTokens = {
   duration: {
     instant: 100,

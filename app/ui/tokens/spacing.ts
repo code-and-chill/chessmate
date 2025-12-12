@@ -56,5 +56,67 @@ export const spacingScale = {
   settingsPanelMaxWidth: 500,
 } as const;
 
+/**
+ * Semantic spacing groups for Gestalt proximity principles
+ * Groups related elements with consistent spacing to establish visual relationships
+ */
+export const spacingGroups = {
+  // Tight: Related elements that form a single unit (e.g., icon + label)
+  tight: {
+    gap: spacingTokens[1],      // 4px
+    padding: spacingTokens[1],  // 4px
+  },
+  // Comfortable: Standard spacing for related items (e.g., list items)
+  comfortable: {
+    gap: spacingTokens[3],       // 12px
+    padding: spacingTokens[4],   // 16px
+  },
+  // Spacious: Section-level spacing (e.g., between card sections)
+  spacious: {
+    gap: spacingTokens[5],       // 24px
+    padding: spacingTokens[6],   // 32px
+  },
+  // Generous: Major section dividers (e.g., between page sections)
+  generous: {
+    gap: spacingTokens[7],       // 40px
+    padding: spacingTokens[8],   // 48px
+  },
+} as const;
+
+/**
+ * Layout-specific spacing constants
+ * Replaces hardcoded magic numbers with semantic tokens
+ */
+export const layoutSpacing = {
+  // Player info height (compact display at board edges)
+  playerInfoHeight: spacingTokens[6],      // 32px
+  // Header bar height (compact header)
+  headerBarHeight: spacingTokens[7],        // 40px
+  // Board size constraints
+  minBoardSize: 280,
+  maxBoardSize: 800,
+  // Badge internal padding
+  badgePadding: spacingTokens[1] + spacingTokens[1], // 8px (4px + 4px)
+} as const;
+
+/**
+ * Fitts' Law compliance: Minimum touch target sizes
+ * iOS HIG: 44x44 points minimum
+ * Material Design: 48x48 dp minimum
+ * We use 44px as the minimum for cross-platform compatibility
+ */
+export const touchTargets = {
+  minimum: 44,        // Minimum touch target size (iOS standard)
+  comfortable: 48,    // Comfortable touch target (Material standard)
+  icon: {
+    small: 16,        // Icon visual size
+    medium: 20,       // Icon visual size
+    large: 24,        // Icon visual size
+  },
+  // Hit area expansion for small icons
+  iconHitArea: 44,    // Minimum hit area for icon-only buttons
+} as const;
+
 export type SpacingToken = typeof spacingTokens[keyof typeof spacingTokens];
 export type SpacingScale = typeof spacingScale[keyof typeof spacingScale];
+export type SpacingGroup = keyof typeof spacingGroups;

@@ -241,13 +241,3 @@ When reporting issues, include the output of:
 ```bash
 node dx-cli/dist/index.js doctor > diagnosis.txt
 ```
-
-## License
-
-Proprietary - ChessMate Engineering Team
-
----
-
-**Documentation Last Updated:** November 15, 2025
-
-**Platform Version:** 1.0.0

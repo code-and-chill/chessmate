@@ -1,10 +1,3 @@
-/**
- * Shadow Tokens (AI-Aesthetic: Soft & Diffused)
- * app/ui/tokens/shadows.ts
- * 
- * Semantic shadows: card | panel | floating | hover | modal
- */
-
 import type { ViewStyle } from 'react-native';
 
 type ShadowStyle = Pick<ViewStyle, 'shadowColor' | 'shadowOffset' | 'shadowOpacity' | 'shadowRadius' | 'elevation'>;
