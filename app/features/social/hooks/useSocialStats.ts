@@ -4,8 +4,8 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { accountApi } from '@/services/api';
-import type { SocialStats } from '../types';
+import { useApiClients } from '@/contexts/ApiContext';
+import type { SocialStats } from '@/types/social';
 
 interface UseSocialStatsResult {
   stats: SocialStats | null;
@@ -19,6 +19,7 @@ interface UseSocialStatsResult {
  * Provides overview stats for the social hub
  */
 export function useSocialStats(userId?: string): UseSocialStatsResult {
+  const { accountApi } = useApiClients();
   const [stats, setStats] = useState<SocialStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -56,7 +57,7 @@ export function useSocialStats(userId?: string): UseSocialStatsResult {
     } finally {
       setLoading(false);
     }
-  }, [userId]);
+  }, [userId, accountApi]);
 
   useEffect(() => {
     fetchStats();

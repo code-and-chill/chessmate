@@ -1,10 +1,5 @@
-/**
- * User Stats Hook
- * features/settings/hooks/useUserStats.ts
- */
-
 import { useState, useEffect, useCallback } from 'react';
-import { ratingApi } from '@/services/api';
+import { useApiClients } from '@/contexts/ApiContext';
 import type { UserStats } from '../types';
 
 interface UseUserStatsResult {
@@ -14,14 +9,11 @@ interface UseUserStatsResult {
   refetch: () => Promise<void>;
 }
 
-/**
- * Hook for managing user statistics
- * Integrates with rating-api service
- */
 export function useUserStats(
   userId?: string,
   timeControl: 'blitz' | 'rapid' | 'classical' = 'blitz'
 ): UseUserStatsResult {
+  const { ratingApi } = useApiClients();
   const [stats, setStats] = useState<UserStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -57,7 +49,7 @@ export function useUserStats(
     } finally {
       setLoading(false);
     }
-  }, [userId, timeControl]);
+  }, [userId, timeControl, ratingApi]);
 
   useEffect(() => {
     fetchStats();

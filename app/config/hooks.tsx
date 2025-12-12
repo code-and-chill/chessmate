@@ -7,7 +7,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { View, Text } from 'react-native';
 import type { RuntimeConfig, ConfigChangeEvent, ConfigChangeListener } from './types';
 import { getConfigStore } from './store';
-import { useFonts } from '@/ui';
+import { fonts } from './fonts-constants';
 
 /**
  * Configuration Context

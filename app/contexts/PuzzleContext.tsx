@@ -7,12 +7,16 @@ import type { Puzzle } from '@/features/puzzle/types/Puzzle';
 export type { Puzzle };
 
 export interface PuzzleAttempt {
+  attemptId?: string;
   puzzleId: string;
   solved: boolean;
   timeSpent: number;
   hintsUsed: number;
   attempts: number;
-  completedAt: string;
+  completedAt?: string;
+  timestamp?: string;
+  puzzleRating?: number;
+  ratingChange?: number;
 }
 
 export interface PuzzleStats {
@@ -72,11 +76,23 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const unwrap = <T,>(resp: any): T => {
+    if (!resp) throw new Error('Empty response');
+    if (typeof resp === 'object' && 'ok' in resp) {
+      // ApiEnvelope shape
+      return (resp.result ?? ({} as T)) as T;
+    }
+    return resp as T;
+  };
+
   const getDailyPuzzle = useCallback(async (): Promise<Puzzle> => {
     setIsLoading(true);
-    const userId = user?.id || 'guest';
     try {
-      const puzzle = await puzzleApi.getDailyPuzzle(userId) as Puzzle;
+      const resp = await puzzleApi.getDailyPuzzle();
+      if (!resp || (typeof resp === 'object' && 'ok' in resp && !resp.ok)) {
+        throw new Error((resp && resp.error) || 'Failed to fetch daily puzzle');
+      }
+      const puzzle = unwrap<Puzzle>(resp);
       setDailyPuzzle(puzzle);
       setError(null);
       return puzzle;
@@ -86,7 +102,7 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  }, [puzzleApi, user?.id]);
+  }, [puzzleApi]);
 
   const getRandomPuzzle = useCallback(async (filter?: PuzzleFilter): Promise<Puzzle> => {
     setIsLoading(true);
@@ -99,7 +115,7 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
       } else {
         throw new Error('No random puzzle method available');
       }
-      const puzzle = (env?.result ?? env) as Puzzle;
+      const puzzle = unwrap<Puzzle>(env);
       setCurrentPuzzle(puzzle);
       setError(null);
       return puzzle;
@@ -111,19 +127,13 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
     }
   }, [puzzleApi]);
 
-  const getPuzzleById = useCallback(async (): Promise<Puzzle> => {
+  const getPuzzleById = useCallback(async (id: string): Promise<Puzzle> => {
     setIsLoading(true);
-    const userId = user?.id || 'guest';
     try {
-      let resp: any;
-      if (typeof (puzzleApi as any).getPuzzle === 'function') {
-        resp = await (puzzleApi as any).getPuzzle(userId);
-      } else if (typeof (puzzleApi as any).getById === 'function') {
-        resp = await (puzzleApi as any).getById(userId);
-      } else {
-        throw new Error('No getPuzzle method available');
-      }
-      const puzzle = (resp?.result ?? resp) as Puzzle;
+      if (!id) throw new Error('No puzzle id provided');
+      const resp = await puzzleApi.getPuzzle(id);
+      if (!resp || (typeof resp === 'object' && 'ok' in resp && !resp.ok)) throw new Error((resp && resp.error) || 'Failed to fetch puzzle');
+      const puzzle = unwrap<Puzzle>(resp);
       setCurrentPuzzle(puzzle);
       setError(null);
       return puzzle;
@@ -133,21 +143,20 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  }, [puzzleApi, user?.id]);
+  }, [puzzleApi]);
 
-  const getPuzzlesByTheme = useCallback(async (): Promise<Puzzle[]> => {
+  const getPuzzlesByTheme = useCallback(async (theme: string, limit: number = 10): Promise<Puzzle[]> => {
     setIsLoading(true);
-    const userId = user?.id || 'guest';
     try {
       let resp: any;
       if (typeof (puzzleApi as any).getPuzzlesByTheme === 'function') {
-        resp = await (puzzleApi as any).getPuzzlesByTheme(userId);
-      } else if (typeof (puzzleApi as any).getPuzzlesByTheme === 'undefined' && typeof (puzzleApi as any).getPuzzles === 'function') {
-        resp = await (puzzleApi as any).getPuzzles(userId);
+        resp = await (puzzleApi as any).getPuzzlesByTheme(theme, limit);
+      } else if (typeof (puzzleApi as any).getPuzzles === 'function') {
+        resp = await (puzzleApi as any).getPuzzles(theme, limit);
       } else {
-        resp = [];
+        resp = { result: [] };
       }
-      const puzzles = (resp?.result ?? resp) as Puzzle[];
+      const puzzles = unwrap<Puzzle[]>(resp);
       setError(null);
       return puzzles;
     } catch (err: any) {
@@ -156,7 +165,7 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  }, [puzzleApi, user?.id]);
+  }, [puzzleApi]);
 
   const submitAttempt = useCallback(async (
     puzzleId: string,
@@ -166,16 +175,16 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
   ): Promise<boolean> => {
     
     try {
-      const response = await puzzleApi.submitAttempt(puzzleId, {
+      const resp = await puzzleApi.submitAttempt(puzzleId, {
         isDaily: false,
         movesPlayed: moves,
         status: 'SUCCESS',
         timeSpentMs: timeSpent,
         hintsUsed,
-      });
+      } as any);
       setError(null);
-      console.log('Puzzle attempt submitted:', response);
-      return response.status === 'SUCCESS';
+      const result = unwrap<any>(resp);
+      return !!(result && (typeof resp === 'object' && 'ok' in resp ? resp.ok && result.status === 'SUCCESS' : (result.status === 'SUCCESS')));
     } catch (err: any) {
       setError('Failed to submit attempt');
       throw err;
@@ -183,9 +192,7 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
   }, [puzzleApi]);
 
   const getAttemptHistory = useCallback(async (): Promise<PuzzleAttempt[]> => {
-    // Use guest ID if not authenticated
     const userId = user?.id || 'guest';
-    
     try {
       let resp: any;
       if (typeof (puzzleApi as any).getUserHistory === 'function') {
@@ -193,18 +200,21 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
       } else if (typeof (puzzleApi as any).getHistory === 'function') {
         resp = await (puzzleApi as any).getHistory(userId);
       } else {
-        resp = [];
+        resp = { result: [] };
       }
-      const history = resp?.result ?? resp;
+      const history = unwrap<any[]>(resp) ?? [];
       setError(null);
-      // Transform API response to PuzzleAttempt format
-      return history.map((item: Record<string, unknown>) => ({
-        puzzleId: item.puzzle_id as string,
-        solved: item.status === 'SUCCESS',
-        timeSpent: item.time_spent_ms as number,
-        hintsUsed: item.hints_used as number,
-        attempts: 1,
-        completedAt: item.created_at as string,
+      return (history as any[]).map((item: Record<string, unknown>) => ({
+        attemptId: (item.id as string) ?? (item.attempt_id as string) ?? `att_${Date.now()}`,
+        puzzleId: (item.puzzle_id as string) ?? (item.puzzleId as string) ?? 'unknown',
+        solved: (item.status as string) === 'SUCCESS',
+        timeSpent: (item.time_spent_ms as number) ?? (item.timeSpent as number) ?? 0,
+        hintsUsed: (item.hints_used as number) ?? (item.hintsUsed as number) ?? 0,
+        attempts: (item.attempts as number) ?? 1,
+        completedAt: (item.created_at as string) ?? (item.completedAt as string) ?? new Date().toISOString(),
+        timestamp: (item.created_at as string) ?? (item.timestamp as string) ?? new Date().toISOString(),
+        puzzleRating: (item.puzzle_rating as number) ?? (item.puzzleRating as number) ?? 0,
+        ratingChange: (item.rating_change as number) ?? (item.ratingChange as number) ?? 0,
       }));
     } catch (err: any) {
       setError('Failed to get attempt history');
@@ -213,9 +223,7 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
   }, [user, puzzleApi]);
 
   const getUserStats = useCallback(async (): Promise<PuzzleStats> => {
-    // Use guest ID if not authenticated
     const userId = user?.id || 'guest';
-    
     setIsLoading(true);
     try {
       let resp: any;
@@ -224,11 +232,10 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
       } else if (typeof (puzzleApi as any).getStats === 'function') {
         resp = await (puzzleApi as any).getStats(userId);
       } else {
-        resp = {};
+        resp = { result: {} };
       }
-      const apiStats = resp?.result ?? resp as Record<string, unknown>;
+      const apiStats = unwrap<Record<string, unknown>>(resp) ?? {};
       setError(null);
-      // Transform API response to PuzzleStats format
       const stats: PuzzleStats = {
         totalAttempts: (apiStats.totalAttempts as number) || 0,
         totalSolved: (apiStats.successfulAttempts as number) || 0,

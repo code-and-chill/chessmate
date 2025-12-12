@@ -15,7 +15,7 @@ type BoxProps = {
   padding?: number | keyof typeof spacingTokens;
   margin?: number | keyof typeof spacingTokens;
   gap?: number;
-  radius?: keyof typeof radiusTokens;
+  radius?: number | keyof typeof radiusTokens;
   shadow?: keyof typeof shadowTokens;
   borderColor?: string;
   borderWidth?: number;
@@ -63,7 +63,7 @@ export const Box = React.forwardRef<View, BoxProps>(
         gap,
         padding: getPaddingValue(padding),
         margin: getPaddingValue(margin),
-        borderRadius: radius ? radiusTokens[radius] : undefined,
+        borderRadius: typeof radius === 'number' ? radius : (radius ? radiusTokens[radius] : undefined),
         borderColor,
         borderWidth,
         backgroundColor,
@@ -73,10 +73,10 @@ export const Box = React.forwardRef<View, BoxProps>(
     ) as ViewStyle;
 
     // Normalize style to prevent invalid values in arrays
-  const normalize = (s: any) => {
-    if (!s) return {};
-    if (Array.isArray(s)) return Object.assign({}, ...s.filter(Boolean));
-    return s;
+  const normalize = (s: any): ViewStyle => {
+    if (!s) return {} as ViewStyle;
+    if (Array.isArray(s)) return Object.assign({}, ...s.filter(Boolean)) as ViewStyle;
+    return s as ViewStyle;
   };
 
   return (

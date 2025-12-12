@@ -9,7 +9,7 @@ import type {
   LessonProgress,
   LearningStats,
   QuizSubmission,
-} from '@/services/api';
+} from '@/types/learning';
 
 // Re-export types for convenience
 export type {

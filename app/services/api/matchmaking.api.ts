@@ -2,31 +2,20 @@
  * Matchmaking API client - handles game matching and queue management.
  */
 
-export interface MatchmakingRequest {
-  userId: string;
-  timeControl: string;
-  ratingRange?: {
-    min: number;
-    max: number;
-  };
+import type { MatchmakingRequest, MatchFound, QueueStatus } from '@/types/matchmaking';
+
+export interface IMatchmakingApiClient {
+  setAuthToken?(token: string): void;
+  joinQueue(request: MatchmakingRequest): Promise<QueueStatus>;
+  leaveQueue(userId: string): Promise<void>;
+  getQueueStatus(userId: string): Promise<QueueStatus>;
+  pollForMatch(userId: string, timeout?: number): Promise<MatchFound | null>;
+  createBotGame(userId: string, difficulty: 'easy' | 'medium' | 'hard' | 'expert'): Promise<{ gameId: string; color: 'white' | 'black' }>;
+  createFriendChallenge(userId: string, friendId: string, timeControl: string): Promise<{ gameId: string; challengeCode: string }>;
+  joinChallenge(userId: string, challengeCode: string): Promise<{ gameId: string; color: 'white' | 'black' }>;
 }
 
-export interface MatchFound {
-  gameId: string;
-  opponentId: string;
-  opponentUsername: string;
-  opponentRating: number;
-  timeControl: string;
-  color: 'white' | 'black';
-}
-
-export interface QueueStatus {
-  inQueue: boolean;
-  position?: number;
-  estimatedWaitTime?: number;
-}
-
-export class MatchmakingApiClient {
+export class MatchmakingApiClient implements IMatchmakingApiClient {
   private readonly baseUrl: string;
   private authToken?: string;
 

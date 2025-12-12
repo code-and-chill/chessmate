@@ -5,7 +5,6 @@
 
 // Main screen
 export { SettingsScreen } from './screens/SettingsScreen';
-export type { SettingsScreenProps } from './screens/SettingsScreen';
 
 // Components (if needed externally)
 export { SettingsHub } from './components/SettingsHub';

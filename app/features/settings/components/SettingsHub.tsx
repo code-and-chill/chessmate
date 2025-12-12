@@ -72,7 +72,7 @@ export const SettingsHub = ({ onNavigate, userId }: SettingsHubProps) => {
   const menuCards = settingsMenu.map((item, idx) => (
     // Only use key for React, not as a prop for FeatureCard
     <FeatureCard
-      icon={<Text style={{fontSize: 28}}>{item.icon}</Text>}
+      icon={(<Text style={{fontSize: 28}}>{item.icon}</Text>) as any}
       title={t(item.titleKey)}
       description={t(item.descriptionKey)}
       onPress={() => onNavigate(item.mode as SettingsMode)}

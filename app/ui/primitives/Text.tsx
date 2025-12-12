@@ -3,7 +3,7 @@ import { Text as RNText, TextProps as RNTextProps } from 'react-native';
 import { typographyTokens, textVariants } from '../tokens/typography';
 import { useColors } from '../hooks/useThemeTokens';
 
-type TextVariant = keyof typeof textVariants;
+type TextVariant = keyof typeof textVariants | 'heading';
 
 type Props = RNTextProps & {
   variant?: TextVariant;
@@ -18,7 +18,7 @@ export const Text = React.forwardRef<RNText, Props>(
   ({ children, variant = 'body', color, mono, weight, size, style, ...rest }, ref) => {
     const colors = useColors();
 
-    // Defensive check: fallback to 'body' if invalid variant
+    // Defensive check: fallback to 'body' of invalid variant
     const v = (textVariants as any)[variant] ?? textVariants.body;
 
     const finalFontSize = size

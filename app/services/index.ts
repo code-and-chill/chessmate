@@ -1,9 +1,3 @@
-/**
- * Services - External Integrations
- * 
- * API clients, WebSocket connections, storage, analytics, and notifications
- */
-
 // API Clients
 export * from './api';
 

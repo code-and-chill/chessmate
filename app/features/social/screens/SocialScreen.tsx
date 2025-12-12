@@ -1,7 +1,6 @@
 import { useState } from 'react';
-import { View, StyleSheet } from 'react-native';
 import { SocialHub, FriendsView, ClubsView, MessagesView, LeaderboardView } from '../components';
-import type { SocialMode } from '../types';
+import type { SocialMode } from '@/types/social';
 
 export interface SocialScreenProps {
   userId: string;

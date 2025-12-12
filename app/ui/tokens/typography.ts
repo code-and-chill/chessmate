@@ -109,7 +109,13 @@ export const textVariants = {
     fontWeight: '500' as const, 
     lineHeight: 1.4 
   },
-  
+  subheading: {
+    fontFamily: 'Outfit_500Medium',
+    fontSize: 18,
+    fontWeight: '500' as const,
+    lineHeight: 1.4,
+  },
+
   // Body level - Primary content (Inter - optimal readability)
   body: { 
     fontFamily: 'Inter_400Regular',

@@ -2,40 +2,46 @@
  * Account API client - handles user profiles, friends, and social features.
  */
 
-export interface UserProfile {
-  id: string;
-  username: string;
-  email: string;
-  avatar: string;
-  bio?: string;
-  country?: string;
-  memberSince: string;
-  ratings: {
-    blitz: number;
-    rapid: number;
-    classical: number;
-  };
+
+
+
+
+
+
+
+
+
+
+
+
+
+import type { UserProfile } from '@/types/account';
+import type { Friend, FriendRequest } from '@/types/social';
+import type { UserPreferences } from '@/features/settings/types';
+
+export interface IAccountApiClient {
+  setAuthToken?(token: string): void;
+  getProfile(userId: string): Promise<UserProfile>;
+  updateProfile(
+    userId: string,
+    updates: Partial<UserProfile>
+  ): Promise<UserProfile>;
+  getFriends(userId: string): Promise<Friend[]>;
+  sendFriendRequest(
+    fromUserId: string,
+    toUsername: string
+  ): Promise<FriendRequest>;
+  acceptFriendRequest(userId: string, requestId: string): Promise<void>;
+  searchUsers(query: string): Promise<UserProfile[]>;
+  // Preferences
+  getPreferences(userId: string): Promise<UserPreferences>;
+  updatePreferences(
+    userId: string,
+    updates: Partial<UserPreferences>
+  ): Promise<UserPreferences>;
 }
 
-export interface Friend {
-  id: string;
-  username: string;
-  rating: number;
-  online: boolean;
-  playing?: boolean;
-  lastSeen?: string;
-  avatar: string;
-}
-
-export interface FriendRequest {
-  id: string;
-  fromUserId: string;
-  fromUsername: string;
-  status: 'pending' | 'accepted' | 'rejected';
-  createdAt: string;
-}
-
-export class AccountApiClient {
+export class AccountApiClient implements IAccountApiClient {
   private baseUrl: string;
   private authToken?: string;
 
@@ -139,5 +145,22 @@ export class AccountApiClient {
    */
   async searchUsers(query: string): Promise<UserProfile[]> {
     return this.request<UserProfile[]>('GET', `/api/v1/accounts/search?q=${encodeURIComponent(query)}`);
+  }
+
+  /**
+   * Get user preferences
+   */
+  async getPreferences(userId: string): Promise<UserPreferences> {
+    return this.request<UserPreferences>('GET', `/api/v1/accounts/${userId}/preferences`);
+  }
+
+  /**
+   * Update user preferences
+   */
+  async updatePreferences(
+    userId: string,
+    updates: Partial<UserPreferences>
+  ): Promise<UserPreferences> {
+    return this.request<UserPreferences>('PATCH', `/api/v1/accounts/${userId}/preferences`, updates);
   }
 }

@@ -7,11 +7,12 @@ import { useColors } from '@/ui/hooks/useThemeTokens';
 import { DevBadge } from '@/ui/primitives/DevBadge';
 import { typographyTokens } from '@/ui/tokens/typography';
 import { spacingScale } from '@/ui/tokens/spacing';
+import type { ReactNode } from 'react';
 
 interface FeatureCardProps {
   /** Icon name from icon library (e.g., "globe", "robot", "book") */
-  icon: IconName;
-  
+  icon: IconName | ReactNode;
+
   /** Card title (e.g., "Online Play") */
   title: string;
   
@@ -73,7 +74,11 @@ export function FeatureCard({
           {!isCompact && (
             <View style={[styles.leftZone]}>
               <View style={[styles.iconBadge, isCompact && styles.iconBadgeCompact, { backgroundColor: colors.accent.primary + '15' }]}>
-                <Icon name={icon} size={isCompact ? spacingScale.iconSize * 0.9 : spacingScale.iconSize * 1.4} color={colors.accent.primary} />
+                {typeof icon === 'string' ? (
+                  <Icon name={icon as IconName} size={isCompact ? spacingScale.iconSize * 0.9 : spacingScale.iconSize * 1.4} color={colors.accent.primary} />
+                ) : (
+                  icon
+                )}
               </View>
             </View>
           )}

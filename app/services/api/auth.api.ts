@@ -1,35 +1,22 @@
+import type { AuthResponse, LoginRequest, RegisterRequest, RefreshTokenResponse } from '@/types/auth';
+
 /**
  * Auth API Client - handles authentication and user sessions
  */
 
-export interface LoginRequest {
-  email: string;
-  password: string;
-}
-
-export interface RegisterRequest {
-  username: string;
-  email: string;
-  password: string;
-}
-
-export interface AuthResponse {
-  token: string;
-  user: {
-    id: string;
-    username: string;
-    email: string;
-  };
-}
-
-export interface RefreshTokenResponse {
-  token: string;
+export interface IAuthApiClient {
+  login(email: string, password: string): Promise<AuthResponse>;
+  register(username: string, email: string, password: string): Promise<AuthResponse>;
+  refreshToken(refreshToken: string): Promise<RefreshTokenResponse>;
+  logout(token: string): Promise<void>;
+  verifyToken(token: string): Promise<boolean>;
+  getSession?(): AuthResponse;
 }
 
 /**
  * Auth API Client for account-api authentication endpoints
  */
-export class AuthApiClient {
+export class AuthApiClient implements IAuthApiClient {
   private baseUrl: string;
 
   constructor(baseUrl: string = 'http://localhost:8002') {

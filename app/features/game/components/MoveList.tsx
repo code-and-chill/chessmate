@@ -3,7 +3,7 @@ import { ScrollView, Pressable } from 'react-native';
 import { Box } from '@/ui/primitives/Box';
 import { Text } from '@/ui/primitives/Text';
 import { useThemeTokens } from '@/ui/hooks/useThemeTokens';
-import type { Move } from '@/features/game/types/game.types';
+import type { Move } from '@/types/game';
 
 export interface MoveListProps {
   moves?: Move[];

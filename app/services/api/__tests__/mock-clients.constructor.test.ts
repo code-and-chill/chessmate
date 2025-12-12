@@ -1,14 +1,12 @@
-import {
-  MockAuthApiClient,
-  MockAccountApiClient,
-  MockRatingApiClient,
-  MockMatchmakingApiClient,
-  MockLearningApiClient,
-  MockSocialApiClient,
-  MockLiveGameApiClient,
-  MockPuzzleApiClient,
-  MockPlayApiClient,
-} from '../mock-clients';
+import { MockAuthApiClient } from '../auth.api.mock';
+import { MockAccountApiClient } from '../account.api.mock';
+import { MockRatingApiClient } from '../rating.api.mock';
+import { MockMatchmakingApiClient } from '../matchmaking.api.mock';
+import { MockLearningApiClient } from '../learning.api.mock';
+import { MockSocialApiClient } from '../social.api.mock';
+import { MockLiveGameApiClient } from '../live-game.api.mock';
+import { MockPuzzleApiClient } from '../puzzle.api.mock';
+import { MockGameApiClient } from '../game.api.mock';
 
 describe('Mock clients construction', () => {
   it('can construct all mock clients', () => {
@@ -20,7 +18,7 @@ describe('Mock clients construction', () => {
     const social = new MockSocialApiClient();
     const live = new MockLiveGameApiClient();
     const puzzle = new MockPuzzleApiClient();
-    const play = new MockPlayApiClient();
+    const game = new MockGameApiClient();
 
     expect(auth).toBeDefined();
     expect(account).toBeDefined();
@@ -30,7 +28,6 @@ describe('Mock clients construction', () => {
     expect(social).toBeDefined();
     expect(live).toBeDefined();
     expect(puzzle).toBeDefined();
-    expect(play).toBeDefined();
+    expect(game).toBeDefined();
   });
 });
-

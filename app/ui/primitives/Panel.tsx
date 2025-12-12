@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import type { ViewStyle } from 'react-native';
+import type { ViewStyle, StyleProp } from 'react-native';
 import { View, StyleSheet, Platform } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { useThemeTokens } from '@/ui/hooks/useThemeTokens';
@@ -21,7 +21,7 @@ type PanelProps = {
   padding?: number;
   blur?: boolean;
   // Accept single style or array so callers can pass conditional styles
-  style?: ViewStyle | ViewStyle[];
+  style?: StyleProp<ViewStyle>;
 };
 
 export const Panel: React.FC<PanelProps> = ({

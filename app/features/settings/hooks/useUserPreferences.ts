@@ -1,10 +1,5 @@
-/**
- * User Preferences Hook
- * features/settings/hooks/useUserPreferences.ts
- */
-
 import { useState, useEffect, useCallback } from 'react';
-import { accountApi } from '@/services/api';
+import { useApiClients } from '@/contexts/ApiContext';
 import type { UserPreferences } from '../types';
 
 interface UseUserPreferencesResult {
@@ -15,11 +10,8 @@ interface UseUserPreferencesResult {
   refetch: () => Promise<void>;
 }
 
-/**
- * Hook for managing user preferences
- * Integrated with account-api for preferences management
- */
 export function useUserPreferences(userId?: string): UseUserPreferencesResult {
+  const { accountApi } = useApiClients();
   const [preferences, setPreferences] = useState<UserPreferences | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -42,7 +34,7 @@ export function useUserPreferences(userId?: string): UseUserPreferencesResult {
     } finally {
       setLoading(false);
     }
-  }, [userId]);
+  }, [userId, accountApi]);
 
   const updatePreferences = useCallback(async (updates: Partial<UserPreferences>) => {
     if (!userId) return;
@@ -60,7 +52,7 @@ export function useUserPreferences(userId?: string): UseUserPreferencesResult {
     } finally {
       setLoading(false);
     }
-  }, [userId]);
+  }, [userId, accountApi]);
 
   useEffect(() => {
     fetchPreferences();

@@ -188,10 +188,6 @@ export {
   loopConfig,
 } from './animations/presets';
 
-// Re-export layouts
-export { ResponsiveGameLayout } from './layouts/ResponsiveGameLayout';
-export type { ResponsiveGameLayoutProps } from './layouts/ResponsiveGameLayout';
-
 // Re-export navigation
 export { NavigationSidebar } from './navigation/NavigationSidebar';
 export type { NavigationSidebarProps } from './navigation/NavigationSidebar';
@@ -200,9 +196,6 @@ export type { NavItem } from './navigation/BottomNav';
 export { Sidebar } from './components/Sidebar';
 export type { SidebarProps, SidebarItem } from './components/Sidebar';
 
-// Re-export modals
-export { QuickStartModal } from './modals/QuickStartModal';
-export type { QuickStartModalProps, TimeControl } from './modals/QuickStartModal';
 
 // Re-export global primitives
 export { GlobalContainer } from './primitives/GlobalContainer';
@@ -229,7 +222,3 @@ export { safeStyles, safeStyleArray } from './utilities/safeStyles';
 
 export type { ThemeMode, ThemeContextType } from './hooks/useThemeTokens';
 export { useThemeTokens, useColors, useIsDark, useTypography, useFonts } from './hooks/useThemeTokens';
-
-// Add explicit re-export for GlobalLayout from the app package so imports like
-// `import { GlobalLayout } from '@/ui'` resolve correctly to the actual component.
-export { GlobalLayout } from '@/app/GlobalLayout';

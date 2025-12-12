@@ -12,7 +12,7 @@ import { Box } from '@/ui/primitives/Box';
 import { VStack } from '@/ui/primitives/Stack';
 import { useThemeTokens } from '@/ui/hooks/useThemeTokens';
 import { spacingTokens } from '@/ui/tokens/spacing';
-import type { Move } from '@/features/game/types/game.types';
+import type { Move } from '@/types/game';
 import { useBoardTheme } from '@/contexts/BoardThemeContext';
 import { DevBadge } from '@/ui/primitives/DevBadge';
 import { BoardColumn } from '@/features/board/components/BoardColumn';

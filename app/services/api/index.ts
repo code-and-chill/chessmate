@@ -2,10 +2,17 @@
  * Services Layer - API Clients
  */
 
-// Import mock clients used to create local instances
-import { MockAccountApiClient, MockRatingApiClient } from './mock-clients';
-// Re-export mock clients for consumers that import from '@/services/api'
-export { MockAuthApiClient, MockAccountApiClient, MockRatingApiClient, MockMatchmakingApiClient, MockLearningApiClient, MockSocialApiClient, MockLiveGameApiClient, MockPuzzleApiClient, MockPlayApiClient } from './mock-clients';
+// Re-export mock clients for consumers that import from '@/services/api' (explicit per-file re-exports)
+export { MockAuthApiClient } from './auth.api.mock';
+export { MockAccountApiClient } from './account.api.mock';
+export { MockRatingApiClient } from './rating.api.mock';
+export { MockMatchmakingApiClient } from './matchmaking.api.mock';
+export { MockLearningApiClient } from './learning.api.mock';
+export { MockSocialApiClient } from './social.api.mock';
+export { MockLiveGameApiClient } from './live-game.api.mock';
+export { MockPuzzleApiClient } from './puzzle.api.mock';
+export { MockGameApiClient } from './game.api.mock';
+export { MockPieceThemeApiClient } from './piece-theme.api.mock';
 
 // API Clients
 export { AuthApiClient } from './auth.api';
@@ -18,29 +25,3 @@ export { RatingApiClient } from './rating.api';
 export { LearningApiClient } from './learning.api';
 export { SocialApiClient } from './social.api';
 export { PieceThemeApiClient, PIECE_THEME_LABELS } from './piece-theme.api';
-
-// Types (re-export from API clients)
-export type { AuthResponse, LoginRequest, RegisterRequest } from './auth.api';
-export type { CreateGameRequest, JoinGameRequest } from './game.api';
-export type { PuzzleAttempt, PuzzleAttemptResponse } from './puzzle.api';
-export type {
-  Lesson,
-  LessonContent,
-  Quiz,
-  QuizQuestion,
-  LessonProgress,
-  LearningStats,
-  QuizSubmission
-} from './learning.api';
-
-// API Client instances (using mock for development)
-export const accountApi = new MockAccountApiClient();
-export const ratingApi = new MockRatingApiClient();
-
-// TODO: Migrate to this structure:
-// export * from './client';
-// export * from './game.api';
-// export * from './puzzle.api';
-// export * from './account.api';
-// export * from './rating.api';
-// export * from './matchmaking.api';

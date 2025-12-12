@@ -12,9 +12,12 @@ export const PIECE_THEME_LABELS: Record<PieceTheme, { name: string; description:
   sketch: { name: 'Sketch', description: 'Hand-drawn artistic style' },
 };
 
-export class PieceThemeApiClient {
+export interface IPieceThemeApiClient {
+  getLabels(): Promise<typeof PIECE_THEME_LABELS>;
+}
+
+export class PieceThemeApiClient implements IPieceThemeApiClient {
   async getLabels(): Promise<typeof PIECE_THEME_LABELS> {
     return PIECE_THEME_LABELS;
   }
 }
-

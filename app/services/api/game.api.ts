@@ -1,4 +1,4 @@
-import type { GameState } from '../../features/game/types/GameState';
+import type { GameState } from '@/types/game';
 
 // TimeControl type - define inline for now
 type TimeControl = {
@@ -17,7 +17,18 @@ export interface JoinGameRequest {
   colorPreference?: 'white' | 'black' | 'random';
 }
 
-export class PlayApiClient {
+// Strict interface describing the public Play/Game API used by the app.
+export interface IGameApiClient {
+  createGame(request: CreateGameRequest): Promise<GameState>;
+  joinGame(gameId: string, request?: JoinGameRequest): Promise<GameState>;
+  getGameById(gameId: string): Promise<GameState>;
+  getRecentGames(userId: string, limit?: number): Promise<GameState[]>;
+  getActiveGamesForUser(userId: string): Promise<GameState[]>;
+  makeMove(gameId: string, from: string, to: string, promotion?: string): Promise<GameState>;
+  resign(gameId: string): Promise<GameState>;
+}
+
+export class PlayApiClient implements IGameApiClient {
   private baseUrl: string;
   private token: string;
 

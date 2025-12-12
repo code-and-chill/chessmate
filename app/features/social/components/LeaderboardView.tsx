@@ -8,7 +8,7 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { InteractivePressable, useThemeTokens } from '@/ui';
 import { useI18n } from '@/i18n/I18nContext';
 import { useLeaderboard } from '../hooks';
-import type { LeaderboardType, LeaderboardEntry } from '../types';
+import type { LeaderboardType, LeaderboardEntry } from '@/types/social';
 
 export interface LeaderboardViewProps {
   onBack: () => void;

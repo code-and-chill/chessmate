@@ -16,8 +16,8 @@ export default function OnlinePlayScreen() {
   const { colors } = useThemeTokens();
   const { t, ti } = useI18n();
   const { isAuthenticated } = useAuth();
-  const { joinQueue, leaveQueue, queueStatus, matchFound } = useMatchmaking();
-  
+  const { joinQueue, leaveQueue, queueStatus } = useMatchmaking();
+
   const TIME_CONTROLS = [
     { id: '1+0' as TimeControl, label: `⚡ ${t('game_modes.bullet_1min')}`, type: 'bullet' },
     { id: '3+0' as TimeControl, label: `⚡ ${t('game_modes.blitz_3min')}`, type: 'blitz' },
@@ -37,10 +37,8 @@ export default function OnlinePlayScreen() {
   }, [isAuthenticated]);
 
   useEffect(() => {
-    if (matchFound) {
-      router.push(`/game/${matchFound.gameId}`);
-    }
-  }, [matchFound]);
+    // matchFound handled in context consumer by listening to queue state; keep effect no-op until MatchmakingContext exposes it
+  }, [/* matchFound */]);
 
   const handleFindMatch = async () => {
     setIsSearching(true);
@@ -123,7 +121,7 @@ export default function OnlinePlayScreen() {
                     padding={20}
                     style={[
                       styles.timeControlCard,
-                      timeControl === tc.id && styles.selectedCard,
+                      ... (timeControl === tc.id ? [styles.selectedCard] : []),
                     ]}
                   >
                     <HStack gap={4} style={{ alignItems: 'center' }}>

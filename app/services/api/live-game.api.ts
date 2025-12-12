@@ -1,14 +1,45 @@
-/**
- * Live game API client - handles communication with live-game-api.
- */
+import type { GameState } from '@/types/live-game';
+import {DecisionReason} from "@/features/game/types";
 
-import type { LiveGameMove } from './types';
-import type { WebSocketMessage } from './websocket';
-import { apiClient } from './client';
-import { GameState } from '../../features/game/types/GameState';
-import type { DecisionReason } from '../../features/game/types/DecisionReason';
+export interface ILiveGameApiClient {
+  getGame(gameId: string): Promise<GameState>;
+  makeMove(gameId: string, from: string, to: string, promotion?: string): Promise<GameState>;
+  resign(gameId: string): Promise<GameState>;
+  createBotGame(userId: string, difficulty: string, playerColor: 'white' | 'black'): Promise<{ gameId: string }>;
 
-export class LiveGameApiClient {
+  /**
+   * Create a friend game
+   */
+  createFriendGame(
+    creatorId: string,
+    timeControl: string,
+    playerColor: 'white' | 'black',
+    rated?: boolean,
+    options?: any
+  ): Promise<{ gameId: string; inviteCode: string; rated: boolean; decision_reason?: any }>;
+
+  /**
+   * Join a friend game via invite code
+   */
+  joinFriendGame(userId: string, inviteCode: string): Promise<{ gameId: string }>;
+
+  /**
+   * Request a takeback (unrated games only)
+   */
+  requestTakeback(gameId: string): Promise<GameState>;
+
+  /**
+   * Set a custom board position (unrated games only, before start)
+   */
+  setPosition(gameId: string, fen: string): Promise<GameState>;
+
+  /**
+   * Update rated status (only before the game starts)
+   */
+  updateRatedStatus(gameId: string, rated: boolean): Promise<GameState>;
+}
+
+export class LiveGameApiClient implements ILiveGameApiClient {
   private baseUrl: string;
   private token: string;
 

@@ -8,7 +8,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Text, microInteractions, radiusTokens, spacingTokens, colorTokens, getColor } from '@/ui';
 
-type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'outline' | 'destructive';
+type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'outline' | 'destructive' | 'subtle' | 'default';
 type ButtonSize = 'sm' | 'md' | 'lg';
 
 type ButtonStyle = { 
@@ -68,6 +68,20 @@ const getButtonStyles = (isDark: boolean): Record<ButtonVariant, ButtonStyle> =>
     border: 'none',
     hoverBg: getColor(colorTokens.red[700], isDark),
     activeBg: getColor(colorTokens.red[800], isDark),
+  },
+  subtle: {
+    bg: 'transparent',
+    text: getColor(colorTokens.neutral[700], isDark),
+    border: 'none',
+    hoverBg: getColor(colorTokens.neutral[50], isDark),
+    activeBg: getColor(colorTokens.neutral[100], isDark),
+  },
+  default: {
+    bg: getColor(colorTokens.neutral[100], isDark),
+    text: getColor(colorTokens.neutral[900], isDark),
+    border: 'none',
+    hoverBg: getColor(colorTokens.neutral[200], isDark),
+    activeBg: getColor(colorTokens.neutral[300], isDark),
   },
 });
 

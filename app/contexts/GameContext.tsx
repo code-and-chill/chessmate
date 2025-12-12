@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
-import type { GameState } from '@/features/game/types/GameState';
+import type { GameState } from '@/types/game';
 import {useAuth} from "@/contexts/AuthContext";
 import {useApiClients} from "@/contexts/ApiContext";
 

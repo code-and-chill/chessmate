@@ -12,30 +12,38 @@ import {
   PieceThemeApiClient,
 } from '@/services/api';
 
-// Import mock implementations directly to avoid export binding/circular issues
-import {
-  MockAuthApiClient,
-  MockAccountApiClient,
-  MockRatingApiClient,
-  MockMatchmakingApiClient,
-  MockLearningApiClient,
-  MockSocialApiClient,
-  MockLiveGameApiClient,
-  MockPuzzleApiClient,
-  MockPlayApiClient,
-} from '@/services/api/mock-clients';
+import { MockAuthApiClient } from '@/services/api/auth.api.mock';
+import { MockAccountApiClient } from '@/services/api/account.api.mock';
+import { MockRatingApiClient } from '@/services/api/rating.api.mock';
+import { MockMatchmakingApiClient } from '@/services/api/matchmaking.api.mock';
+import { MockLearningApiClient } from '@/services/api/learning.api.mock';
+import { MockSocialApiClient } from '@/services/api/social.api.mock';
+import { MockLiveGameApiClient } from '@/services/api/live-game.api.mock';
+import { MockPuzzleApiClient } from '@/services/api/puzzle.api.mock';
+import { MockGameApiClient } from '@/services/api/game.api.mock';
+import { MockPieceThemeApiClient } from '@/services/api/piece-theme.api.mock';
+import type { IAccountApiClient } from '@/services/api/account.api';
+import type { IRatingApiClient } from '@/services/api/rating.api';
+import type { IMatchmakingApiClient } from '@/services/api/matchmaking.api';
+import type { ILearningApiClient } from '@/services/api/learning.api';
+import type { ISocialApiClient } from '@/services/api/social.api';
+import type { IPuzzleApiClient } from '@/services/api/puzzle.api';
+import type { ILiveGameApiClient } from '@/services/api/live-game.api';
+import type { IAuthApiClient } from '@/services/api/auth.api';
+import type { IGameApiClient } from '@/services/api/game.api';
+import type { IPieceThemeApiClient } from '@/services/api/piece-theme.api';
 
 interface ApiContextType {
-  authApi: AuthApiClient | MockAuthApiClient;
-  accountApi: AccountApiClient | MockAccountApiClient;
-  ratingApi: RatingApiClient | MockRatingApiClient;
-  matchmakingApi: MatchmakingApiClient | MockMatchmakingApiClient;
-  learningApi: LearningApiClient | MockLearningApiClient;
-  socialApi: SocialApiClient | MockSocialApiClient;
-  puzzleApi: any;
-  liveGameApi: LiveGameApiClient | MockLiveGameApiClient;
-  playApi: PlayApiClient | MockPlayApiClient;
-  pieceThemeApi: PieceThemeApiClient;
+  authApi: IAuthApiClient;
+  accountApi: IAccountApiClient;
+  ratingApi: IRatingApiClient;
+  matchmakingApi: IMatchmakingApiClient;
+  learningApi: ILearningApiClient;
+  socialApi: ISocialApiClient;
+  puzzleApi: IPuzzleApiClient;
+  liveGameApi: ILiveGameApiClient;
+  playApi: IGameApiClient;
+  pieceThemeApi: IPieceThemeApiClient;
   useMockApi: boolean;
 }
 
@@ -66,7 +74,7 @@ export function ApiProvider({ children }: { children: ReactNode }) {
     let socialApi: SocialApiClient | MockSocialApiClient;
     let liveGameApi: LiveGameApiClient | MockLiveGameApiClient;
     let puzzleApi: PuzzleApiClient | MockPuzzleApiClient;
-    let playApi: PlayApiClient | MockPlayApiClient;
+    let playApi: PlayApiClient | MockGameApiClient;
     let pieceThemeApi: PieceThemeApiClient;
 
     if (USE_MOCK_API) {
@@ -79,8 +87,8 @@ export function ApiProvider({ children }: { children: ReactNode }) {
       socialApi = new MockSocialApiClient();
       liveGameApi = new MockLiveGameApiClient();
       puzzleApi = new MockPuzzleApiClient();
-      playApi = new MockPlayApiClient();
-      pieceThemeApi = new PieceThemeApiClient();
+      playApi = new MockGameApiClient();
+      pieceThemeApi = new MockPieceThemeApiClient();
     } else {
       // Use real API implementations
       authApi = new AuthApiClient(API_BASE_URLS.account);
@@ -111,12 +119,12 @@ export function ApiProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return <ApiContext.Provider value={clients}>{children}</ApiContext.Provider>;
-}
+ }
 
-export function useApiClients() {
-  const context = useContext(ApiContext);
-  if (context === undefined) {
-    throw new Error('useApiClients must be used within an ApiProvider');
-  }
-  return context;
-}
+ export function useApiClients() {
+   const context = useContext(ApiContext);
+   if (context === undefined) {
+     throw new Error('useApiClients must be used within an ApiProvider');
+   }
+   return context;
+ }

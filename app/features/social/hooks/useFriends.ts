@@ -4,8 +4,8 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { accountApi } from '@/services/api';
-import type { Friend } from '../types';
+import { useApiClients } from '@/contexts/ApiContext';
+import type { Friend } from '@/types/social';
 
 interface UseFriendsResult {
   friends: Friend[];
@@ -20,6 +20,7 @@ interface UseFriendsResult {
  * Integrated with account-api for friends management
  */
 export function useFriends(userId?: string): UseFriendsResult {
+  const { accountApi } = useApiClients();
   const [friends, setFriends] = useState<Friend[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -42,7 +43,7 @@ export function useFriends(userId?: string): UseFriendsResult {
     } finally {
       setLoading(false);
     }
-  }, [userId]);
+  }, [userId, accountApi]);
 
   const challengeFriend = useCallback(async (friendId: string) => {
     // TODO: Integrate with matchmaking-api to create challenge

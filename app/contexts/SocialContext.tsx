@@ -1,75 +1,7 @@
 import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 import { useAuth } from './AuthContext';
 import { useApiClients } from './ApiContext';
-
-export interface Friend {
-  id: string;
-  username: string;
-  displayName?: string;
-  avatar?: string;
-  rating: number;
-  online: boolean;
-  playing: boolean;
-  lastSeen?: string;
-  friendSince: string;
-}
-
-export interface FriendRequest {
-  id: string;
-  from: {
-    id: string;
-    username: string;
-    avatar?: string;
-    rating: number;
-  };
-  status: 'pending' | 'accepted' | 'declined';
-  sentAt: string;
-}
-
-export interface Message {
-  id: string;
-  from: string;
-  to: string;
-  content: string;
-  read: boolean;
-  sentAt: string;
-}
-
-export interface Conversation {
-  id: string;
-  participant: Friend;
-  lastMessage?: Message;
-  unreadCount: number;
-  messages: Message[];
-}
-
-export interface Club {
-  id: string;
-  name: string;
-  description: string;
-  avatar?: string;
-  memberCount: number;
-  rating: number;
-  isPublic: boolean;
-  joined: boolean;
-  admin: boolean;
-  createdAt: string;
-}
-
-export interface Tournament {
-  id: string;
-  name: string;
-  description: string;
-  format: 'swiss' | 'knockout' | 'round-robin' | 'arena';
-  timeControl: string;
-  startTime: string;
-  endTime?: string;
-  participants: number;
-  maxParticipants?: number;
-  status: 'upcoming' | 'live' | 'finished';
-  prizePool?: string;
-  clubId?: string;
-}
+import type { Friend, FriendRequest, Conversation, Club, Tournament } from '@/types/social';
 
 interface SocialContextType {
   friends: Friend[];

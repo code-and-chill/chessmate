@@ -1,48 +1,38 @@
+import type {
+  RatingHistory,
+  GameStats,
+  LeaderboardEntry,
+  Achievement,
+} from '@/types/rating';
+
 /**
  * Rating API client - handles player ratings, statistics, and leaderboards.
  */
 
-export interface RatingHistory {
-  date: string;
-  rating: number;
-  change: number;
+export interface IRatingApiClient {
+  setAuthToken?(token: string): void;
+  getStats(userId: string, timeControl: string): Promise<GameStats>;
+  getRatingHistory(
+    userId: string,
+    timeControl: string,
+    days?: number
+  ): Promise<RatingHistory[]>;
+  getLeaderboard(
+    type: 'global' | 'friends' | 'club',
+    timeControl: string,
+    limit?: number
+  ): Promise<LeaderboardEntry[]>;
+  getAchievements(userId: string): Promise<Achievement[]>;
+  updateRating(
+    userId: string,
+    gameId: string,
+    timeControl: string,
+    result: 'win' | 'loss' | 'draw',
+    opponentRating: number
+  ): Promise<{ newRating: number; change: number }>;
 }
 
-export interface GameStats {
-  timeControl: 'blitz' | 'rapid' | 'classical';
-  rating: number;
-  peak: number;
-  games: number;
-  wins: number;
-  losses: number;
-  draws: number;
-  winRate: number;
-}
-
-export interface LeaderboardEntry {
-  rank: number;
-  userId: string;
-  username: string;
-  rating: number;
-  games: number;
-  winRate: number;
-  avatar: string;
-}
-
-export interface Achievement {
-  id: string;
-  title: string;
-  description: string;
-  icon: string;
-  unlocked: boolean;
-  unlockedAt?: string;
-  progress?: {
-    current: number;
-    total: number;
-  };
-}
-
-export class RatingApiClient {
+export class RatingApiClient implements IRatingApiClient {
   private baseUrl: string;
   private authToken?: string;
 

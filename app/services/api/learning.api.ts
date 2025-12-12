@@ -2,75 +2,23 @@
  * Learning API Client - chess-knowledge-api integration
  */
 
-export interface Lesson {
-  id: string;
-  title: string;
-  description: string;
-  category: 'openings' | 'tactics' | 'endgames' | 'strategy' | 'theory';
-  difficulty: 'beginner' | 'intermediate' | 'advanced' | 'expert';
-  duration: number; // minutes
-  topics: string[];
-  content: LessonContent[];
-  quiz?: Quiz;
-  prerequisites?: string[];
+import type { Lesson, LessonContent, Quiz, QuizQuestion, LessonProgress, LearningStats, QuizSubmission } from '@/types/learning';
+
+// Public interface for the Learning API used by the app
+export interface ILearningApiClient {
+  setAuthToken?(token: string): void;
+  getAllLessons(): Promise<Lesson[]>;
+  getLessonById(lessonId: string): Promise<Lesson>;
+  getLessonsByCategory(category: string): Promise<Lesson[]>;
+  startLesson(lessonId: string): Promise<void>;
+  completeLesson(lessonId: string, quizScore?: number): Promise<void>;
+  getLessonProgress(lessonId: string): Promise<LessonProgress | null>;
+  updateProgress(lessonId: string, progress: number, timeSpent: number): Promise<void>;
+  getUserStats(): Promise<LearningStats>;
+  submitQuiz(lessonId: string, answers: number[]): Promise<QuizSubmission>;
 }
 
-export interface LessonContent {
-  type: 'text' | 'video' | 'diagram' | 'interactive';
-  title?: string;
-  content: string;
-  fen?: string;
-  videoUrl?: string;
-}
-
-export interface Quiz {
-  id: string;
-  questions: QuizQuestion[];
-}
-
-export interface QuizQuestion {
-  id: string;
-  question: string;
-  options: string[];
-  correctAnswer: number;
-  explanation: string;
-  fen?: string;
-}
-
-export interface LessonProgress {
-  lessonId: string;
-  completed: boolean;
-  progress: number; // 0-100
-  quizScore?: number;
-  completedAt?: string;
-  timeSpent: number;
-}
-
-export interface LearningStats {
-  totalLessonsCompleted: number;
-  totalTimeSpent: number;
-  averageQuizScore: number;
-  currentStreak: number;
-  longestStreak: number;
-  byCategory: {
-    [key: string]: {
-      completed: number;
-      total: number;
-      averageScore: number;
-    };
-  };
-  recentProgress: LessonProgress[];
-}
-
-export interface QuizSubmission {
-  score: number;
-  results: boolean[];
-}
-
-/**
- * Learning API Client
- */
-export class LearningApiClient {
+export class LearningApiClient implements ILearningApiClient {
   private baseUrl: string;
   private token?: string;
 

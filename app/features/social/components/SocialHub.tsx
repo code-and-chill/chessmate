@@ -1,9 +1,8 @@
-import { SafeAreaView, ScrollView, StyleSheet, Text, View, ActivityIndicator } from 'react-native';
-import {VStack, HStack, Icon, FeatureScreenLayout, Panel, FeatureCard} from '@/ui';
+import { ActivityIndicator, SafeAreaView } from 'react-native';
+import { Text, FeatureCard, FeatureScreenLayout, HStack, Panel, useThemeTokens, VStack } from '@/ui';
 import { StatCard } from '@/ui/components/StatCard';
 import { useSocialStats } from '../hooks';
-import type { SocialMode } from '../types';
-import { useThemeTokens } from '@/ui';
+import type { SocialMode } from '@/types/social';
 import { useI18n } from '@/i18n/I18nContext';
 
 export interface SocialHubProps {
@@ -50,7 +49,6 @@ export function SocialHub({ onNavigate, userId }: SocialHubProps) {
           </VStack>
         </Panel>
       )}
-      contentPadding={6}
       maxWidth={600}
     >
       <FeatureCard

@@ -1,10 +1,5 @@
-/**
- * User Profile Hook
- * features/settings/hooks/useUserProfile.ts
- */
-
 import { useState, useEffect, useCallback } from 'react';
-import { accountApi } from '@/services/api';
+import { useApiClients } from '@/contexts/ApiContext';
 import type { UserProfile } from '../types';
 
 interface UseUserProfileResult {
@@ -15,11 +10,8 @@ interface UseUserProfileResult {
   refetch: () => Promise<void>;
 }
 
-/**
- * Hook for managing user profile data
- * Integrates with account-api service
- */
 export function useUserProfile(userId?: string): UseUserProfileResult {
+  const { accountApi } = useApiClients();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -42,7 +34,7 @@ export function useUserProfile(userId?: string): UseUserProfileResult {
     } finally {
       setLoading(false);
     }
-  }, [userId]);
+  }, [userId, accountApi]);
 
   const updateProfile = useCallback(async (updates: Partial<UserProfile>) => {
     if (!userId) return;
@@ -60,7 +52,7 @@ export function useUserProfile(userId?: string): UseUserProfileResult {
     } finally {
       setLoading(false);
     }
-  }, [userId]);
+  }, [userId, accountApi]);
 
   useEffect(() => {
     fetchProfile();

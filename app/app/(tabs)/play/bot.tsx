@@ -94,7 +94,7 @@ export default function BotPlayScreen() {
                     padding={20}
                     style={[
                       styles.botCard,
-                      difficulty === bot.id && styles.selectedCard,
+                      ... (difficulty === bot.id ? [styles.selectedCard] : []),
                     ]}
                   >
                     <HStack gap={4} style={{ alignItems: 'center' }}>

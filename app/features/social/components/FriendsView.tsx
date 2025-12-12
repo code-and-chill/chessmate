@@ -9,7 +9,7 @@ import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { Card } from '@/ui/primitives/Card';
 import { VStack, HStack, InteractivePressable, useThemeTokens } from '@/ui';
 import { useFriends } from '../hooks';
-import type { Friend } from '../types';
+import type { Friend } from '@/types/social';
 import { useI18n } from '@/i18n/I18nContext';
 
 export interface FriendsViewProps {

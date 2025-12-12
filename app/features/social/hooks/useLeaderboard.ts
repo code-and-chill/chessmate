@@ -4,8 +4,8 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { ratingApi } from '@/services/api';
-import type { LeaderboardEntry, LeaderboardType } from '../types';
+import { useApiClients } from '@/contexts/ApiContext';
+import type { LeaderboardEntry, LeaderboardType } from '@/types/social';
 
 interface UseLeaderboardResult {
   entries: LeaderboardEntry[];
@@ -19,6 +19,7 @@ interface UseLeaderboardResult {
  * Integrated with rating-api for rankings
  */
 export function useLeaderboard(type: LeaderboardType, timeControl: string = 'blitz'): UseLeaderboardResult {
+  const { ratingApi } = useApiClients();
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -36,7 +37,7 @@ export function useLeaderboard(type: LeaderboardType, timeControl: string = 'bli
     } finally {
       setLoading(false);
     }
-  }, [type, timeControl]);
+  }, [type, timeControl, ratingApi]);
 
   useEffect(() => {
     fetchLeaderboard();

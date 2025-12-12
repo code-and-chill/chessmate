@@ -93,6 +93,18 @@ export const colorTokens = {
     800: { light: '#0E7490', dark: '#0E7490' } as ColorToken,
     900: { light: '#164E63', dark: '#164E63' } as ColorToken,
   },
+  orange: {
+    50: { light: '#FFF7ED', dark: '#2A1208' } as ColorToken,
+    100: { light: '#FFEDD5', dark: '#4A2410' } as ColorToken,
+    200: { light: '#FED7AA', dark: '#7A3A15' } as ColorToken,
+    300: { light: '#FDBA74', dark: '#C05621' } as ColorToken,
+    400: { light: '#FB923C', dark: '#F97316' } as ColorToken,
+    500: { light: '#F97316', dark: '#FB923C' } as ColorToken,
+    600: { light: '#EA580C', dark: '#FB923C' } as ColorToken,
+    700: { light: '#C2410C', dark: '#F97316' } as ColorToken,
+    800: { light: '#9A3412', dark: '#EA580C' } as ColorToken,
+    900: { light: '#7C2D12', dark: '#FFEDD5' } as ColorToken,
+  },
 };
 
 export const getColor = (token: ColorToken | string, isDark: boolean): string => {
@@ -104,12 +116,16 @@ export const semanticColors = (isDark: boolean) => ({
     primary: getColor(colorTokens.neutral[50], isDark),
     secondary: getColor(colorTokens.neutral[100], isDark),
     tertiary: getColor(colorTokens.neutral[200], isDark),
+    card: getColor(colorTokens.neutral[100], isDark),
+    elevated: getColor(colorTokens.neutral[200], isDark),
+    accentSubtle: isDark ? getColor(colorTokens.blue[100], isDark) : getColor(colorTokens.blue[50], isDark),
   },
   foreground: {
     primary: getColor(colorTokens.neutral[900], isDark),
     secondary: getColor(colorTokens.neutral[700], isDark),
     tertiary: getColor(colorTokens.neutral[600], isDark),
     muted: getColor(colorTokens.neutral[500], isDark),
+    onAccent: isDark ? getColor(colorTokens.neutral[50], isDark) : '#FFFFFF',
   },
   accent: {
     primary: isDark ? getColor(colorTokens.blue[500], isDark) : getColor(colorTokens.blue[600], isDark),

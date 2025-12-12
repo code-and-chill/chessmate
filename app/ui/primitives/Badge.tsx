@@ -11,7 +11,7 @@ import { radiusTokens } from '../tokens/radii';
 import { spacingTokens } from '../tokens/spacing';
 import { useThemeTokens } from '../hooks/useThemeTokens';
 
-type BadgeVariant = 'primary' | 'secondary' | 'success' | 'error' | 'warning' | 'info' | 'neutral';
+type BadgeVariant = 'primary' | 'secondary' | 'success' | 'error' | 'warning' | 'info' | 'neutral' | 'default' | 'destructive';
 type BadgeSize = 'sm' | 'md' | 'lg';
 
 export interface BadgeProps {
@@ -44,6 +44,8 @@ export const Badge: React.FC<BadgeProps> = ({
     warning: { bg: colors.warning, text: colors.foreground.primary },
     info: { bg: colors.info, text: colors.background.primary },
     neutral: { bg: colors.background.tertiary, text: colors.foreground.primary },
+    default: { bg: colors.background.tertiary, text: colors.foreground.primary },
+    destructive: { bg: colors.error, text: colors.background.primary },
   };
 
   const badgeColors = variantColors[variant] ?? { bg: colors?.background?.tertiary ?? '#F3F3F3', text: colors?.foreground?.primary ?? '#000' };

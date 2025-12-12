@@ -9,9 +9,37 @@ import type {
   Conversation,
   Club,
   Tournament,
-} from '@/contexts/SocialContext';
+} from '@/types/social';
 
-export class SocialApiClient {
+export interface ISocialApiClient {
+  setAuthToken?(token: string): void;
+  getFriends(userId: string): Promise<Friend[]>;
+  getFriendRequests(userId: string): Promise<FriendRequest[]>;
+  sendFriendRequest(fromUserId: string, toUsername: string): Promise<void>;
+  acceptFriendRequest(userId: string, requestId: string): Promise<void>;
+  declineFriendRequest(userId: string, requestId: string): Promise<void>;
+  removeFriend(userId: string, friendId: string): Promise<void>;
+  searchUsers(query: string): Promise<Array<{ id: string; username: string; rating: number }>>;
+  getConversations(userId: string): Promise<Conversation[]>;
+  getConversation(userId: string, friendId: string): Promise<Conversation>;
+  sendMessage(fromUserId: string, toUserId: string, content: string): Promise<Message>;
+  markAsRead(userId: string, conversationId: string): Promise<void>;
+  getClubs(): Promise<Club[]>;
+  getMyClubs(userId: string): Promise<Club[]>;
+  joinClub(userId: string, clubId: string): Promise<void>;
+  leaveClub(userId: string, clubId: string): Promise<void>;
+  createClub(
+    userId: string,
+    name: string,
+    description: string,
+    isPublic: boolean
+  ): Promise<Club>;
+  getTournaments(): Promise<Tournament[]>;
+  joinTournament(userId: string, tournamentId: string): Promise<void>;
+  leaveTournament(userId: string, tournamentId: string): Promise<void>;
+}
+
+export class SocialApiClient implements ISocialApiClient {
   private baseUrl: string;
   private authToken?: string;
 

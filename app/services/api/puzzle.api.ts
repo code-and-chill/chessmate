@@ -1,29 +1,16 @@
-import type { Puzzle } from '../features/puzzle/types/Puzzle';
+import type { Puzzle, PuzzleAttempt, PuzzleAttemptResponse, ApiEnvelope } from '@/types/puzzle';
 
-export interface PuzzleAttempt {
-  isDaily: boolean;
-  movesPlayed: string[];
-  status: 'IN_PROGRESS' | 'SUCCESS' | 'FAILED';
-  timeSpentMs: number;
-  hintsUsed: number;
+export interface IPuzzleApiClient {
+  getPuzzle(puzzleId: string): Promise<ApiEnvelope<Puzzle>>;
+  getDailyPuzzle(date?: string): Promise<ApiEnvelope<any>>;
+  submitAttempt(puzzleId: string, attempt: PuzzleAttempt): Promise<ApiEnvelope<PuzzleAttemptResponse>>;
+  getRandomPuzzle(filters?: { difficulty?: string[]; themes?: string[]; ratingRange?: { min: number; max: number } }): Promise<ApiEnvelope<Puzzle>>;
+  getPuzzlesByTheme(theme: string, limit?: number): Promise<ApiEnvelope<Puzzle[]>>;
+  getUserStats(userId: string): Promise<ApiEnvelope<any>>;
+  getUserHistory(userId: string, limit?: number, offset?: number): Promise<ApiEnvelope<any>>;
 }
 
-export interface PuzzleAttemptResponse {
-  id: string;
-  puzzleId: string;
-  ratingChange: number;
-  status: string;
-}
-
-export interface ApiEnvelope<T = any> {
-  ok: boolean;
-  status: number;
-  result?: T;
-  error?: string;
-  rateLimit?: { remaining?: number; resetAt?: string } | null;
-}
-
-export class PuzzleApiClient {
+export class PuzzleApiClient implements IPuzzleApiClient {
   private readonly baseUrl: string;
 
   constructor(baseUrl: string = 'http://localhost:8000') {
