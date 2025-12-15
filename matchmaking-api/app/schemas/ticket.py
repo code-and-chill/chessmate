@@ -18,6 +18,9 @@ class PlayerSchema(BaseModel):
 
     user_id: str
     rating: Optional[int] = Field(default=None, description="Latest rating snapshot")
+    rating_deviation: Optional[float] = Field(
+        default=None, description="Rating deviation from rating-api"
+    )
     party_id: Optional[str] = Field(default=None, description="Party identifier for grouped tickets")
     metadata: Optional[dict] = Field(default=None, description="Client supplied metadata")
 

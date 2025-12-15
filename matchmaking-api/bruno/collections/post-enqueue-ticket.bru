@@ -54,4 +54,9 @@ tests {
   test("status is queued", function() {
     expect(res.body.status).to.equal("queued");
   });
+
+  test("player ratings are echoed", function() {
+    expect(res.body.players[0].mmr).to.equal(1500);
+    expect(res.body.players[0].rd).to.equal(60);
+  });
 }

@@ -1,6 +1,8 @@
 """Constraint models for matchmaking tickets."""
 from typing import Optional
 
+from typing import Optional
+
 from app.domain.utils.pool_key import format_pool_key
 
 

@@ -24,4 +24,11 @@ tests {
     expect(res.body).to.have.property("queue_entry");
     expect(res.body).to.have.property("match");
   });
+
+  test("ratings are present when queue entry exists", function() {
+    if (res.body.queue_entry && res.body.queue_entry.players && res.body.queue_entry.players.length > 0) {
+      expect(res.body.queue_entry.players[0]).to.have.property("rating");
+      expect(res.body.queue_entry.players[0]).to.have.property("rating_deviation");
+    }
+  });
 }

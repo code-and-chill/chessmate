@@ -6,6 +6,7 @@ import redis.asyncio as redis
 from fastapi import Depends, Header
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.clients.rating_client import RatingAPIClient
 from app.core.config import get_settings
 from app.core.exceptions import UnauthorizedException
 from app.core.security import JWTTokenData, decode_token
@@ -91,6 +92,17 @@ async def get_http_client() -> httpx.AsyncClient:
         await client.aclose()
 
 
+async def get_rating_http_client() -> httpx.AsyncClient:
+    """HTTP client tuned for rating-api calls."""
+
+    settings = get_settings()
+    client = httpx.AsyncClient(timeout=settings.RATING_API_TIMEOUT_SECONDS)
+    try:
+        yield client
+    finally:
+        await client.aclose()
+
+
 def get_queue_store(
     redis_client: Annotated[redis.Redis, Depends(get_redis_client)],
 ) -> RedisQueueStore:
@@ -130,18 +142,28 @@ def get_live_game_api_client(
     return LiveGameAPIClient(http_client)
 
 
+def get_rating_api_client(
+    http_client: Annotated[httpx.AsyncClient, Depends(get_rating_http_client)],
+) -> RatingAPIClient:
+    """Get rating API client."""
+
+    return RatingAPIClient(http_client)
+
+
 def get_matchmaking_service(
     queue_store: Annotated[RedisQueueStore, Depends(get_queue_store)],
     match_repo: Annotated[PostgresMatchRecordRepository, Depends(get_match_record_repo)],
     live_game_api: Annotated[LiveGameAPIClient, Depends(get_live_game_api_client)],
+    rating_api: Annotated[RatingAPIClient, Depends(get_rating_api_client)],
 ) -> MatchmakingService:
     """Get matchmaking service."""
-    return MatchmakingService(queue_store, match_repo, live_game_api)
+    return MatchmakingService(queue_store, match_repo, live_game_api, rating_api)
 
 
 def get_challenge_service(
     challenge_repo: Annotated[PostgresChallengeRepository, Depends(get_challenge_repo)],
     live_game_api: Annotated[LiveGameAPIClient, Depends(get_live_game_api_client)],
+    rating_api: Annotated[RatingAPIClient, Depends(get_rating_api_client)],
 ) -> ChallengeService:
     """Get challenge service."""
-    return ChallengeService(challenge_repo, live_game_api)
+    return ChallengeService(challenge_repo, live_game_api, rating_api)
