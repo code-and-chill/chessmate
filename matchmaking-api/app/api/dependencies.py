@@ -20,6 +20,7 @@ from app.infrastructure.repositories.postgres_match_record_repo import (
     PostgresMatchRecordRepository,
 )
 from app.infrastructure.repositories.redis_queue_store import RedisQueueStore
+from app.repositories.postgres_ticket_repository import PostgresTicketRepository
 
 
 async def get_token_data(
@@ -91,6 +92,13 @@ def get_match_record_repo(
 ) -> PostgresMatchRecordRepository:
     """Get match record repository."""
     return PostgresMatchRecordRepository(session)
+
+
+def get_ticket_repo(
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+) -> PostgresTicketRepository:
+    """Get ticket repository."""
+    return PostgresTicketRepository(session)
 
 
 def get_live_game_api_client(
