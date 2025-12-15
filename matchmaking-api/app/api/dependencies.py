@@ -63,6 +63,24 @@ async def get_redis_client() -> redis.Redis:
         await client.close()
 
 
+async def get_ticket_redis_client() -> redis.Redis | None:
+    """Get Redis client for ticket caching when enabled."""
+
+    settings = get_settings()
+    if not settings.TICKET_HEARTBEATS_REDIS_ENABLED:
+        yield None
+        return
+
+    client = await redis.from_url(
+        settings.REDIS_URL,
+        decode_responses=settings.REDIS_DECODE_RESPONSES,
+    )
+    try:
+        yield client
+    finally:
+        await client.close()
+
+
 async def get_http_client() -> httpx.AsyncClient:
     """Get HTTP client."""
     settings = get_settings()
@@ -96,9 +114,13 @@ def get_match_record_repo(
 
 def get_ticket_repo(
     session: Annotated[AsyncSession, Depends(get_db_session)],
+    redis_client: Annotated[redis.Redis | None, Depends(get_ticket_redis_client)],
 ) -> PostgresTicketRepository:
     """Get ticket repository."""
-    return PostgresTicketRepository(session)
+    settings = get_settings()
+    return PostgresTicketRepository(
+        session, redis_client, enable_heartbeat_cache=settings.TICKET_HEARTBEATS_REDIS_ENABLED
+    )
 
 
 def get_live_game_api_client(

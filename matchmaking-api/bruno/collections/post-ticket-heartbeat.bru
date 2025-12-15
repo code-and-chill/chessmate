@@ -1,0 +1,30 @@
+meta {
+  name: Post Ticket Heartbeat
+  type: http
+  seq: 2
+}
+
+post {
+  url: ${baseUrl}/tickets/${ticketId}/heartbeat
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer ${authToken}
+}
+
+body:json {
+  heartbeat_at: {{date.now}}
+}
+
+tests {
+  test("status is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("heartbeat is refreshed", function() {
+    expect(res.body.last_heartbeat_at).to.be.not.null;
+    expect(res.body.heartbeat_timeout_at).to.be.not.null;
+  });
+}

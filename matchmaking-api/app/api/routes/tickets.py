@@ -1,12 +1,13 @@
 """Ticket lifecycle routes."""
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
 
 from app.api.dependencies import get_ticket_repo
+from app.core.config import get_settings
 from app.infrastructure.database.match_ticket_model import (
     MatchTicketStatus,
     MatchTicketType,
@@ -94,6 +95,12 @@ class TicketResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
     players: list[TicketPlayerResponse]
+
+
+class HeartbeatRequest(BaseModel):
+    """Request to refresh ticket heartbeat."""
+
+    heartbeat_at: datetime | None = None
 
 
 def _build_pool_key(constraints: ConstraintPayload) -> str:
@@ -194,6 +201,29 @@ async def get_ticket(
     """Retrieve ticket state."""
 
     ticket = await ticket_repo.get_ticket(ticket_id)
+    if not ticket:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Ticket not found")
+
+    return _to_ticket_response(ticket)
+
+
+@router.post("/{ticket_id}/heartbeat", response_model=TicketResponse)
+async def heartbeat_ticket(
+    ticket_id: str,
+    heartbeat_request: HeartbeatRequest,
+    ticket_repo: Annotated[PostgresTicketRepository, Depends(get_ticket_repo)],
+) -> TicketResponse:
+    """Record a heartbeat for a ticket and extend its TTL."""
+
+    settings = get_settings()
+    heartbeat_at = heartbeat_request.heartbeat_at or datetime.now(timezone.utc)
+    heartbeat_timeout_at = heartbeat_at + timedelta(seconds=settings.HEARTBEAT_TIMEOUT_SECONDS)
+
+    ticket = await ticket_repo.record_heartbeat(
+        ticket_id,
+        heartbeat_timeout_at=heartbeat_timeout_at,
+        heartbeat_at=heartbeat_at,
+    )
     if not ticket:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Ticket not found")
 

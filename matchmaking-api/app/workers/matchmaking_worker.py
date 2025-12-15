@@ -5,8 +5,13 @@ from typing import Optional
 
 from app.core.config import get_settings
 from app.domain.services.matchmaking_service import MatchmakingService
+from app.infrastructure.database.match_ticket_model import MatchTicketStatus
+from app.repositories.postgres_ticket_repository import PostgresTicketRepository
 
 logger = logging.getLogger(__name__)
+
+
+_MATCHMAKING_STATUSES = {MatchTicketStatus.QUEUED, MatchTicketStatus.SEARCHING}
 
 
 class MatchmakingWorker:
@@ -20,7 +25,11 @@ class MatchmakingWorker:
     - Handle queue timeouts
     """
 
-    def __init__(self, matchmaking_service: MatchmakingService) -> None:
+    def __init__(
+        self,
+        matchmaking_service: MatchmakingService,
+        ticket_repo: Optional[PostgresTicketRepository] = None,
+    ) -> None:
         """Initialize worker.
 
         Args:
@@ -29,11 +38,15 @@ class MatchmakingWorker:
         self.matchmaking_service = matchmaking_service
         self.settings = get_settings()
         self.running = False
+        self.ticket_repo = ticket_repo
+        self.pool_keys: set[str] = set()
 
     async def start(self) -> None:
         """Start worker loop."""
         self.running = True
         logger.info("Matchmaking worker started")
+
+        await self._refresh_active_pool_keys()
 
         while self.running:
             try:
@@ -55,11 +68,15 @@ class MatchmakingWorker:
         """
         # TODO: Get list of active pool keys from Redis/config
         # For now, just demonstrate the workflow
-        pool_keys = [
-            "standard_5+0_rated_ASIA",
-            "standard_5+0_casual_ASIA",
-            "standard_3+2_rated_EUROPE",
-        ]
+        pool_keys = (
+            list(self.pool_keys)
+            if self.pool_keys
+            else [
+                "standard_5+0_rated_ASIA",
+                "standard_5+0_casual_ASIA",
+                "standard_3+2_rated_EUROPE",
+            ]
+        )
 
         for pool_key in pool_keys:
             await self._process_pool(pool_key)
@@ -125,14 +142,26 @@ class MatchmakingWorker:
                 exc_info=True,
             )
 
+    async def _refresh_active_pool_keys(self) -> None:
+        if not self.ticket_repo:
+            return
 
-async def run_worker(matchmaking_service: MatchmakingService) -> None:
+        tickets = await self.ticket_repo.list_active_tickets()
+        self.pool_keys = {
+            ticket.pool_key for ticket in tickets if ticket.status in _MATCHMAKING_STATUSES
+        }
+
+
+async def run_worker(
+    matchmaking_service: MatchmakingService,
+    ticket_repo: Optional[PostgresTicketRepository] = None,
+) -> None:
     """Run matchmaking worker.
 
     Args:
         matchmaking_service: Matchmaking service instance
     """
-    worker = MatchmakingWorker(matchmaking_service)
+    worker = MatchmakingWorker(matchmaking_service, ticket_repo)
 
     try:
         await worker.start()
