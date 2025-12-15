@@ -11,6 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 
 from app.api.routes.internal.queues import router as internal_queues_router
+from app.api.routes.tickets import router as tickets_router
 from app.api.routes.v1.queue import router as v1_queue_router
 from app.core.config import get_settings
 from app.core.exceptions import setup_exception_handlers
@@ -126,6 +127,7 @@ def create_app() -> FastAPI:
 
     # Routes
     app.include_router(v1_queue_router)
+    app.include_router(tickets_router)
     app.include_router(internal_queues_router)
 
     return app
