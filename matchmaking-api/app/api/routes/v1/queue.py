@@ -18,12 +18,65 @@ from app.api.models import (
     QueueStatusResponse,
 )
 from app.core.security import JWTTokenData
+from app.domain.models import Player, SoftConstraints
 from app.domain.services.challenge_service import ChallengeService
 from app.domain.services.matchmaking_service import MatchmakingService
+from app.schemas.ticket import (
+    HardConstraintsSchema,
+    PlayerSchema,
+    SoftConstraintsSchema,
+    TicketSchema,
+    WideningStateSchema,
+)
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/v1/matchmaking", tags=["matchmaking"])
+
+
+def _to_player_schemas(players: list[Player]) -> list[PlayerSchema]:
+    """Convert domain players to response schemas."""
+
+    schemas: list[PlayerSchema] = []
+    for player in players:
+        schemas.append(
+            PlayerSchema(
+                user_id=player.user_id,
+                rating=player.rating,
+                party_id=player.party_id,
+                metadata=player.metadata,
+            )
+        )
+    return schemas
+
+
+def _to_hard_constraints_schema(entry) -> HardConstraintsSchema:
+    return HardConstraintsSchema(
+        time_control=entry.hard_constraints.time_control,
+        mode=entry.hard_constraints.mode,
+        variant=entry.hard_constraints.variant,
+        region=entry.hard_constraints.region,
+    )
+
+
+def _to_soft_constraints_schema(entry) -> SoftConstraintsSchema | None:
+    if not entry.soft_constraints:
+        return None
+    return SoftConstraintsSchema(
+        preferred_region=entry.soft_constraints.preferred_region,
+        rating_window=entry.soft_constraints.rating_window,
+        max_latency_ms=entry.soft_constraints.max_latency_ms,
+    )
+
+
+def _to_widening_state_schema(entry) -> WideningStateSchema | None:
+    if not entry.widening_state:
+        return None
+    return WideningStateSchema(
+        current_window=entry.widening_state.current_window,
+        widen_count=entry.widening_state.widen_count,
+        last_widened_at=entry.widening_state.last_widened_at,
+    )
 
 
 @router.post("/queue", status_code=status.HTTP_201_CREATED, response_model=QueueResponse)
@@ -45,22 +98,46 @@ async def join_queue(
         Queue entry response
     """
     logger.info(
-        f"Enqueue request: {request.time_control} {request.mode}",
+        f"Enqueue request: {request.hard_constraints.time_control} {request.hard_constraints.mode}",
         extra={"user_id": token_data.user_id, "tenant_id": token_data.tenant_id},
     )
+
+    soft_constraints = None
+    if request.soft_constraints:
+        soft_constraints = SoftConstraints(
+            preferred_region=request.soft_constraints.preferred_region,
+            rating_window=request.soft_constraints.rating_window,
+            max_latency_ms=request.soft_constraints.max_latency_ms,
+        )
+
+    players = [Player(user_id=token_data.user_id)]
+    for player in request.players:
+        if player.user_id == token_data.user_id:
+            continue
+        players.append(Player(user_id=player.user_id, rating=player.rating, party_id=player.party_id, metadata=player.metadata))
 
     entry = await matchmaking.enqueue_player(
         user_id=token_data.user_id,
         tenant_id=token_data.tenant_id,
-        time_control=request.time_control,
-        mode=request.mode,
-        variant=request.variant or "standard",
-        region=request.region or "DEFAULT",
+        time_control=request.hard_constraints.time_control,
+        mode=request.hard_constraints.mode,
+        variant=request.hard_constraints.variant or "standard",
+        region=request.hard_constraints.region or "DEFAULT",
+        ticket_type=request.ticket_type,
+        players=players,
+        soft_constraints=soft_constraints,
+        idempotency_key=request.idempotency_key,
+        client_request_id=request.client_request_id,
     )
 
     return QueueResponse(
-        queue_entry_id=entry.queue_entry_id,
+        ticket_id=entry.ticket_id,
         status=entry.status.value,
+        ticket_type=request.ticket_type,
+        players=_to_player_schemas(entry.players),
+        hard_constraints=_to_hard_constraints_schema(entry),
+        soft_constraints=_to_soft_constraints_schema(entry),
+        widening_state=_to_widening_state_schema(entry),
         estimated_wait_seconds=10,
     )
 
@@ -95,8 +172,13 @@ async def cancel_queue(
     entry = await matchmaking.cancel_queue_entry(queue_entry_id, token_data.user_id)
 
     return QueueStatusResponse(
-        queue_entry_id=entry.queue_entry_id,
+        ticket_id=entry.ticket_id,
         status=entry.status.value,
+        ticket_type=entry.ticket_type,
+        players=_to_player_schemas(entry.players),
+        hard_constraints=_to_hard_constraints_schema(entry),
+        soft_constraints=_to_soft_constraints_schema(entry),
+        widening_state=_to_widening_state_schema(entry),
     )
 
 
@@ -130,8 +212,13 @@ async def get_queue_status(
     entry = await matchmaking.get_queue_status(queue_entry_id)
 
     return QueueStatusResponse(
-        queue_entry_id=entry.queue_entry_id,
+        ticket_id=entry.ticket_id,
         status=entry.status.value,
+        ticket_type=entry.ticket_type,
+        players=_to_player_schemas(entry.players),
+        hard_constraints=_to_hard_constraints_schema(entry),
+        soft_constraints=_to_soft_constraints_schema(entry),
+        widening_state=_to_widening_state_schema(entry),
         estimated_wait_seconds=int(entry.time_in_queue_seconds(
             __import__('datetime').datetime.now(__import__('datetime').timezone.utc)
         )) if entry.is_searching() else None,
@@ -166,7 +253,7 @@ async def get_active_matchmaking(
     result = await matchmaking.get_active_matchmaking(token_data.user_id, token_data.tenant_id)
 
     return ActiveMatchmakingResponse(
-        queue_entry=result.get("queue_entry"),
+        queue_entry=TicketSchema(**result["queue_entry"].to_dict()) if result.get("queue_entry") else None,
         match=result.get("match"),
     )
 

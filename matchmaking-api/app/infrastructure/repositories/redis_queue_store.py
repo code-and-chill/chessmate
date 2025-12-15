@@ -6,7 +6,7 @@ from typing import Optional
 
 import redis.asyncio as redis
 
-from app.domain.models import QueueEntry, QueueEntryStatus
+from app.domain.models import QueueEntryStatus, Ticket
 from app.domain.repositories.queue_store import QueueStoreRepository
 
 logger = logging.getLogger(__name__)
@@ -38,47 +38,23 @@ class RedisQueueStore(QueueStoreRepository):
         """Get Redis key for pool entries."""
         return f"pool:{tenant_id}:{pool_key}:{status.value}"
 
-    def _serialize_entry(self, entry: QueueEntry) -> str:
-        """Serialize queue entry to JSON."""
-        return json.dumps({
-            "queue_entry_id": entry.queue_entry_id,
-            "tenant_id": entry.tenant_id,
-            "user_id": entry.user_id,
-            "time_control": entry.time_control,
-            "mode": entry.mode,
-            "variant": entry.variant,
-            "region": entry.region,
-            "status": entry.status.value,
-            "enqueued_at": entry.enqueued_at.isoformat(),
-            "updated_at": entry.updated_at.isoformat(),
-            "match_id": entry.match_id,
-        })
+    def _serialize_entry(self, entry: Ticket) -> str:
+        """Serialize ticket to JSON."""
+        return json.dumps(entry.to_dict())
 
-    def _deserialize_entry(self, data: str) -> QueueEntry:
-        """Deserialize queue entry from JSON."""
+    def _deserialize_entry(self, data: str) -> Ticket:
+        """Deserialize ticket from JSON."""
         obj = json.loads(data)
-        return QueueEntry(
-            queue_entry_id=obj["queue_entry_id"],
-            tenant_id=obj["tenant_id"],
-            user_id=obj["user_id"],
-            time_control=obj["time_control"],
-            mode=obj["mode"],
-            variant=obj["variant"],
-            region=obj["region"],
-            status=QueueEntryStatus(obj["status"]),
-            enqueued_at=datetime.fromisoformat(obj["enqueued_at"]),
-            updated_at=datetime.fromisoformat(obj["updated_at"]),
-            match_id=obj.get("match_id"),
-        )
+        return Ticket.from_dict(obj)
 
-    def _get_pool_key_from_entry(self, entry: QueueEntry) -> str:
+    def _get_pool_key_from_entry(self, entry: Ticket) -> str:
         """Build pool key from entry attributes."""
-        return f"{entry.variant}_{entry.time_control}_{entry.mode}_{entry.region}"
+        return entry.hard_constraints.pool_key()
 
-    async def add_entry(self, entry: QueueEntry) -> None:
+    async def add_entry(self, entry: Ticket) -> None:
         """Add entry to queue."""
-        entry_key = self._get_entry_key(entry.queue_entry_id)
-        user_queue_key = self._get_user_queue_key(entry.user_id, entry.tenant_id)
+        entry_key = self._get_entry_key(entry.ticket_id)
+        user_queue_key = self._get_user_queue_key(entry.players[0].user_id, entry.tenant_id)
         pool_key = self._get_pool_key_from_entry(entry)
         pool_entries_key = self._get_pool_key(entry.tenant_id, pool_key, entry.status)
 
@@ -87,18 +63,18 @@ class RedisQueueStore(QueueStoreRepository):
         # Use pipeline for atomic operations
         pipe = self.redis.pipeline()
         pipe.set(entry_key, entry_data, ex=3600)  # 1 hour expiry
-        pipe.set(user_queue_key, entry.queue_entry_id, ex=3600)
-        pipe.zadd(pool_entries_key, {entry.queue_entry_id: entry.enqueued_at.timestamp()})
+        pipe.set(user_queue_key, entry.ticket_id, ex=3600)
+        pipe.zadd(pool_entries_key, {entry.ticket_id: entry.enqueued_at.timestamp()})
         await pipe.execute()
 
         logger.info(
-            f"Added queue entry {entry.queue_entry_id} for user {entry.user_id}",
-            extra={"tenant_id": entry.tenant_id},
+            f"Added ticket {entry.ticket_id} for user {entry.players[0].user_id}",
+            extra={"tenant_id": entry.tenant_id, "ticket_type": entry.ticket_type.value},
         )
 
-    async def get_entry(self, queue_entry_id: str) -> Optional[QueueEntry]:
-        """Get queue entry by ID."""
-        entry_key = self._get_entry_key(queue_entry_id)
+    async def get_entry(self, ticket_id: str) -> Optional[Ticket]:
+        """Get ticket by ID."""
+        entry_key = self._get_entry_key(ticket_id)
         data = await self.redis.get(entry_key)
         if not data:
             return None
@@ -106,14 +82,14 @@ class RedisQueueStore(QueueStoreRepository):
 
     async def update_entry_status(
         self,
-        queue_entry_id: str,
+        ticket_id: str,
         status: QueueEntryStatus,
         match_id: Optional[str] = None,
     ) -> None:
         """Update entry status."""
-        entry = await self.get_entry(queue_entry_id)
+        entry = await self.get_entry(ticket_id)
         if not entry:
-            logger.warning(f"Queue entry {queue_entry_id} not found for status update")
+            logger.warning(f"Queue entry {ticket_id} not found for status update")
             return
 
         old_pool_key = self._get_pool_key_from_entry(entry)
@@ -127,59 +103,59 @@ class RedisQueueStore(QueueStoreRepository):
         new_pool_key = self._get_pool_key_from_entry(entry)
         new_pool_entries_key = self._get_pool_key(entry.tenant_id, new_pool_key, status)
 
-        entry_key = self._get_entry_key(queue_entry_id)
+        entry_key = self._get_entry_key(ticket_id)
         entry_data = self._serialize_entry(entry)
 
         # Update and move to new pool
         pipe = self.redis.pipeline()
         pipe.set(entry_key, entry_data, ex=3600)
-        pipe.zrem(old_pool_entries_key, queue_entry_id)
-        pipe.zadd(new_pool_entries_key, {queue_entry_id: datetime.now(timezone.utc).timestamp()})
+        pipe.zrem(old_pool_entries_key, ticket_id)
+        pipe.zadd(new_pool_entries_key, {ticket_id: datetime.now(timezone.utc).timestamp()})
         await pipe.execute()
 
         logger.info(
-            f"Updated queue entry {queue_entry_id} status to {status.value}",
+            f"Updated ticket {ticket_id} status to {status.value}",
             extra={"tenant_id": entry.tenant_id},
         )
 
-    async def get_active_entry_for_user(self, user_id: str, tenant_id: str) -> Optional[QueueEntry]:
-        """Get active queue entry for user."""
+    async def get_active_entry_for_user(self, user_id: str, tenant_id: str) -> Optional[Ticket]:
+        """Get active ticket for user."""
         user_queue_key = self._get_user_queue_key(user_id, tenant_id)
-        queue_entry_id = await self.redis.get(user_queue_key)
-        if not queue_entry_id:
+        ticket_id = await self.redis.get(user_queue_key)
+        if not ticket_id:
             return None
-        return await self.get_entry(queue_entry_id)
+        return await self.get_entry(ticket_id)
 
-    async def remove_entry(self, queue_entry_id: str) -> None:
+    async def remove_entry(self, ticket_id: str) -> None:
         """Remove entry from queue."""
-        entry = await self.get_entry(queue_entry_id)
+        entry = await self.get_entry(ticket_id)
         if not entry:
             return
 
-        entry_key = self._get_entry_key(queue_entry_id)
-        user_queue_key = self._get_user_queue_key(entry.user_id, entry.tenant_id)
+        entry_key = self._get_entry_key(ticket_id)
+        user_queue_key = self._get_user_queue_key(entry.players[0].user_id, entry.tenant_id)
         pool_key = self._get_pool_key_from_entry(entry)
         pool_entries_key = self._get_pool_key(entry.tenant_id, pool_key, entry.status)
 
         pipe = self.redis.pipeline()
         pipe.delete(entry_key)
         pipe.delete(user_queue_key)
-        pipe.zrem(pool_entries_key, queue_entry_id)
+        pipe.zrem(pool_entries_key, ticket_id)
         await pipe.execute()
 
-        logger.info(f"Removed queue entry {queue_entry_id}")
+        logger.info(f"Removed ticket {ticket_id}")
 
     async def get_queue_by_pool(
         self,
         tenant_id: str,
         pool_key: str,
         status: QueueEntryStatus = QueueEntryStatus.SEARCHING,
-    ) -> list[QueueEntry]:
+    ) -> list[Ticket]:
         """Get all entries in a pool by status."""
         pool_entries_key = self._get_pool_key(tenant_id, pool_key, status)
         entry_ids = await self.redis.zrange(pool_entries_key, 0, -1)
 
-        entries = []
+        entries: list[Ticket] = []
         for entry_id in entry_ids:
             entry = await self.get_entry(entry_id)
             if entry:
@@ -199,7 +175,7 @@ class RedisQueueStore(QueueStoreRepository):
                 "p95_wait_seconds": 0.0,
             }
 
-        entries = []
+        entries: list[Ticket] = []
         for entry_id in entry_ids:
             entry = await self.get_entry(entry_id)
             if entry:

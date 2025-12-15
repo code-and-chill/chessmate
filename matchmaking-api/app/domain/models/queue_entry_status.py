@@ -3,9 +3,11 @@ from enum import Enum
 
 
 class QueueEntryStatus(str, Enum):
-    """Queue entry status enumeration."""
+    """Queue entry status enumeration with expanded lifecycle."""
 
+    PROPOSING = "PROPOSING"
     SEARCHING = "SEARCHING"
     MATCHED = "MATCHED"
     CANCELLED = "CANCELLED"
     TIMED_OUT = "TIMED_OUT"
+    EXPIRED = "EXPIRED"
