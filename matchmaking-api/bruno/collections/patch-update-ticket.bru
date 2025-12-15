@@ -1,0 +1,38 @@
+meta {
+  name: Patch Update Ticket
+  type: http
+  seq: 5
+}
+
+patch {
+  url: ${baseUrl}/tickets/${ticketId}
+  auth: none
+}
+
+headers {
+  Authorization: Bearer ${authToken}
+  Content-Type: application/json
+}
+
+body:json {
+  mutation_seq: ${mutationSeq}
+  soft_constraints: {
+    preferred_region: "NA"
+    max_latency_ms: 120
+  }
+  widening_stage: 1
+}
+
+tests {
+  test("status is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("mutation sequence updated", function() {
+    expect(res.body.mutation_seq).to.equal(Number(env.get("mutationSeq")));
+  });
+
+  test("soft constraints persisted", function() {
+    expect(res.body.soft_constraints.preferred_region).to.equal("NA");
+  });
+}

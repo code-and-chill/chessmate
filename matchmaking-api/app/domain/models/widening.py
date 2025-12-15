@@ -11,10 +11,12 @@ class WideningState:
         current_window: int,
         widen_count: int = 0,
         last_widened_at: Optional[datetime] = None,
+        stage: int = 0,
     ) -> None:
         self.current_window = current_window
         self.widen_count = widen_count
         self.last_widened_at = last_widened_at
+        self.stage = stage
 
     def widen(self, amount: int, at: Optional[datetime] = None) -> None:
         """Increase the window with a timestamp."""
@@ -28,6 +30,7 @@ class WideningState:
             "current_window": self.current_window,
             "widen_count": self.widen_count,
             "last_widened_at": self.last_widened_at.isoformat() if self.last_widened_at else None,
+            "stage": self.stage,
         }
 
     @classmethod
@@ -38,4 +41,5 @@ class WideningState:
             current_window=data.get("current_window", 0),
             widen_count=data.get("widen_count", 0),
             last_widened_at=datetime.fromisoformat(last_widened_at) if last_widened_at else None,
+            stage=data.get("stage", 0),
         )

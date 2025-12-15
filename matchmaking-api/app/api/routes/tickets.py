@@ -56,9 +56,20 @@ class EnqueueTicketRequest(BaseModel):
     enqueue_key: str
     mutation_seq: int
     constraints: ConstraintPayload
+    soft_constraints: dict[str, Any] = Field(default_factory=dict)
     players: list[EnqueuePlayer]
     widening_config: WideningConfigPayload = Field(default_factory=WideningConfigPayload)
     search_params: dict[str, Any] = Field(default_factory=dict)
+
+
+class UpdateTicketRequest(BaseModel):
+    """Request body for updating ticket preferences."""
+
+    mutation_seq: int
+    soft_constraints: dict[str, Any] = Field(default_factory=dict)
+    widening_stage: int | None = Field(
+        default=None, description="Progress of widening for this ticket"
+    )
 
 
 class TicketPlayerResponse(BaseModel):
@@ -90,6 +101,9 @@ class TicketResponse(BaseModel):
     search_params: dict[str, Any]
     widening_config: dict[str, Any]
     constraints: dict[str, Any]
+    soft_constraints: dict[str, Any]
+    mutation_seq: int
+    widening_stage: int
     last_heartbeat_at: datetime | None
     heartbeat_timeout_at: datetime | None
     created_at: datetime
@@ -140,6 +154,9 @@ def _to_ticket_response(ticket: Ticket) -> TicketResponse:
         search_params=ticket.search_params,
         widening_config=ticket.widening_config,
         constraints=ticket.constraints,
+        soft_constraints=ticket.soft_constraints,
+        mutation_seq=ticket.mutation_seq,
+        widening_stage=ticket.widening_stage,
         last_heartbeat_at=ticket.last_heartbeat_at,
         heartbeat_timeout_at=ticket.heartbeat_timeout_at,
         created_at=ticket.created_at,
@@ -171,6 +188,9 @@ async def enqueue_ticket(
             search_params=request.search_params,
             widening_config=request.widening_config.model_dump(),
             constraints=request.constraints.model_dump(),
+            soft_constraints=request.soft_constraints,
+            mutation_seq=request.mutation_seq,
+            widening_stage=0,
             players=[
                 TicketPlayerInput(
                     player_id=player.player_id,
@@ -205,6 +225,37 @@ async def get_ticket(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Ticket not found")
 
     return _to_ticket_response(ticket)
+
+
+@router.patch("/{ticket_id}", response_model=TicketResponse)
+async def update_ticket(
+    ticket_id: str,
+    update_request: UpdateTicketRequest,
+    ticket_repo: Annotated[PostgresTicketRepository, Depends(get_ticket_repo)],
+) -> TicketResponse:
+    """Update ticket soft constraints or widening stage."""
+
+    ticket = await ticket_repo.get_ticket(ticket_id)
+    if not ticket:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Ticket not found")
+
+    if update_request.mutation_seq <= ticket.mutation_seq:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Stale mutation_seq",
+        )
+
+    updated_ticket = await ticket_repo.update_soft_constraints(
+        ticket_id,
+        soft_constraints=update_request.soft_constraints,
+        mutation_seq=update_request.mutation_seq,
+        widening_stage=update_request.widening_stage,
+    )
+
+    if not updated_ticket:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Update rejected")
+
+    return _to_ticket_response(updated_ticket)
 
 
 @router.post("/{ticket_id}/heartbeat", response_model=TicketResponse)

@@ -2,7 +2,7 @@
 from datetime import datetime, timezone
 from enum import Enum
 
-from sqlalchemy import Column, DateTime, Enum as SqlEnum, Index, String, text
+from sqlalchemy import Column, DateTime, Enum as SqlEnum, Index, Integer, String, text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 
@@ -40,6 +40,9 @@ class MatchTicketModel(Base):
     search_params = Column(JSONB, nullable=False, server_default=text("'{}'::jsonb"))
     widening_config = Column(JSONB, nullable=False, server_default=text("'{}'::jsonb"))
     constraints = Column(JSONB, nullable=False, server_default=text("'{}'::jsonb"))
+    soft_constraints = Column(JSONB, nullable=False, server_default=text("'{}'::jsonb"))
+    mutation_seq = Column(Integer, nullable=False, server_default=text("0"))
+    widening_stage = Column(Integer, nullable=False, server_default=text("0"))
     last_heartbeat_at = Column(DateTime(timezone=True), nullable=True)
     heartbeat_timeout_at = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(

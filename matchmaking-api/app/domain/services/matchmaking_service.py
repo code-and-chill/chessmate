@@ -375,9 +375,15 @@ class MatchmakingService:
             widening_amount = self.settings.RATING_WINDOW_WIDENING_AMOUNT
 
             windows_widened = int(wait_time / widening_interval)
-            current_window = initial_window + (windows_widened * widening_amount)
+            new_stage = max(entry.widening_state.stage, windows_widened)
+            current_window = initial_window + (new_stage * widening_amount)
+
+            if new_stage > entry.widening_state.stage:
+                entry.widening_state.last_widened_at = now
+
+            entry.widening_state.stage = new_stage
             entry.widening_state.current_window = current_window
-            entry.widening_state.widen_count = windows_widened
+            entry.widening_state.widen_count = new_stage
 
             # TODO: Get rating for player (from cache or external service)
             player_rating = 1500  # Placeholder

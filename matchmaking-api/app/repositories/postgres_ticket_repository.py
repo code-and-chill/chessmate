@@ -1,13 +1,16 @@
 """PostgreSQL implementation of the ticket repository."""
 from __future__ import annotations
 
+import json
 import logging
 import uuid
+from dataclasses import asdict
 from datetime import datetime, timezone
 from typing import Any, Sequence
 
 import redis.asyncio as redis
 
+from app.core.config import get_settings
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -44,6 +47,7 @@ class PostgresTicketRepository(TicketRepository):
         self.session = session
         self.redis = redis_client
         self.enable_heartbeat_cache = enable_heartbeat_cache
+        self.settings = get_settings()
 
     async def enqueue_ticket(
         self,
@@ -56,6 +60,9 @@ class PostgresTicketRepository(TicketRepository):
         search_params: dict[str, Any],
         widening_config: dict[str, Any],
         constraints: dict[str, Any],
+        soft_constraints: dict[str, Any],
+        mutation_seq: int,
+        widening_stage: int,
         players: Sequence[TicketPlayerInput],
         heartbeat_timeout_at: datetime | None = None,
     ) -> Ticket:
@@ -76,6 +83,9 @@ class PostgresTicketRepository(TicketRepository):
                 search_params=search_params,
                 widening_config=widening_config,
                 constraints=constraints,
+                soft_constraints=soft_constraints,
+                mutation_seq=mutation_seq,
+                widening_stage=widening_stage,
                 heartbeat_timeout_at=heartbeat_timeout_at,
             )
             self.session.add(ticket_model)
@@ -103,6 +113,8 @@ class PostgresTicketRepository(TicketRepository):
             if not loaded_ticket:
                 raise RuntimeError("Failed to persist ticket")
 
+            ticket = self._to_entity(loaded_ticket)
+
             logger.info(
                 "Enqueued ticket %s with %d players",
                 ticket_id,
@@ -110,7 +122,9 @@ class PostgresTicketRepository(TicketRepository):
                 extra={"pool_key": pool_key},
             )
 
-            return self._to_entity(loaded_ticket)
+            await self._cache_ticket(ticket)
+
+            return ticket
 
     async def get_ticket(self, ticket_id: str) -> Ticket | None:
         model = await self._fetch_ticket_model(ticket_id)
@@ -147,16 +161,34 @@ class PostgresTicketRepository(TicketRepository):
             return self._to_entity(model)
 
     async def update_soft_constraints(
-        self, ticket_id: str, constraints: dict[str, Any]
+        self,
+        ticket_id: str,
+        *,
+        soft_constraints: dict[str, Any],
+        mutation_seq: int,
+        widening_stage: int | None = None,
     ) -> Ticket | None:
         async with self.session.begin():
             model = await self._fetch_ticket_model(ticket_id, for_update=True)
             if not model:
                 return None
 
-            model.constraints = constraints
+            if mutation_seq <= (model.mutation_seq or 0):
+                return None
+
+            updated_soft_constraints = model.soft_constraints or {}
+            updated_soft_constraints.update(soft_constraints)
+
+            model.soft_constraints = updated_soft_constraints
+            model.mutation_seq = mutation_seq
+            if widening_stage is not None:
+                model.widening_stage = widening_stage
+
             await self.session.flush()
-            return self._to_entity(model)
+            ticket = self._to_entity(model)
+
+        await self._cache_ticket(ticket)
+        return ticket
 
     async def record_heartbeat(
         self,
@@ -180,6 +212,7 @@ class PostgresTicketRepository(TicketRepository):
             ticket = self._to_entity(model)
 
         await self._cache_heartbeat(ticket)
+        await self._cache_ticket(ticket)
         return ticket
 
     async def find_stale_tickets(self, cutoff: datetime) -> list[Ticket]:
@@ -257,8 +290,29 @@ class PostgresTicketRepository(TicketRepository):
         )
         await self.redis.set(self._heartbeat_key(ticket.ticket_id), "1", ex=ttl_seconds)
 
+    async def _cache_ticket(self, ticket: Ticket) -> None:
+        if not (self.redis and self.enable_heartbeat_cache):
+            return
+
+        ttl_seconds = int(
+            max(
+                (ticket.heartbeat_timeout_at - datetime.now(timezone.utc)).total_seconds()
+                if ticket.heartbeat_timeout_at
+                else self.settings.HEARTBEAT_TIMEOUT_SECONDS,
+                0,
+            )
+        )
+        await self.redis.set(
+            self._ticket_key(ticket.ticket_id),
+            json.dumps(asdict(ticket), default=str),
+            ex=ttl_seconds,
+        )
+
     def _heartbeat_key(self, ticket_id: str) -> str:
         return f"matchmaking:ticket:{ticket_id}:heartbeat"
+
+    def _ticket_key(self, ticket_id: str) -> str:
+        return f"matchmaking:ticket:{ticket_id}"
 
     async def _fetch_ticket_model(
         self, ticket_id: str, *, for_update: bool = False
@@ -304,6 +358,9 @@ class PostgresTicketRepository(TicketRepository):
             search_params=model.search_params or {},
             widening_config=model.widening_config or {},
             constraints=model.constraints or {},
+            soft_constraints=model.soft_constraints or {},
+            mutation_seq=model.mutation_seq or 0,
+            widening_stage=model.widening_stage or 0,
             last_heartbeat_at=model.last_heartbeat_at,
             heartbeat_timeout_at=model.heartbeat_timeout_at,
             created_at=model.created_at,
