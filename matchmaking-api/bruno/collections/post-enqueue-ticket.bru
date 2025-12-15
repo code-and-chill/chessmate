@@ -1,0 +1,56 @@
+meta {
+  name: Post Enqueue Ticket
+  type: http
+  seq: 1
+}
+
+post {
+  url: ${baseUrl}/tickets/enqueue
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "enqueue_key": "demo-enqueue",
+    "mutation_seq": 1,
+    "constraints": {
+      "time_control": "5+0",
+      "mode": "rated",
+      "variant": "standard",
+      "region": "DEFAULT"
+    },
+    "widening_config": {
+      "rating_window": 100
+    },
+    "players": [
+      {
+        "player_id": "player-123",
+        "mmr": 1500,
+        "rd": 60,
+        "latency_preferences": {
+          "region": "us-east"
+        }
+      }
+    ]
+  }
+}
+
+tests {
+  test("status is 201", function() {
+    expect(res.status).to.equal(201);
+  });
+
+  test("response has ticket_id", function() {
+    expect(res.body.ticket_id).to.be.a('string');
+    bru.setVar("ticketId", res.body.ticket_id);
+  });
+
+  test("status is queued", function() {
+    expect(res.body.status).to.equal("queued");
+  });
+}

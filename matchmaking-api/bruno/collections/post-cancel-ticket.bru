@@ -1,0 +1,24 @@
+meta {
+  name: Post Cancel Ticket
+  type: http
+  seq: 3
+}
+
+post {
+  url: ${baseUrl}/tickets/${ticketId}/cancel
+  auth: none
+}
+
+headers {
+  Authorization: Bearer ${authToken}
+}
+
+tests {
+  test("status is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("ticket is cancelled", function() {
+    expect(res.body.status).to.equal("cancelled");
+  });
+}
