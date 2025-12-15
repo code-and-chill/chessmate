@@ -1,14 +1,11 @@
-/**
- * Leaderboard View Component
- * features/social/components/LeaderboardView.tsx
- */
-
 import { useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import { InteractivePressable, useThemeTokens } from '@/ui';
+import { ScrollView } from 'react-native';
+import { VStack, HStack, Text, Box, Card, SegmentedControl, useThemeTokens, spacingTokens, radiusTokens, shadowTokens } from '@/ui';
 import { useI18n } from '@/i18n/I18nContext';
 import { useLeaderboard } from '../hooks';
 import type { LeaderboardType, LeaderboardEntry } from '@/types/social';
+import { useReducedMotion } from '@/features/board/hooks/useReducedMotion';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 
 export interface LeaderboardViewProps {
   onBack: () => void;
@@ -17,107 +14,90 @@ export interface LeaderboardViewProps {
 export function LeaderboardView({ onBack }: LeaderboardViewProps) {
   const { colors } = useThemeTokens();
   const { t } = useI18n();
+  const reduceMotion = useReducedMotion();
   const [selectedType, setSelectedType] = useState<LeaderboardType>('global');
   const { entries, loading } = useLeaderboard(selectedType);
 
+  const createAnim = (delay: number) => reduceMotion ? undefined : FadeInDown.delay(delay).duration(400);
+
+  const segments: LeaderboardType[] = ['global', 'friends', 'club'];
+  const segmentLabels = {
+    global: t('social.global'),
+    friends: t('social.friends'),
+    club: t('social.clubs'),
+  };
+
   return (
-    <ScrollView style={[styles.container, { backgroundColor: colors.background.primary }]} contentContainerStyle={styles.content}>
-      <Text style={[styles.title, { color: colors.foreground.primary }]}>{t('social.leaderboards')}</Text>
-      <Text style={[styles.subtitle, { color: colors.foreground.secondary }]}>{t('social.see_where_you_rank')}</Text>
+    <ScrollView style={{ flex: 1, backgroundColor: colors.background.primary }} contentContainerStyle={{ padding: spacingTokens[5] }}>
+      <VStack gap={4} style={{ maxWidth: 600, alignSelf: 'center', width: '100%' }}>
+        <VStack gap={2}>
+          <Text variant="heading" color={colors.foreground.primary} style={{ marginBottom: spacingTokens[2] }}>{t('social.leaderboards')}</Text>
+          <Text variant="body" color={colors.foreground.secondary} style={{ marginBottom: spacingTokens[5] }}>{t('social.see_where_you_rank')}</Text>
+        </VStack>
 
-      {/* Leaderboard Tabs */}
-      <View style={styles.categoryTabs}>
-        <InteractivePressable
-          style={[styles.categoryTab, { backgroundColor: colors.background.tertiary }, selectedType === 'global' && { backgroundColor: colors.accent.primary }]}
-          onPress={() => setSelectedType('global')}
-        >
-          <Text style={[styles.categoryTabText, { color: colors.foreground.primary }, selectedType === 'global' && { color: colors.accentForeground.primary }]}>
-            {t('social.global')}
-          </Text>
-        </InteractivePressable>
-        <InteractivePressable
-          style={[styles.categoryTab, { backgroundColor: colors.background.tertiary }, selectedType === 'friends' && { backgroundColor: colors.accent.primary }]}
-          onPress={() => setSelectedType('friends')}
-        >
-          <Text style={[styles.categoryTabText, { color: colors.foreground.primary }, selectedType === 'friends' && { color: colors.accentForeground.primary }]}>
-            {t('social.friends')}
-          </Text>
-        </InteractivePressable>
-        <InteractivePressable
-          style={[styles.categoryTab, { backgroundColor: colors.background.tertiary }, selectedType === 'club' && { backgroundColor: colors.accent.primary }]}
-          onPress={() => setSelectedType('club')}
-        >
-          <Text style={[styles.categoryTabText, { color: colors.foreground.primary }, selectedType === 'club' && { color: colors.accentForeground.primary }]}>
-            {t('social.clubs')}
-          </Text>
-        </InteractivePressable>
-      </View>
+        {/* Leaderboard Tabs */}
+        <SegmentedControl
+          segments={segments}
+          selectedSegment={selectedType}
+          onSegmentChange={setSelectedType}
+          labelFormatter={(seg) => segmentLabels[seg]}
+        />
 
-      {loading ? (
-        <Text style={[styles.loadingText, { color: colors.foreground.secondary }]}>{t('social.loading_leaderboard')}</Text>
-      ) : (
-        entries.map(entry => <LeaderboardEntryCard key={entry.rank} entry={entry} colors={colors} />)
-      )}
+        {loading ? (
+          <Box style={{ marginTop: spacingTokens[7] }} alignItems="center">
+            <Text variant="body" color={colors.foreground.secondary}>{t('social.loading_leaderboard')}</Text>
+          </Box>
+        ) : (
+          <VStack gap={3} style={{ marginTop: spacingTokens[2] }}>
+            {entries.map((entry, index) => (
+              <Animated.View key={entry.rank} entering={createAnim(100 + index * 30)}>
+                <LeaderboardEntryCard entry={entry} colors={colors} />
+              </Animated.View>
+            ))}
+          </VStack>
+        )}
+      </VStack>
     </ScrollView>
   );
 }
 
 function LeaderboardEntryCard({ entry, colors }: { entry: LeaderboardEntry; colors: any }) {
+  const isHighlighted = entry.highlight;
   return (
-    <View style={[
-      styles.leaderboardEntry,
-      { backgroundColor: colors.background.secondary },
-      entry.highlight && { backgroundColor: colors.accent.primary, borderWidth: 2, borderColor: colors.accent.primary }
-    ]}>
-      <Text style={[styles.leaderboardRank, { color: colors.foreground.secondary }]}>#{entry.rank}</Text>
-      <Text style={styles.leaderboardAvatar}>{entry.avatar}</Text>
-      <View style={styles.leaderboardDetails}>
-        <Text style={[
-          styles.leaderboardName,
-          { color: colors.foreground.primary },
-          entry.highlight && { color: colors.accent.primary, fontWeight: '700' }
-        ]}>
-          {entry.username}
+    <Card
+      variant={isHighlighted ? 'elevated' : 'default'}
+      size="md"
+      style={{
+        backgroundColor: isHighlighted ? colors.accent.primary : colors.background.secondary,
+        borderWidth: isHighlighted ? 2 : 0,
+        borderColor: isHighlighted ? colors.accent.primary : undefined,
+        ...shadowTokens.card,
+      }}
+    >
+      <Box flexDirection="row" alignItems="center" padding={spacingTokens[4]} gap={spacingTokens[3]}>
+        <Box width={50} alignItems="flex-start">
+          <Text variant="body" weight="bold" color={isHighlighted ? colors.foreground.onAccent : colors.foreground.secondary}>
+            #{entry.rank}
+          </Text>
+        </Box>
+        <Text variant="body" style={{ fontSize: 28, marginRight: spacingTokens[3] }}>{entry.avatar}</Text>
+        <VStack gap={1} style={{ flex: 1 }}>
+          <Text
+            variant="body"
+            weight={isHighlighted ? 'bold' : 'semibold'}
+            color={isHighlighted ? colors.foreground.onAccent : colors.foreground.primary}
+            style={{ marginBottom: spacingTokens[1] }}
+          >
+            {entry.username}
+          </Text>
+          <Text variant="caption" color={isHighlighted ? colors.foreground.onAccent : colors.foreground.secondary}>
+            {entry.games.toLocaleString()} games • {entry.winRate}% win rate
+          </Text>
+        </VStack>
+        <Text variant="heading" weight="bold" color={isHighlighted ? colors.foreground.onAccent : colors.foreground.primary}>
+          {entry.rating}
         </Text>
-        <Text style={[styles.leaderboardStats, { color: colors.foreground.secondary }]}>
-          {entry.games.toLocaleString()} games • {entry.winRate}% win rate
-        </Text>
-      </View>
-      <Text style={[
-        styles.leaderboardRating,
-        { color: colors.foreground.primary },
-        entry.highlight && { color: colors.accent.primary }
-      ]}>
-        {entry.rating}
-      </Text>
-    </View>
+      </Box>
+    </Card>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1 },
-  content: { padding: 20 },
-  title: { fontSize: 28, fontWeight: 'bold', marginBottom: 8 },
-  subtitle: { fontSize: 16, marginBottom: 24 },
-  loadingText: { textAlign: 'center', marginTop: 40, fontSize: 16 },
-  categoryTabs: { flexDirection: 'row', gap: 8, marginBottom: 20 },
-  categoryTab: { flex: 1, paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8, alignItems: 'center' },
-  categoryTabText: { fontSize: 14, fontWeight: '600' },
-  leaderboardEntry: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: 10,
-    padding: 16,
-    marginBottom: 12,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  leaderboardRank: { fontSize: 16, fontWeight: '700', width: 50 },
-  leaderboardAvatar: { fontSize: 28, marginRight: 12 },
-  leaderboardDetails: { flex: 1 },
-  leaderboardName: { fontSize: 16, fontWeight: '600', marginBottom: 4 },
-  leaderboardStats: { fontSize: 13 },
-  leaderboardRating: { fontSize: 20, fontWeight: '700' },
-});

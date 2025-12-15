@@ -1,20 +1,21 @@
 import React from 'react';
-import { View, Text, StyleSheet, SafeAreaView } from 'react-native';
+import { SafeAreaView } from 'react-native';
+import { Box, Text, useThemeTokens } from '@/ui';
+import { spacingTokens } from '@/ui/tokens/spacing';
 
 export default function BotPlayScreen() {
+  const { colors } = useThemeTokens();
+
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.inner}>
-        <Text style={styles.title}>Play vs Bot</Text>
-        <Text style={styles.subtitle}>This feature is implemented in the game feature slice.</Text>
-      </View>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background.primary }}>
+      <Box padding={6} gap={2}>
+        <Text variant="title" weight="bold">
+          Play vs Bot
+        </Text>
+        <Text variant="body" color={colors.foreground.secondary}>
+          This feature is implemented in the game feature slice.
+        </Text>
+      </Box>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1 },
-  inner: { padding: 24 },
-  title: { fontSize: 24, fontWeight: '700' },
-  subtitle: { marginTop: 8, color: '#666' },
-});

@@ -1,10 +1,3 @@
-/**
- * Card Primitive Component
- * app/ui/primitives/Card.tsx
- * 
- * Enhanced with animations, variants, and modern interactions
- */
-
 import type React from 'react';
 import { View, StyleSheet, Platform } from 'react-native';
 import type { ViewStyle } from 'react-native';
@@ -16,6 +9,8 @@ import Animated, {
 import { BlurView } from 'expo-blur';
 import { useColors, useIsDark } from '@/ui/hooks/useThemeTokens';
 import { getElevation, getElevationBlur } from '@/ui/tokens/elevation';
+import { radiusTokens } from '@/ui/tokens/radii';
+import { shadowTokens } from '@/ui/tokens/shadows';
 
 export type CardVariant = 'default' | 'elevated' | 'glass' | 'gradient' | 'outline' | 'surfaceElevated' | 'surfaceFloating' | 'surfaceModal';
 export type CardSize = 'sm' | 'md' | 'lg' | 'xl';
@@ -36,10 +31,10 @@ export type CardProps = {
 };
 
 const sizeConfig = {
-  sm: { padding: 12, radius: 12 },
-  md: { padding: 16, radius: 16 },
-  lg: { padding: 24, radius: 20 },
-  xl: { padding: 32, radius: 24 },
+  sm: { padding: 12, radius: radiusTokens.md },
+  md: { padding: 16, radius: radiusTokens.lg },
+  lg: { padding: 24, radius: radiusTokens.xl },
+  xl: { padding: 32, radius: radiusTokens['2xl'] },
 };
 
 export const Card: React.FC<CardProps> = ({
@@ -95,11 +90,16 @@ export const Card: React.FC<CardProps> = ({
   };
 
   const variantStyles = {
-    default: { ...styles.default, backgroundColor: colors.background.secondary },
-    elevated: { ...styles.elevated, backgroundColor: colors.background.secondary },
-    glass: styles.glass,
-    gradient: styles.gradient,
-    outline: { ...styles.outline, borderColor: colors.background.tertiary },
+    default: { ...styles.default, backgroundColor: colors.background.card, ...shadowTokens.card },
+    elevated: { ...styles.elevated, backgroundColor: colors.background.elevated, ...shadowTokens.panel },
+    glass: {
+      ...styles.glass,
+      backgroundColor: colors.translucent.light,
+      borderColor: colors.border,
+      ...shadowTokens.panel,
+    },
+    gradient: { ...styles.gradient, ...shadowTokens.hover },
+    outline: { ...styles.outline, borderColor: colors.border },
     surfaceElevated: getElevationStyle('surface8'),
     surfaceFloating: getElevationStyle('surface16'),
     surfaceModal: getElevationStyle('surface24'),
@@ -187,61 +187,15 @@ const styles = StyleSheet.create({
   },
   default: {
     // backgroundColor set dynamically from theme
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.08,
-        shadowRadius: 12,
-      },
-      android: {
-        elevation: 4,
-      },
-    }),
   },
   elevated: {
     // backgroundColor set dynamically from theme
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.12,
-        shadowRadius: 24,
-      },
-      android: {
-        elevation: 8,
-      },
-    }),
   },
   glass: {
-    backgroundColor: 'rgba(255, 255, 255, 0.7)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 16,
-      },
-      android: {
-        elevation: 2,
-      },
-    }),
   },
   gradient: {
     borderWidth: 0,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#667EEA',
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.2,
-        shadowRadius: 16,
-      },
-      android: {
-        elevation: 6,
-      },
-    }),
   },
   outline: {
     backgroundColor: 'transparent',

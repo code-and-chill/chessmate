@@ -12,6 +12,8 @@ import { Box } from '@/ui/primitives/Box';
 import { VStack } from '@/ui/primitives/Stack';
 import { useThemeTokens } from '@/ui/hooks/useThemeTokens';
 import { spacingTokens } from '@/ui/tokens/spacing';
+import { radiusTokens } from '@/ui/tokens/radii';
+import { entranceAnimations } from '@/ui/animations/presets';
 import type { Move } from '@/types/game';
 import { useBoardTheme } from '@/contexts/BoardThemeContext';
 import { DevBadge } from '@/ui/primitives/DevBadge';
@@ -184,7 +186,13 @@ export const PuzzlePlayScreen: React.FC<PuzzlePlayScreenProps> = ({ puzzleId: _p
     [promotionState.move, handleMove, promotionActions],
   );
 
-  const createAnimConfig = useCallback((delay: number) => (reduceMotion ? undefined : FadeInUp.duration(250).delay(delay)), [reduceMotion]);
+  const createAnimConfig = useCallback(
+    (delay: number) =>
+      reduceMotion
+        ? undefined
+        : FadeInUp.duration(entranceAnimations.fadeInUp.config.duration ?? 250).delay(delay),
+    [reduceMotion],
+  );
 
   const interactive = puzzleState.status === 'in_progress' && ((rateLimit?.remaining ?? rateLimitInfo?.remaining) ?? 1) > 0;
 
@@ -205,13 +213,13 @@ export const PuzzlePlayScreen: React.FC<PuzzlePlayScreenProps> = ({ puzzleId: _p
   return (
     <>
       {loading && (
-        <Box style={{ padding: 16 }}>
+        <Box padding={4}>
           <Text>{t('loading') ?? 'Loading...'}</Text>
         </Box>
       )}
 
       {!loading && error && (
-        <Box style={{ padding: 16 }}>
+        <Box padding={4}>
           <Text>{error}</Text>
         </Box>
       )}
@@ -219,8 +227,8 @@ export const PuzzlePlayScreen: React.FC<PuzzlePlayScreenProps> = ({ puzzleId: _p
       {!loading && !error && puzzle && (
         <Box style={{ flex: 1 }} onLayout={onLayout}>
           {hidePlayerSection ? (
-            <Box style={{ flexDirection: isHorizontalLayout ? 'row' : 'column', flex: 1, gap: spacingTokens[4] }}>
-              <Box style={{ alignItems: 'center', width: isHorizontalLayout ? boardSize : '100%' }}>
+            <Box flexDirection={isHorizontalLayout ? 'row' : 'column'} flex={1} gap={4}>
+              <Box alignItems="center" style={{ width: isHorizontalLayout ? boardSize : '100%' }}>
                 <Card variant="elevated" size="md" padding={0}>
                   {boardProps.fen ? <ChessBoard {...boardProps} size={boardSize} squareSize={squareSize} /> : null}
                 </Card>
@@ -228,7 +236,7 @@ export const PuzzlePlayScreen: React.FC<PuzzlePlayScreenProps> = ({ puzzleId: _p
               <MovesColumn moves={puzzleState.moves} anim={createAnimConfig(100)} flex={movesColumnFlex} />
             </Box>
           ) : isHorizontalLayout ? (
-            <Box style={{ flexDirection: 'row', flex: 1, gap: spacingTokens[4] }}>
+            <Box flexDirection="row" flex={1} gap={4}>
               <BoardColumn
                 boardSize={boardSize}
                 squareSize={squareSize}
@@ -247,7 +255,7 @@ export const PuzzlePlayScreen: React.FC<PuzzlePlayScreenProps> = ({ puzzleId: _p
               <MovesColumn moves={puzzleState.moves} anim={createAnimConfig(100)} flex={movesColumnFlex} />
             </Box>
           ) : (
-            <VStack flex={1} gap={spacingTokens[4]}>
+            <VStack flex={1} gap={4}>
               <BoardColumn
                 boardSize={boardSize}
                 squareSize={squareSize}
@@ -270,7 +278,12 @@ export const PuzzlePlayScreen: React.FC<PuzzlePlayScreenProps> = ({ puzzleId: _p
       )}
 
       {guidance && guidance.length > 0 && (
-        <Box style={{ padding: 8, backgroundColor: colors.background.secondary, borderRadius: 6, marginBottom: 8 }}>
+        <Box
+          padding={2}
+          marginBottom={2}
+          backgroundColor={colors.background.secondary}
+          radius="md"
+        >
           <Box>
             <Text>{t('puzzle.suggestedFollowups') ?? 'Suggested followups (progressive):'}</Text>
           </Box>
@@ -283,7 +296,7 @@ export const PuzzlePlayScreen: React.FC<PuzzlePlayScreenProps> = ({ puzzleId: _p
       )}
 
       {__DEV__ && (
-        <DevBadge style={{ position: 'absolute', top: 12, right: 12 }}>
+        <DevBadge style={{ position: 'absolute', top: spacingTokens[3], right: spacingTokens[3] }}>
           <Box gap={4}>
             <Box>
               <Text>{`puzzle: ${puzzle?.id ?? 'n/a'}`}</Text>
@@ -306,7 +319,15 @@ export const PuzzlePlayScreen: React.FC<PuzzlePlayScreenProps> = ({ puzzleId: _p
         </DevBadge>
       )}
 
-      <PawnPromotionModal visible={promotionState.isVisible} color={puzzleState.sideToMove} onSelect={handlePawnPromotion} onCancel={() => { promotionActions.hidePromotion(); cancel(); }} />
+      <PawnPromotionModal
+        visible={promotionState.isVisible}
+        color={puzzleState.sideToMove}
+        onSelect={handlePawnPromotion}
+        onCancel={() => {
+          promotionActions.hidePromotion();
+          cancel();
+        }}
+      />
     </>
   );
 };

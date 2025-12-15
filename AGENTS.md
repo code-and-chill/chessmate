@@ -1,10 +1,3 @@
----
-title: Agent Operating Guide
-status: active
-last_reviewed: 2025-12-02
-type: standard
----
-
 # AGENTS GUIDE
 
 A unified operating contract for all AI agents and automated assistants working inside this monorepo.

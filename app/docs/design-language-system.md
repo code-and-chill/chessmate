@@ -1,3 +1,11 @@
+---
+title: Design Language System
+service: app
+status: active
+last_reviewed: 2025-12-12
+type: standard
+---
+
 # CHESSMATE DESIGN LANGUAGE SYSTEM (DLS)
 ## Complete React Native (Expo) UI Framework
 
@@ -15,6 +23,29 @@
 4. [Theme System](#theme-system)
 5. [Implementation Guide](#implementation-guide)
 6. [Usage Examples](#usage-examples)
+
+---
+
+## UX Principles Alignment & Enforcement
+
+- **Gestalt & Layout as Cognitive Architecture**: use `Stack/VStack/HStack/Grid/LayoutContainer` and `spacingTokens` for proximity/alignment; maintain visual hierarchy in FeatureScreenLayout; avoid ad-hoc `StyleSheet` spacing.
+- **Fitts’ Law & Accessibility**: minimum touch targets 44x44; Button sizes (`sm`/`md`/`lg`) meet or exceed; Icon presses should wrap in `InteractivePressable` when clickable.
+- **Hick’s Law & Cognitive Load**: limit primary actions per surface (≤3), progressive disclosure; use `FeatureCard`/`Tabs/SegmentedControl` for bounded choices.
+- **Jakob’s Law / Material / HIG**: rely on primitives (`Button`, `Input`, `Card`, `Panel`, `Tabs`) and tokens for platform-consistent spacing/typography/colors.
+- **Shneiderman & Norman**: provide visible states—pressed/hover/disabled via interactive tokens; use semantic status colors (success/error/warning/info) and feedback components.
+- **Atomic Design**: tokens → primitives → components → features; never bypass primitives with raw `View/Text/StyleSheet` in features/routes.
+- **Aesthetic-Usability & Motion**: use theme-aware colors, `shadowTokens`, `radiusTokens`; motion presets and `useReducedMotion` gate all micro-interactions.
+- **Jobs-To-Be-Done**: choose patterns that shorten user task flow; prefer `FeatureScreenLayout` + cards for hubs, `DetailScreenLayout` for deep tasks.
+
+## DLS Adoption Checklist (features & routes)
+
+- Use only `@/ui/primitives` and `@/ui/components`; no raw `View/Text/StyleSheet` or `TouchableOpacity`.
+- Spacing/radii/shadows/colors from tokens (`spacingTokens`, `radii`, `shadowTokens`, semantic colors from `useThemeTokens`); no hex/rgba literals.
+- Buttons/pressables: use `Button` or `InteractivePressable`; respect min 44px height and disabled/loading states.
+- Layout: use `Stack/VStack/HStack/Grid/LayoutContainer`; align to breakpoints from `tokens/breakpoints`.
+- Motion: use motion presets; wrap animations with `useReducedMotion`.
+- Chess UI: use board/piece theme tokens; avoid literal square colors or overlay colors.
+- Docs: when adding a pattern, update this file and export via `ui/index.ts`; add tests for primitives/components.
 
 ---
 

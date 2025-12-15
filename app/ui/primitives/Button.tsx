@@ -6,7 +6,7 @@ import Animated, {
   useSharedValue,
   withSpring,
 } from 'react-native-reanimated';
-import { Text, microInteractions, radiusTokens, spacingTokens, colorTokens, getColor } from '@/ui';
+import { Text, microInteractions, radiusTokens, spacingTokens, colorTokens, getColor, useThemeTokens, useIsDark } from '@/ui';
 
 type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'outline' | 'destructive' | 'subtle' | 'default';
 type ButtonSize = 'sm' | 'md' | 'lg';
@@ -33,61 +33,61 @@ type ButtonProps = PressableProps & {
   isDark?: boolean;
 };
 
-const getButtonStyles = (isDark: boolean): Record<ButtonVariant, ButtonStyle> => ({
+const getButtonStyles = (isDark: boolean, semantic: ReturnType<typeof useThemeTokens>['colors']): Record<ButtonVariant, ButtonStyle> => ({
   primary: { 
-    bg: getColor(colorTokens.blue[600], isDark),
-    text: '#FFFFFF', 
+    bg: semantic.accent.primary,
+    text: semantic.foreground.onAccent ?? '#FFFFFF', 
     border: 'none',
-    hoverBg: getColor(colorTokens.blue[700], isDark),
-    activeBg: getColor(colorTokens.blue[800], isDark),
+    hoverBg: semantic.interactive.hover,
+    activeBg: semantic.interactive.active,
   },
   secondary: { 
-    bg: getColor(colorTokens.neutral[200], isDark),
-    text: getColor(colorTokens.neutral[900], isDark), 
+    bg: semantic.background.secondary,
+    text: semantic.foreground.primary, 
     border: 'none',
-    hoverBg: getColor(colorTokens.neutral[300], isDark),
-    activeBg: getColor(colorTokens.neutral[400], isDark),
+    hoverBg: semantic.background.tertiary,
+    activeBg: semantic.background.elevated,
   },
   outline: { 
     bg: 'transparent',
-    text: getColor(colorTokens.blue[600], isDark), 
-    border: getColor(colorTokens.blue[600], isDark),
-    hoverBg: getColor(colorTokens.blue[50], isDark),
-    activeBg: getColor(colorTokens.blue[100], isDark),
+    text: semantic.accent.primary, 
+    border: semantic.accent.primary,
+    hoverBg: semantic.background.accentSubtle,
+    activeBg: semantic.background.tertiary,
   },
   ghost: { 
     bg: 'transparent',
-    text: getColor(colorTokens.neutral[700], isDark), 
+    text: semantic.foreground.secondary, 
     border: 'none',
-    hoverBg: getColor(colorTokens.neutral[100], isDark),
-    activeBg: getColor(colorTokens.neutral[200], isDark),
+    hoverBg: semantic.background.accentSubtle,
+    activeBg: semantic.background.tertiary,
   },
   destructive: {
-    bg: getColor(colorTokens.red[600], isDark),
-    text: '#FFFFFF',
+    bg: semantic.error,
+    text: semantic.foreground.onAccent ?? '#FFFFFF',
     border: 'none',
     hoverBg: getColor(colorTokens.red[700], isDark),
     activeBg: getColor(colorTokens.red[800], isDark),
   },
   subtle: {
-    bg: 'transparent',
-    text: getColor(colorTokens.neutral[700], isDark),
+    bg: semantic.background.accentSubtle,
+    text: semantic.accent.primary,
     border: 'none',
-    hoverBg: getColor(colorTokens.neutral[50], isDark),
-    activeBg: getColor(colorTokens.neutral[100], isDark),
+    hoverBg: semantic.background.tertiary,
+    activeBg: semantic.background.elevated,
   },
   default: {
-    bg: getColor(colorTokens.neutral[100], isDark),
-    text: getColor(colorTokens.neutral[900], isDark),
+    bg: semantic.background.secondary,
+    text: semantic.foreground.primary,
     border: 'none',
-    hoverBg: getColor(colorTokens.neutral[200], isDark),
-    activeBg: getColor(colorTokens.neutral[300], isDark),
+    hoverBg: semantic.background.tertiary,
+    activeBg: semantic.background.elevated,
   },
 });
 
 const sizeStyles = {
-  sm: { height: 32, paddingH: spacingTokens[3], fontSize: 'sm' as const, iconSize: 16 },
-  md: { height: 44, paddingH: spacingTokens[4], fontSize: 'base' as const, iconSize: 20 },
+  sm: { height: 44, paddingH: spacingTokens[4], fontSize: 'sm' as const, iconSize: 18 },
+  md: { height: 48, paddingH: spacingTokens[4], fontSize: 'base' as const, iconSize: 20 },
   lg: { height: 56, paddingH: spacingTokens[5], fontSize: 'lg' as const, iconSize: 24 },
 };
 
@@ -104,14 +104,16 @@ export const Button: React.FC<ButtonProps> = ({
   disabled,
   color,
   animated = true,
-  isDark = false,
+  isDark: isDarkOverride,
   style,
   ...rest
-}) => {
+}: ButtonProps) => {
   const scale = useSharedValue(1);
-  const buttonStyles = getButtonStyles(isDark);
-  const variantStyle = buttonStyles[variant] ?? buttonStyles.primary;
-  const sizeConfig = sizeStyles[size];
+  const { colors: semanticColors } = useThemeTokens();
+  const isDark = isDarkOverride ?? useIsDark();
+  const buttonStyles = getButtonStyles(isDark, semanticColors);
+  const variantStyle = buttonStyles[variant as ButtonVariant] ?? buttonStyles.primary;
+  const sizeConfig = sizeStyles[size as ButtonSize];
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
@@ -136,11 +138,12 @@ export const Button: React.FC<ButtonProps> = ({
   };
 
   const buttonStyle: ViewStyle = {
-    height: iconOnly ? sizeConfig.height : sizeConfig.height,
+    height: sizeConfig.height,
+    minHeight: 44,
     width: iconOnly ? sizeConfig.height : undefined,
     paddingHorizontal: iconOnly ? 0 : sizeConfig.paddingH,
     borderRadius: radiusTokens.md,
-    backgroundColor: color ?? variantStyle?.bg ?? getColor(colorTokens.blue[600], isDark),
+    backgroundColor: color ?? variantStyle?.bg ?? semanticColors.interactive.default,
     borderWidth: variantStyle?.border !== 'none' ? 1 : 0,
     borderColor: variantStyle?.border !== 'none' ? variantStyle?.border : undefined,
     opacity: disabled ? microInteractions.opacityDisabled : 1,
@@ -188,7 +191,7 @@ export const Button: React.FC<ButtonProps> = ({
               <Text
                 size={sizeConfig.fontSize}
                 weight="semibold"
-                color={color ? '#FFFFFF' : variantStyle?.text ?? '#FFFFFF'}
+                color={color ? semanticColors.foreground.onAccent ?? '#FFFFFF' : variantStyle?.text ?? '#FFFFFF'}
               >
                 {children}
               </Text>

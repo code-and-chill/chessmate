@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
-import { StyleSheet, View, SafeAreaView, ScrollView, Text, ActivityIndicator } from 'react-native';
+import { SafeAreaView, ScrollView, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { Panel } from '@/ui/primitives/Panel';
-import { VStack, HStack, InteractivePressable, useThemeTokens } from '@/ui';
+import { VStack, HStack, InteractivePressable, useThemeTokens, Button, Text, Box } from '@/ui';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMatchmaking } from '@/contexts/MatchmakingContext';
 import { useI18n } from '@/i18n/I18nContext';
+import { spacingTokens } from '@/ui/tokens/spacing';
+import { entranceAnimations } from '@/ui/animations/presets';
 
 type TimeControl = '1+0' | '3+0' | '5+0' | '10+0' | '15+10' | '30+0';
 
@@ -64,60 +66,88 @@ export default function OnlinePlayScreen() {
 
   if (isSearching) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background.primary }]}>
-        <View style={styles.searchingContainer}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: colors.background.primary }}>
+        <VStack flex={1} justifyContent="center" alignItems="center" padding={6} gap={4}>
           <ActivityIndicator size="large" color={colors.accent.primary} />
-
-          <Text style={[styles.searchingTitle, { color: colors.foreground.primary, marginTop: 20 }]}> 
+          <Text variant="heading" weight="bold">
             {t('game_modes.finding_opponent')}
           </Text>
-
-          <Text style={[styles.searchingText, { color: colors.foreground.secondary, marginTop: 8 }]}> 
+          <Text variant="body" color={colors.foreground.secondary}>
             {ti('game_modes.players_online', { count: queueStatus?.playersInQueue || 0 })}
           </Text>
-
-          <Text style={[styles.searchingHint, { color: colors.foreground.muted, marginTop: 4 }]}> 
+          <Text variant="caption" color={colors.foreground.muted}>
             {ti('game_modes.searching_for', { seconds: queueStatus?.waitTime || 0 })}
           </Text>
-
-          <InteractivePressable
-            style={[styles.cancelButton, { backgroundColor: '#EF4444', marginTop: 32 }]}
-            onPress={handleCancelSearch}
-          >
-            <Text style={styles.cancelButtonText}>{t('game_modes.cancel_search')}</Text>
-          </InteractivePressable>
-        </View>
+          <Button variant="destructive" size="md" onPress={handleCancelSearch}>
+            {t('game_modes.cancel_search')}
+          </Button>
+        </VStack>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background.primary }]}>
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <VStack style={styles.content} gap={6}>
-          <Animated.View entering={FadeInUp.delay(100).duration(400)}>
-            <VStack gap={2} style={{ alignItems: 'center' }}>
-              <Text style={[styles.title, { color: colors.accent.primary }]}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background.primary }}>
+      <ScrollView contentContainerStyle={{ paddingBottom: spacingTokens[9] }} showsVerticalScrollIndicator={false}>
+        <VStack
+          gap={6}
+          style={{
+            paddingHorizontal: spacingTokens[6],
+            paddingTop: spacingTokens[6],
+            maxWidth: 600,
+            alignSelf: 'center',
+            width: '100%',
+          }}
+        >
+          <Animated.View entering={FadeInUp.delay(100).duration(entranceAnimations.fadeInUp.config.duration ?? 400)}>
+            <VStack gap={2} alignItems="center">
+              <Text variant="heading" weight="bold" style={{ letterSpacing: -0.5 }} color={colors.accent.primary}>
                 {t('game_modes.online_play')}
               </Text>
-              <Text style={[styles.subtitle, { color: colors.foreground.secondary }]}> {t('game_modes.choose_game_speed')} </Text>
+              <Text variant="body" color={colors.foreground.secondary}>
+                {t('game_modes.choose_game_speed')}
+              </Text>
             </VStack>
           </Animated.View>
 
-          <VStack gap={3} style={{ marginTop: 8 }}>
+          <VStack gap={3} marginTop={2}>
             {TIME_CONTROLS.map((tc, idx) => (
-              <Animated.View key={tc.id} entering={FadeInDown.delay(200 + idx * 80).duration(400)}>
+              <Animated.View
+                key={tc.id}
+                entering={FadeInDown.delay(200 + idx * 80).duration(entranceAnimations.fadeInDown.config.duration ?? 400)}
+              >
                 <InteractivePressable onPress={() => setTimeControl(tc.id)}>
-                  <Panel variant="glass" padding={20} style={[styles.timeControlCard, timeControl === tc.id && styles.selectedCard]}> 
-                    <HStack gap={4} style={{ alignItems: 'center' }}>
-                      <View style={[styles.timeBadge, { backgroundColor: colors.translucent.light }]}> 
-                        <Text style={styles.timeIcon}>{tc.label.split(' ')[0]}</Text>
-                      </View>
-                      <VStack gap={1} style={{ flex: 1 }}>
-                        <Text style={[styles.timeTitle, { color: colors.foreground.primary }]}>{tc.label}</Text>
-                        <Text style={[styles.timeType, { color: colors.foreground.muted }]}>{tc.type.charAt(0).toUpperCase() + tc.type.slice(1)}</Text>
+                  <Panel
+                    variant="glass"
+                    padding={5}
+                    style={[
+                      { borderWidth: timeControl === tc.id ? 2 : 0, borderColor: colors.accent.primary },
+                    ]}
+                  >
+                    <HStack gap={4} alignItems="center">
+                      <Box
+                        width={spacingTokens[8]}
+                        height={spacingTokens[8]}
+                        radius="full"
+                        alignItems="center"
+                        justifyContent="center"
+                        backgroundColor={colors.translucent.light}
+                      >
+                        <Text variant="title">{tc.label.split(' ')[0]}</Text>
+                      </Box>
+                      <VStack gap={1} flex={1}>
+                        <Text variant="title" weight="bold" color={colors.foreground.primary} style={{ letterSpacing: -0.4 }}>
+                          {tc.label}
+                        </Text>
+                        <Text variant="caption" weight="semibold" color={colors.foreground.muted} style={{ textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                          {tc.type.charAt(0).toUpperCase() + tc.type.slice(1)}
+                        </Text>
                       </VStack>
-                      {timeControl === tc.id && <Text style={[styles.checkmark, { color: colors.accent.primary }]}>✓</Text>}
+                      {timeControl === tc.id && (
+                        <Text variant="title" weight="bold" color={colors.accent.primary}>
+                          ✓
+                        </Text>
+                      )}
                     </HStack>
                   </Panel>
                 </InteractivePressable>
@@ -125,36 +155,13 @@ export default function OnlinePlayScreen() {
             ))}
           </VStack>
 
-          <Animated.View entering={FadeInUp.delay(700).duration(400)}>
-            <InteractivePressable style={[styles.button, { backgroundColor: colors.accent.primary }]} onPress={handleFindMatch}>
-              <Text style={styles.buttonText}>{t('game_modes.find_match')}</Text>
-            </InteractivePressable>
+          <Animated.View entering={FadeInUp.delay(700).duration(entranceAnimations.fadeInUp.config.duration ?? 400)}>
+            <Button size="lg" onPress={handleFindMatch}>
+              {t('game_modes.find_match')}
+            </Button>
           </Animated.View>
         </VStack>
       </ScrollView>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1 },
-  scrollContent: { paddingBottom: 40 },
-  content: { paddingHorizontal: 24, paddingTop: 24, maxWidth: 600, alignSelf: 'center', width: '100%' },
-  title: { fontSize: 36, fontWeight: '800', textAlign: 'center', letterSpacing: -0.5 },
-  subtitle: { fontSize: 17, textAlign: 'center', marginTop: 6, fontWeight: '500', lineHeight: 24 },
-  timeControlCard: { shadowColor: '#667EEA', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.08, shadowRadius: 12, elevation: 4 },
-  selectedCard: { borderWidth: 2, borderColor: '#667EEA' },
-  timeBadge: { width: 56, height: 56, borderRadius: 28, justifyContent: 'center', alignItems: 'center' },
-  timeIcon: { fontSize: 28 },
-  timeTitle: { fontSize: 20, fontWeight: '700', letterSpacing: -0.4 },
-  timeType: { fontSize: 13, fontWeight: '600', marginTop: 2, textTransform: 'uppercase', letterSpacing: 0.5 },
-  checkmark: { fontSize: 24, fontWeight: 'bold' },
-  button: { padding: 18, borderRadius: 12, alignItems: 'center', marginTop: 8 },
-  buttonText: { fontSize: 18, fontWeight: '700', color: '#FFFFFF' },
-  searchingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 24 },
-  searchingTitle: { fontSize: 24, fontWeight: '700', textAlign: 'center' },
-  searchingText: { fontSize: 17, fontWeight: '500', textAlign: 'center' },
-  searchingHint: { fontSize: 15, fontWeight: '500', textAlign: 'center' },
-  cancelButton: { paddingHorizontal: 32, paddingVertical: 16, borderRadius: 12, minWidth: 200, alignItems: 'center' },
-  cancelButtonText: { fontSize: 18, fontWeight: '700', color: '#FFFFFF' },
-});

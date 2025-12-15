@@ -1,15 +1,11 @@
-/**
- * Panel Primitive Component (Glassmorphic/Minimalist Pro)
- * app/ui/primitives/Panel.tsx
- * 
- * Enhanced with backdrop blur effect for glassmorphism
- */
-
 import React from 'react';
 import type { ViewStyle, StyleProp } from 'react-native';
 import { View, StyleSheet, Platform } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { useThemeTokens } from '@/ui/hooks/useThemeTokens';
+import { shadowTokens } from '@/ui/tokens/shadows';
+import { radiusTokens } from '@/ui/tokens/radii';
+
 
 type PanelVariant = 'glass' | 'solid' | 'translucent';
 type PanelDensity = 'light' | 'medium' | 'dark';
@@ -39,10 +35,10 @@ export const Panel: React.FC<PanelProps> = ({
       return colors.background.secondary;
     }
     if (variant === 'translucent') {
-      return isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.6)';
+      return density === 'dark' ? colors.translucent.dark : density === 'light' ? colors.translucent.light : colors.translucent.medium;
     }
     // Glass variant
-    return isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.7)';
+    return density === 'dark' ? colors.translucent.dark : density === 'light' ? colors.translucent.light : colors.translucent.medium;
   };
 
   const content = (
@@ -59,9 +55,10 @@ export const Panel: React.FC<PanelProps> = ({
         tint={isDark ? 'dark' : 'light'}
         style={[
           styles.container,
+          shadowTokens.panel,
           {
             backgroundColor: getBackgroundColor(),
-            borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.08)',
+            borderColor: colors.border,
           },
           style,
         ]}
@@ -76,9 +73,10 @@ export const Panel: React.FC<PanelProps> = ({
     <View
       style={[
         styles.container,
+        shadowTokens.panel,
         {
           backgroundColor: getBackgroundColor(),
-          borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.08)',
+          borderColor: colors.border,
         },
         style,
       ]}
@@ -90,14 +88,9 @@ export const Panel: React.FC<PanelProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    borderRadius: 16,
+    borderRadius: radiusTokens.lg,
     borderWidth: 1,
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
   },
   content: {
     // Padding applied dynamically
