@@ -122,3 +122,8 @@ class TicketRepository(ABC):
     async def find_stale_tickets(self, cutoff: datetime) -> list[Ticket]:
         """Locate tickets whose heartbeat has expired."""
         raise NotImplementedError
+
+    @abstractmethod
+    async def list_active_tickets(self) -> list[Ticket]:
+        """Return tickets that are still eligible for matchmaking."""
+        raise NotImplementedError

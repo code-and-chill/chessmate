@@ -316,6 +316,16 @@ class MatchmakingService:
         """Check if candidate rating is within window of player rating."""
         return abs(player_rating - candidate_rating) <= window
 
+    def _is_entry_expired(self, entry: Ticket, now: datetime) -> bool:
+        """Determine if an entry should be removed due to heartbeat timeout."""
+
+        timeout_seconds = self.settings.HEARTBEAT_TIMEOUT_SECONDS
+        if timeout_seconds <= 0 or not entry.last_heartbeat_at:
+            return False
+
+        delta = now - entry.last_heartbeat_at
+        return delta.total_seconds() > timeout_seconds
+
     async def find_matches_for_pool(self, tenant_id: str, pool_key: str) -> list[tuple]:
         """Find matches for a pool.
 
@@ -332,11 +342,15 @@ class MatchmakingService:
             tenant_id, pool_key, QueueEntryStatus.SEARCHING
         )
 
+        now = datetime.now(timezone.utc)
+        entries = [
+            entry for entry in entries if not self._is_entry_expired(entry, now)
+        ]
+
         if len(entries) < 2:
             return []
 
         # Sort by time in queue (oldest first - higher priority)
-        now = datetime.now(timezone.utc)
         entries.sort(key=lambda e: e.time_in_queue_seconds(now), reverse=True)
 
         # Simple greedy matching with rating window widening

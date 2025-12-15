@@ -49,6 +49,10 @@ class Settings(BaseSettings):
     WORKER_INTERVAL_SECONDS: float = 1.0  # Match every 1 second
     WORKER_BATCH_SIZE: int = 100  # Process matches in batches
     MATCH_PAIRS_PER_BATCH: int = 50  # Number of pairs to attempt per batch
+    HEARTBEAT_TIMEOUT_SECONDS: int = 30  # Heartbeat grace period
+    HEARTBEAT_REAPER_INTERVAL_SECONDS: float = 5.0  # Sweep expired tickets
+    PROPOSAL_TIMEOUT_SECONDS: int = 10  # Time to accept/decline proposals
+    TICKET_HEARTBEATS_REDIS_ENABLED: bool = False
 
     # Observability
     LOG_LEVEL: str = "INFO"

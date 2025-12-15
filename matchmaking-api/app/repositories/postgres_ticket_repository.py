@@ -6,6 +6,8 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any, Sequence
 
+import redis.asyncio as redis
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -32,8 +34,16 @@ _ACTIVE_STATUSES = {MatchTicketStatus.QUEUED, MatchTicketStatus.SEARCHING}
 class PostgresTicketRepository(TicketRepository):
     """Transactional SQLAlchemy-backed ticket repository."""
 
-    def __init__(self, session: AsyncSession) -> None:
+    def __init__(
+        self,
+        session: AsyncSession,
+        redis_client: redis.Redis | None = None,
+        *,
+        enable_heartbeat_cache: bool = False,
+    ) -> None:
         self.session = session
+        self.redis = redis_client
+        self.enable_heartbeat_cache = enable_heartbeat_cache
 
     async def enqueue_ticket(
         self,
@@ -160,11 +170,17 @@ class PostgresTicketRepository(TicketRepository):
             if not model:
                 return None
 
+            if model.status not in _ACTIVE_STATUSES:
+                return None
+
             model.last_heartbeat_at = heartbeat_at or datetime.now(timezone.utc)
             model.heartbeat_timeout_at = heartbeat_timeout_at
 
             await self.session.flush()
-            return self._to_entity(model)
+            ticket = self._to_entity(model)
+
+        await self._cache_heartbeat(ticket)
+        return ticket
 
     async def find_stale_tickets(self, cutoff: datetime) -> list[Ticket]:
         stmt = (
@@ -174,6 +190,23 @@ class PostgresTicketRepository(TicketRepository):
                 MatchTicketModel.heartbeat_timeout_at.is_not(None),
                 MatchTicketModel.heartbeat_timeout_at <= cutoff,
                 MatchTicketModel.status.in_(_ACTIVE_STATUSES),
+            )
+        )
+        result = await self.session.execute(stmt)
+        models = result.scalars().unique().all()
+        return [self._to_entity(model) for model in models]
+
+    async def list_active_tickets(self) -> list[Ticket]:
+        now = datetime.now(timezone.utc)
+        stmt = (
+            select(MatchTicketModel)
+            .options(selectinload(MatchTicketModel.players))
+            .where(
+                MatchTicketModel.status.in_(_ACTIVE_STATUSES),
+                (
+                    MatchTicketModel.heartbeat_timeout_at.is_(None)
+                    | (MatchTicketModel.heartbeat_timeout_at > now)
+                ),
             )
         )
         result = await self.session.execute(stmt)
@@ -208,6 +241,24 @@ class PostgresTicketRepository(TicketRepository):
                 )
 
         return None
+
+    async def _cache_heartbeat(self, ticket: Ticket) -> None:
+        if not (self.redis and self.enable_heartbeat_cache):
+            return
+
+        if not ticket.heartbeat_timeout_at:
+            return
+
+        ttl_seconds = int(
+            max(
+                (ticket.heartbeat_timeout_at - datetime.now(timezone.utc)).total_seconds(),
+                0,
+            )
+        )
+        await self.redis.set(self._heartbeat_key(ticket.ticket_id), "1", ex=ttl_seconds)
+
+    def _heartbeat_key(self, ticket_id: str) -> str:
+        return f"matchmaking:ticket:{ticket_id}:heartbeat"
 
     async def _fetch_ticket_model(
         self, ticket_id: str, *, for_update: bool = False
