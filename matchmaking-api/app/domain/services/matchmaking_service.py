@@ -4,6 +4,7 @@ import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
+from app.clients.rating_client import PlayerRating, RatingAPIClient
 from app.core.config import get_settings
 from app.domain.models import (
     HardConstraints,
@@ -18,6 +19,7 @@ from app.domain.models import (
 )
 from app.domain.repositories.match_record import MatchRecordRepository
 from app.domain.repositories.queue_store import QueueStoreRepository
+from app.domain.utils.time_control import rating_pool_id_from_constraints
 from app.infrastructure.external.live_game_api import LiveGameAPIClient
 
 logger = logging.getLogger(__name__)
@@ -34,6 +36,7 @@ class MatchmakingService:
         queue_store: QueueStoreRepository,
         match_repo: MatchRecordRepository,
         live_game_api: LiveGameAPIClient,
+        rating_api: RatingAPIClient,
     ) -> None:
         """Initialize matchmaking service.
 
@@ -45,6 +48,7 @@ class MatchmakingService:
         self.queue_store = queue_store
         self.match_repo = match_repo
         self.live_game_api = live_game_api
+        self.rating_api = rating_api
         self.settings = get_settings()
 
     async def enqueue_player(
@@ -98,8 +102,11 @@ class MatchmakingService:
             time_control=time_control, mode=mode, variant=variant, region=region
         )
         widening_state = WideningState(current_window=self.settings.INITIAL_RATING_WINDOW)
+        pool_id = rating_pool_id_from_constraints(variant, time_control)
 
         ticket_players = players or [Player(user_id=user_id)]
+
+        await self._hydrate_player_ratings(ticket_players, pool_id)
 
         ticket = Ticket(
             ticket_id=ticket_id,
@@ -225,7 +232,7 @@ class MatchmakingService:
         return {"queue_entry": entry, "match": None}
 
     async def match_players(
-        self, entry1: Ticket, entry2: Ticket, rating1: int, rating2: int
+        self, entry1: Ticket, entry2: Ticket, rating1: int, rating2: int, region: str
     ) -> bool:
         """Match two players and create game.
 
@@ -262,7 +269,7 @@ class MatchmakingService:
                 rating_snapshot={"white": white_rating, "black": black_rating},
                 metadata={
                     "matchmaking_source": "auto",
-                    "region": entry1.hard_constraints.region,
+                    "region": region,
                 },
             )
 
@@ -326,7 +333,9 @@ class MatchmakingService:
         delta = now - entry.last_heartbeat_at
         return delta.total_seconds() > timeout_seconds
 
-    async def find_matches_for_pool(self, tenant_id: str, pool_key: str) -> list[tuple]:
+    async def find_matches_for_pool(
+        self, tenant_id: str, pool_key: str
+    ) -> list[tuple[Ticket, Ticket, str]]:
         """Find matches for a pool.
 
         Per service-spec section 2.1.2 Matchmaking Logic
@@ -353,8 +362,25 @@ class MatchmakingService:
         # Sort by time in queue (oldest first - higher priority)
         entries.sort(key=lambda e: e.time_in_queue_seconds(now), reverse=True)
 
+        pool_id = rating_pool_id_from_constraints(
+            entries[0].hard_constraints.variant, entries[0].hard_constraints.time_control
+        )
+        user_ids = [entry.players[0].user_id for entry in entries]
+        ratings = await self.rating_api.get_bulk_ratings(user_ids, pool_id)
+
+        def _get_rating(ticket: Ticket) -> PlayerRating:
+            rating = ratings.get(ticket.players[0].user_id)
+            if rating:
+                ticket.players[0].rating = rating.rating
+                ticket.players[0].rating_deviation = rating.rating_deviation
+                return rating
+            return PlayerRating(
+                rating=self.settings.RATING_DEFAULT_MMR,
+                rating_deviation=self.settings.RATING_DEFAULT_RD,
+            )
+
         # Simple greedy matching with rating window widening
-        matches = []
+        matches: list[tuple[Ticket, Ticket, str]] = []
         used = set()
 
         for i, entry in enumerate(entries):
@@ -385,8 +411,7 @@ class MatchmakingService:
             entry.widening_state.current_window = current_window
             entry.widening_state.widen_count = new_stage
 
-            # TODO: Get rating for player (from cache or external service)
-            player_rating = 1500  # Placeholder
+            player_rating = _get_rating(entry).rating
 
             # Find best match candidate
             best_match = None
@@ -396,8 +421,17 @@ class MatchmakingService:
                 if i >= j or candidate.queue_entry_id in used:
                     continue
 
-                # TODO: Get rating for candidate
-                candidate_rating = 1500  # Placeholder
+                candidate_rating = _get_rating(candidate).rating
+
+                if not self._regions_compatible(entry, candidate):
+                    continue
+
+                match_region = self._select_match_region(entry, candidate)
+                if not (
+                    self._within_latency_budget(entry, match_region)
+                    and self._within_latency_budget(candidate, match_region)
+                ):
+                    continue
 
                 if self._rating_in_window(player_rating, candidate_rating, current_window):
                     diff = abs(player_rating - candidate_rating)
@@ -406,7 +440,8 @@ class MatchmakingService:
                         best_diff = diff
 
             if best_match:
-                matches.append((entry, best_match))
+                match_region = self._select_match_region(entry, best_match)
+                matches.append((entry, best_match, match_region))
                 used.add(entry.queue_entry_id)
                 used.add(best_match.queue_entry_id)
 
@@ -443,3 +478,64 @@ class MatchmakingService:
                 )
 
         return timed_out_count
+
+    async def _hydrate_player_ratings(
+        self, players: list[Player], pool_id: str
+    ) -> None:
+        """Fetch and attach rating + RD for the provided players."""
+
+        user_ids = [player.user_id for player in players]
+        ratings = await self.rating_api.get_bulk_ratings(user_ids, pool_id)
+
+        for player in players:
+            rating = ratings.get(player.user_id)
+            if rating:
+                player.rating = rating.rating
+                player.rating_deviation = rating.rating_deviation
+            else:
+                player.rating = self.settings.RATING_DEFAULT_MMR
+                player.rating_deviation = self.settings.RATING_DEFAULT_RD
+
+    def _regions_compatible(self, entry: Ticket, candidate: Ticket) -> bool:
+        preferred_entry = (
+            entry.soft_constraints.preferred_region if entry.soft_constraints else None
+        )
+        preferred_candidate = (
+            candidate.soft_constraints.preferred_region
+            if candidate.soft_constraints
+            else None
+        )
+
+        if preferred_entry and preferred_candidate and preferred_entry != preferred_candidate:
+            return False
+        return True
+
+    def _within_latency_budget(self, entry: Ticket, region: str) -> bool:
+        max_latency = entry.soft_constraints.max_latency_ms if entry.soft_constraints else None
+        if not max_latency:
+            return True
+
+        metadata = entry.players[0].metadata or {}
+        latency_map = metadata.get("latency_ms") or {}
+        latency = latency_map.get(region)
+        return latency is None or latency <= max_latency
+
+    def _select_match_region(self, entry: Ticket, candidate: Ticket) -> str:
+        preferred_entry = (
+            entry.soft_constraints.preferred_region if entry.soft_constraints else None
+        )
+        preferred_candidate = (
+            candidate.soft_constraints.preferred_region
+            if candidate.soft_constraints
+            else None
+        )
+
+        if preferred_entry and preferred_candidate and preferred_entry == preferred_candidate:
+            return preferred_entry
+        if preferred_entry:
+            return preferred_entry
+        if preferred_candidate:
+            return preferred_candidate
+        if entry.hard_constraints.region == candidate.hard_constraints.region:
+            return entry.hard_constraints.region
+        return entry.hard_constraints.region or candidate.hard_constraints.region

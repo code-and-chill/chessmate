@@ -41,6 +41,13 @@ class Settings(BaseSettings):
     LIVE_GAME_API_URL: str = "http://live-game-api:8002"
     LIVE_GAME_API_TIMEOUT_SECONDS: float = 5.0
 
+    # Rating API (internal service)
+    RATING_API_URL: str = "http://rating-api:8013"
+    RATING_API_TIMEOUT_SECONDS: float = 3.0
+    RATING_CACHE_TTL_SECONDS: int = 30
+    RATING_DEFAULT_MMR: int = 1500
+    RATING_DEFAULT_RD: float = 350.0
+
     # Matchmaking Configuration
     MAX_QUEUE_TIME_SECONDS: int = 600  # 10 minutes
     INITIAL_RATING_WINDOW: int = 100  # ±100 rating points

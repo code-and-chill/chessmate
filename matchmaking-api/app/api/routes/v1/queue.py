@@ -123,12 +123,9 @@ async def accept_challenge(
         extra={"user_id": token_data.user_id},
     )
 
-    # TODO: Get actual ratings from rating service or cache
     challenge = await challenge_service.accept_challenge(
         challenge_id=challenge_id,
         user_id=token_data.user_id,
-        challenger_rating=1500,
-        opponent_rating=1500,
     )
 
     return ChallengeResponse(

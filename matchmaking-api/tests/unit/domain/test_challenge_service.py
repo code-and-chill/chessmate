@@ -1,8 +1,9 @@
 """Unit tests for challenge service."""
 import pytest
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 from unittest.mock import AsyncMock
 
+from app.clients.rating_client import PlayerRating
 from app.domain.models import Challenge, ChallengeStatus
 from app.domain.services.challenge_service import ChallengeService
 from app.core.exceptions import (
@@ -26,9 +27,21 @@ def mock_live_game_api():
 
 
 @pytest.fixture
-def challenge_service(mock_challenge_repo, mock_live_game_api):
+def mock_rating_api():
+    """Create mock rating API client."""
+
+    client = AsyncMock()
+    client.get_bulk_ratings.return_value = {
+        "user_1": PlayerRating(rating=1510, rating_deviation=42.0),
+        "user_2": PlayerRating(rating=1490, rating_deviation=55.0),
+    }
+    return client
+
+
+@pytest.fixture
+def challenge_service(mock_challenge_repo, mock_live_game_api, mock_rating_api):
     """Create challenge service instance."""
-    return ChallengeService(mock_challenge_repo, mock_live_game_api)
+    return ChallengeService(mock_challenge_repo, mock_live_game_api, mock_rating_api)
 
 
 @pytest.mark.asyncio

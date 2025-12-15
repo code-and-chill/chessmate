@@ -9,11 +9,13 @@ class Player:
         self,
         user_id: str,
         rating: Optional[int] = None,
+        rating_deviation: Optional[float] = None,
         party_id: Optional[str] = None,
         metadata: Optional[dict] = None,
     ) -> None:
         self.user_id = user_id
         self.rating = rating
+        self.rating_deviation = rating_deviation
         self.party_id = party_id
         self.metadata = metadata or {}
 
@@ -22,6 +24,7 @@ class Player:
         return {
             "user_id": self.user_id,
             "rating": self.rating,
+            "rating_deviation": self.rating_deviation,
             "party_id": self.party_id,
             "metadata": self.metadata,
         }
@@ -32,6 +35,7 @@ class Player:
         return cls(
             user_id=data["user_id"],
             rating=data.get("rating"),
+            rating_deviation=data.get("rating_deviation"),
             party_id=data.get("party_id"),
             metadata=data.get("metadata"),
         )
