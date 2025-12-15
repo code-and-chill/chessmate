@@ -12,6 +12,7 @@ post {
 
 headers {
   Content-Type: application/json
+  Authorization: Bearer ${authToken}
 }
 
 body:json {
@@ -29,7 +30,7 @@ body:json {
     },
     "players": [
       {
-        "player_id": "player-123",
+        "player_id": "${leaderPlayerId}",
         "mmr": 1500,
         "rd": 60,
         "latency_preferences": {

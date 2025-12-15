@@ -14,6 +14,7 @@ class MatchTicketStatus(str, Enum):
 
     QUEUED = "queued"
     SEARCHING = "searching"
+    PROPOSING = "proposing"
     MATCHED = "matched"
     CANCELLED = "cancelled"
     EXPIRED = "expired"
@@ -45,6 +46,9 @@ class MatchTicketModel(Base):
     widening_stage = Column(Integer, nullable=False, server_default=text("0"))
     last_heartbeat_at = Column(DateTime(timezone=True), nullable=True)
     heartbeat_timeout_at = Column(DateTime(timezone=True), nullable=True)
+    proposal_id = Column(String(64), nullable=True, index=True)
+    proposal_timeout_at = Column(DateTime(timezone=True), nullable=True)
+    leader_player_id = Column(String(50), nullable=True)
     created_at = Column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False
     )

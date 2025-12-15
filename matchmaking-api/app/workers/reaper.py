@@ -47,3 +47,14 @@ class TicketReaper:
         for ticket in stale_tickets:
             await self.ticket_repo.update_status(ticket.ticket_id, MatchTicketStatus.EXPIRED)
             logger.info("Expired ticket due to missed heartbeat", extra={"ticket_id": ticket.ticket_id})
+
+        expired_proposals = await self.ticket_repo.find_expired_proposals(cutoff)
+        for proposal_id in expired_proposals:
+            updated = await self.ticket_repo.finalize_proposal(
+                proposal_id, MatchTicketStatus.CANCELLED
+            )
+            for ticket in updated:
+                logger.info(
+                    "Cancelled proposal after timeout",
+                    extra={"ticket_id": ticket.ticket_id, "proposal_id": proposal_id},
+                )

@@ -1,5 +1,6 @@
 """Ticket repository contract and DTOs."""
 from abc import ABC, abstractmethod
+from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Sequence
@@ -60,6 +61,9 @@ class Ticket:
     widening_stage: int
     last_heartbeat_at: datetime | None
     heartbeat_timeout_at: datetime | None
+    proposal_id: str | None
+    proposal_timeout_at: datetime | None
+    leader_player_id: str | None
     created_at: datetime
     updated_at: datetime
     players: list[TicketPlayer] = field(default_factory=list)
@@ -137,4 +141,27 @@ class TicketRepository(ABC):
     @abstractmethod
     async def list_active_tickets(self) -> list[Ticket]:
         """Return tickets that are still eligible for matchmaking."""
+        raise NotImplementedError
+
+    @abstractmethod
+    async def create_proposal(
+        self,
+        ticket_ids: Sequence[str],
+        *,
+        proposal_id: str,
+        proposal_timeout_at: datetime,
+    ) -> list[Ticket]:
+        """Mark tickets as proposing under a shared proposal identifier."""
+        raise NotImplementedError
+
+    @abstractmethod
+    async def finalize_proposal(
+        self, proposal_id: str, status: MatchTicketStatus
+    ) -> list[Ticket]:
+        """Finalize a proposal by updating all participating tickets."""
+        raise NotImplementedError
+
+    @abstractmethod
+    async def find_expired_proposals(self, cutoff: datetime) -> list[str]:
+        """Locate proposal identifiers whose ready-check timed out."""
         raise NotImplementedError

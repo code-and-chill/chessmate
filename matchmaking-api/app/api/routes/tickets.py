@@ -6,8 +6,9 @@ from typing import Annotated, Any
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
 
-from app.api.dependencies import get_ticket_repo
+from app.api.dependencies import get_ticket_repo, get_token_data
 from app.core.config import get_settings
+from app.core.security import JWTTokenData
 from app.infrastructure.database.match_ticket_model import (
     MatchTicketStatus,
     MatchTicketType,
@@ -106,6 +107,9 @@ class TicketResponse(BaseModel):
     widening_stage: int
     last_heartbeat_at: datetime | None
     heartbeat_timeout_at: datetime | None
+    proposal_id: str | None
+    proposal_timeout_at: datetime | None
+    leader_player_id: str | None
     created_at: datetime
     updated_at: datetime
     players: list[TicketPlayerResponse]
@@ -115,6 +119,14 @@ class HeartbeatRequest(BaseModel):
     """Request to refresh ticket heartbeat."""
 
     heartbeat_at: datetime | None = None
+
+
+def _ensure_leader(token_data: JWTTokenData, ticket: Ticket) -> None:
+    if ticket.leader_player_id and token_data.user_id != ticket.leader_player_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only the party leader may modify this ticket",
+        )
 
 
 def _build_pool_key(constraints: ConstraintPayload) -> str:
@@ -159,6 +171,9 @@ def _to_ticket_response(ticket: Ticket) -> TicketResponse:
         widening_stage=ticket.widening_stage,
         last_heartbeat_at=ticket.last_heartbeat_at,
         heartbeat_timeout_at=ticket.heartbeat_timeout_at,
+        proposal_id=ticket.proposal_id,
+        proposal_timeout_at=ticket.proposal_timeout_at,
+        leader_player_id=ticket.leader_player_id,
         created_at=ticket.created_at,
         updated_at=ticket.updated_at,
         players=_to_player_responses(ticket),
@@ -171,8 +186,21 @@ def _to_ticket_response(ticket: Ticket) -> TicketResponse:
 async def enqueue_ticket(
     request: EnqueueTicketRequest,
     ticket_repo: Annotated[PostgresTicketRepository, Depends(get_ticket_repo)],
+    token_data: Annotated[JWTTokenData, Depends(get_token_data)],
 ) -> TicketResponse:
     """Create or return a matchmaking ticket for the enqueue key."""
+
+    if not request.players:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="At least one player is required",
+        )
+
+    if token_data.user_id != request.players[0].player_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only the party leader may enqueue the ticket",
+        )
 
     pool_key = _build_pool_key(request.constraints)
     ticket_type = MatchTicketType.PARTY if len(request.players) > 1 else MatchTicketType.SOLO
@@ -205,10 +233,11 @@ async def enqueue_ticket(
             ],
             heartbeat_timeout_at=None,
         )
-    except ValueError as exc:  # Active tickets for players
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT, detail=str(exc)
-        ) from exc
+    except ValueError as exc:
+        status_code = status.HTTP_409_CONFLICT
+        if "exceeds" in str(exc):
+            status_code = status.HTTP_400_BAD_REQUEST
+        raise HTTPException(status_code=status_code, detail=str(exc)) from exc
 
     return _to_ticket_response(ticket)
 
@@ -232,12 +261,15 @@ async def update_ticket(
     ticket_id: str,
     update_request: UpdateTicketRequest,
     ticket_repo: Annotated[PostgresTicketRepository, Depends(get_ticket_repo)],
+    token_data: Annotated[JWTTokenData, Depends(get_token_data)],
 ) -> TicketResponse:
     """Update ticket soft constraints or widening stage."""
 
     ticket = await ticket_repo.get_ticket(ticket_id)
     if not ticket:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Ticket not found")
+
+    _ensure_leader(token_data, ticket)
 
     if update_request.mutation_seq <= ticket.mutation_seq:
         raise HTTPException(
@@ -263,12 +295,19 @@ async def heartbeat_ticket(
     ticket_id: str,
     heartbeat_request: HeartbeatRequest,
     ticket_repo: Annotated[PostgresTicketRepository, Depends(get_ticket_repo)],
+    token_data: Annotated[JWTTokenData, Depends(get_token_data)],
 ) -> TicketResponse:
     """Record a heartbeat for a ticket and extend its TTL."""
 
     settings = get_settings()
     heartbeat_at = heartbeat_request.heartbeat_at or datetime.now(timezone.utc)
     heartbeat_timeout_at = heartbeat_at + timedelta(seconds=settings.HEARTBEAT_TIMEOUT_SECONDS)
+
+    existing_ticket = await ticket_repo.get_ticket(ticket_id)
+    if not existing_ticket:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Ticket not found")
+
+    _ensure_leader(token_data, existing_ticket)
 
     ticket = await ticket_repo.record_heartbeat(
         ticket_id,
@@ -278,6 +317,8 @@ async def heartbeat_ticket(
     if not ticket:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Ticket not found")
 
+    _ensure_leader(token_data, ticket)
+
     return _to_ticket_response(ticket)
 
 
@@ -285,12 +326,85 @@ async def heartbeat_ticket(
 async def cancel_ticket(
     ticket_id: str,
     ticket_repo: Annotated[PostgresTicketRepository, Depends(get_ticket_repo)],
+    token_data: Annotated[JWTTokenData, Depends(get_token_data)],
 ) -> TicketResponse:
     """Cancel a queued ticket."""
+
+    ticket = await ticket_repo.get_ticket(ticket_id)
+    if not ticket:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Ticket not found")
+
+    _ensure_leader(token_data, ticket)
 
     ticket = await ticket_repo.cancel_ticket(ticket_id)
     if not ticket:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Ticket not found")
 
     return _to_ticket_response(ticket)
+
+
+@router.post("/{ticket_id}/proposal/accept", response_model=TicketResponse)
+async def accept_proposal(
+    ticket_id: str,
+    ticket_repo: Annotated[PostgresTicketRepository, Depends(get_ticket_repo)],
+    token_data: Annotated[JWTTokenData, Depends(get_token_data)],
+) -> TicketResponse:
+    """Accept a ready-check proposal and move to matched."""
+
+    ticket = await ticket_repo.get_ticket(ticket_id)
+    if not ticket:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Ticket not found")
+
+    _ensure_leader(token_data, ticket)
+
+    if ticket.status != MatchTicketStatus.PROPOSING or not ticket.proposal_id:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="No active proposal to accept",
+        )
+
+    updated = await ticket_repo.finalize_proposal(
+        ticket.proposal_id, MatchTicketStatus.MATCHED
+    )
+
+    if not updated:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail="Proposal already finalized"
+        )
+
+    updated_ticket = next((t for t in updated if t.ticket_id == ticket_id), None)
+    return _to_ticket_response(updated_ticket or updated[0])
+
+
+@router.post("/{ticket_id}/proposal/reject", response_model=TicketResponse)
+async def reject_proposal(
+    ticket_id: str,
+    ticket_repo: Annotated[PostgresTicketRepository, Depends(get_ticket_repo)],
+    token_data: Annotated[JWTTokenData, Depends(get_token_data)],
+) -> TicketResponse:
+    """Reject a ready-check proposal and cancel the tickets."""
+
+    ticket = await ticket_repo.get_ticket(ticket_id)
+    if not ticket:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Ticket not found")
+
+    _ensure_leader(token_data, ticket)
+
+    if ticket.status != MatchTicketStatus.PROPOSING or not ticket.proposal_id:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="No active proposal to reject",
+        )
+
+    updated = await ticket_repo.finalize_proposal(
+        ticket.proposal_id, MatchTicketStatus.CANCELLED
+    )
+
+    if not updated:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail="Proposal already finalized"
+        )
+
+    updated_ticket = next((t for t in updated if t.ticket_id == ticket_id), None)
+    return _to_ticket_response(updated_ticket or updated[0])
 

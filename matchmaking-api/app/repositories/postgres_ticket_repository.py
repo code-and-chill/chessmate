@@ -31,7 +31,12 @@ from app.repositories.ticket_repository import (
 logger = logging.getLogger(__name__)
 
 
-_ACTIVE_STATUSES = {MatchTicketStatus.QUEUED, MatchTicketStatus.SEARCHING}
+_ACTIVE_STATUSES = {
+    MatchTicketStatus.QUEUED,
+    MatchTicketStatus.SEARCHING,
+    MatchTicketStatus.PROPOSING,
+}
+_PROPOSABLE_STATUSES = {MatchTicketStatus.QUEUED, MatchTicketStatus.SEARCHING}
 
 
 class PostgresTicketRepository(TicketRepository):
@@ -66,6 +71,19 @@ class PostgresTicketRepository(TicketRepository):
         players: Sequence[TicketPlayerInput],
         heartbeat_timeout_at: datetime | None = None,
     ) -> Ticket:
+        if len(players) > self.settings.MAX_PARTY_SIZE:
+            raise ValueError(
+                f"Party size {len(players)} exceeds max of {self.settings.MAX_PARTY_SIZE}"
+            )
+
+        mmr_values = [p.mmr for p in players]
+        if mmr_values:
+            spread = max(mmr_values) - min(mmr_values)
+            if spread > self.settings.MAX_PARTY_MMR_SPREAD:
+                raise ValueError(
+                    f"Party MMR spread {spread} exceeds allowed {self.settings.MAX_PARTY_MMR_SPREAD}"
+                )
+
         async with self.session.begin():
             existing_ticket = await self._find_idempotent_ticket(
                 enqueue_key, pool_key, players
@@ -87,6 +105,7 @@ class PostgresTicketRepository(TicketRepository):
                 mutation_seq=mutation_seq,
                 widening_stage=widening_stage,
                 heartbeat_timeout_at=heartbeat_timeout_at,
+                leader_player_id=players[0].player_id if players else None,
             )
             self.session.add(ticket_model)
             await self.session.flush()
@@ -137,6 +156,8 @@ class PostgresTicketRepository(TicketRepository):
                 return None
 
             model.status = MatchTicketStatus.CANCELLED
+            model.proposal_id = None
+            model.proposal_timeout_at = None
             for player in model.players:
                 if player.status in _ACTIVE_STATUSES:
                     player.status = MatchTicketStatus.CANCELLED
@@ -153,6 +174,8 @@ class PostgresTicketRepository(TicketRepository):
                 return None
 
             model.status = status
+            model.proposal_id = None
+            model.proposal_timeout_at = None
             for player in model.players:
                 if player.status in _ACTIVE_STATUSES:
                     player.status = status
@@ -245,6 +268,85 @@ class PostgresTicketRepository(TicketRepository):
         result = await self.session.execute(stmt)
         models = result.scalars().unique().all()
         return [self._to_entity(model) for model in models]
+
+    async def create_proposal(
+        self,
+        ticket_ids: Sequence[str],
+        *,
+        proposal_id: str,
+        proposal_timeout_at: datetime,
+    ) -> list[Ticket]:
+        async with self.session.begin():
+            stmt = (
+                select(MatchTicketModel)
+                .options(selectinload(MatchTicketModel.players))
+                .where(MatchTicketModel.ticket_id.in_(ticket_ids))
+                .with_for_update()
+            )
+            result = await self.session.execute(stmt)
+            models = result.scalars().unique().all()
+
+            if len(models) != len(ticket_ids):
+                return []
+
+            if any(model.status not in _PROPOSABLE_STATUSES for model in models):
+                return []
+
+            for model in models:
+                model.status = MatchTicketStatus.PROPOSING
+                model.proposal_id = proposal_id
+                model.proposal_timeout_at = proposal_timeout_at
+                for player in model.players:
+                    if player.status in _PROPOSABLE_STATUSES:
+                        player.status = MatchTicketStatus.PROPOSING
+
+            await self.session.flush()
+            return [self._to_entity(model) for model in models]
+
+    async def finalize_proposal(
+        self, proposal_id: str, status: MatchTicketStatus
+    ) -> list[Ticket]:
+        if status not in {MatchTicketStatus.MATCHED, MatchTicketStatus.CANCELLED}:
+            raise ValueError("Proposal can only transition to matched or cancelled")
+
+        async with self.session.begin():
+            stmt = (
+                select(MatchTicketModel)
+                .options(selectinload(MatchTicketModel.players))
+                .where(MatchTicketModel.proposal_id == proposal_id)
+                .with_for_update()
+            )
+            result = await self.session.execute(stmt)
+            models = result.scalars().unique().all()
+
+            if not models or any(
+                model.status != MatchTicketStatus.PROPOSING for model in models
+            ):
+                return []
+
+            for model in models:
+                model.status = status
+                model.proposal_id = None
+                model.proposal_timeout_at = None
+                for player in model.players:
+                    if player.status in _ACTIVE_STATUSES:
+                        player.status = status
+
+            await self.session.flush()
+            return [self._to_entity(model) for model in models]
+
+    async def find_expired_proposals(self, cutoff: datetime) -> list[str]:
+        stmt = (
+            select(MatchTicketModel.proposal_id)
+            .where(
+                MatchTicketModel.proposal_timeout_at.is_not(None),
+                MatchTicketModel.proposal_timeout_at <= cutoff,
+                MatchTicketModel.status == MatchTicketStatus.PROPOSING,
+            )
+            .group_by(MatchTicketModel.proposal_id)
+        )
+        result = await self.session.execute(stmt)
+        return [proposal_id for proposal_id in result.scalars().all() if proposal_id]
 
     async def _find_idempotent_ticket(
         self,
@@ -363,6 +465,9 @@ class PostgresTicketRepository(TicketRepository):
             widening_stage=model.widening_stage or 0,
             last_heartbeat_at=model.last_heartbeat_at,
             heartbeat_timeout_at=model.heartbeat_timeout_at,
+            proposal_id=model.proposal_id,
+            proposal_timeout_at=model.proposal_timeout_at,
+            leader_player_id=model.leader_player_id,
             created_at=model.created_at,
             updated_at=model.updated_at,
             players=players,
