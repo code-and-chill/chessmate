@@ -24,6 +24,7 @@ from app.infrastructure.repositories.postgres_match_record_repo import (
     PostgresMatchRecordRepository,
 )
 from app.infrastructure.repositories.redis_queue_store import RedisQueueStore
+from app.repositories.postgres_ticket_repository import PostgresTicketRepository
 
 logger = logging.getLogger(__name__)
 
@@ -55,6 +56,17 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         decode_responses=settings.REDIS_DECODE_RESPONSES,
     )
     logger.info("Redis connected")
+
+    if settings.TICKET_HEARTBEATS_REDIS_ENABLED:
+        async with database_manager.session() as session:
+            ticket_repo = PostgresTicketRepository(
+                session, redis_client, enable_heartbeat_cache=True
+            )
+            restored = await ticket_repo.rebuild_cache_from_active()
+            logger.info(
+                "Rebuilt Redis matchmaking cache from Postgres",
+                extra={"restored_tickets": restored},
+            )
 
     # Create HTTP client
     http_client = httpx.AsyncClient(timeout=settings.LIVE_GAME_API_TIMEOUT_SECONDS)

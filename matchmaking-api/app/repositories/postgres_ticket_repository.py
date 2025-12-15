@@ -84,72 +84,79 @@ class PostgresTicketRepository(TicketRepository):
                     f"Party MMR spread {spread} exceeds allowed {self.settings.MAX_PARTY_MMR_SPREAD}"
                 )
 
+        ticket: Ticket | None = None
+
         async with self.session.begin():
             existing_ticket = await self._find_idempotent_ticket(
                 enqueue_key, pool_key, players
             )
             if existing_ticket:
-                return existing_ticket
-
-            ticket_model = MatchTicketModel(
-                ticket_id=ticket_id,
-                enqueue_key=enqueue_key,
-                idempotency_key=idempotency_key,
-                pool_key=pool_key,
-                status=MatchTicketStatus.QUEUED,
-                type=ticket_type,
-                search_params=search_params,
-                widening_config=widening_config,
-                constraints=constraints,
-                soft_constraints=soft_constraints,
-                mutation_seq=mutation_seq,
-                widening_stage=widening_stage,
-                heartbeat_timeout_at=heartbeat_timeout_at,
-                leader_player_id=players[0].player_id if players else None,
-            )
-            self.session.add(ticket_model)
-            await self.session.flush()
-
-            for player in players:
-                player_model = MatchTicketPlayerModel(
-                    match_ticket_player_id=f"mtp_{uuid.uuid4().hex[:12]}",
-                    ticket_id=ticket_model.ticket_id,
-                    player_id=player.player_id,
-                    mmr=player.mmr,
-                    rd=player.rd,
-                    latency_preferences=player.latency_preferences,
-                    preferred_platform=player.preferred_platform,
-                    input_type=player.input_type,
-                    risk_profile=player.risk_profile,
-                    status=MatchTicketStatus.QUEUED,
-                    pool_key=pool_key,
+                ticket = existing_ticket
+            else:
+                ticket_model = MatchTicketModel(
+                    ticket_id=ticket_id,
                     enqueue_key=enqueue_key,
+                    idempotency_key=idempotency_key,
+                    pool_key=pool_key,
+                    status=MatchTicketStatus.QUEUED,
+                    type=ticket_type,
+                    search_params=search_params,
+                    widening_config=widening_config,
+                    constraints=constraints,
+                    soft_constraints=soft_constraints,
+                    mutation_seq=mutation_seq,
+                    widening_stage=widening_stage,
+                    heartbeat_timeout_at=heartbeat_timeout_at,
+                    leader_player_id=players[0].player_id if players else None,
                 )
-                self.session.add(player_model)
+                self.session.add(ticket_model)
+                await self.session.flush()
 
-            await self.session.flush()
-            loaded_ticket = await self._fetch_ticket_model(ticket_model.ticket_id)
-            if not loaded_ticket:
-                raise RuntimeError("Failed to persist ticket")
+                for player in players:
+                    player_model = MatchTicketPlayerModel(
+                        match_ticket_player_id=f"mtp_{uuid.uuid4().hex[:12]}",
+                        ticket_id=ticket_model.ticket_id,
+                        player_id=player.player_id,
+                        mmr=player.mmr,
+                        rd=player.rd,
+                        latency_preferences=player.latency_preferences,
+                        preferred_platform=player.preferred_platform,
+                        input_type=player.input_type,
+                        risk_profile=player.risk_profile,
+                        status=MatchTicketStatus.QUEUED,
+                        pool_key=pool_key,
+                        enqueue_key=enqueue_key,
+                    )
+                    self.session.add(player_model)
 
-            ticket = self._to_entity(loaded_ticket)
+                await self.session.flush()
+                loaded_ticket = await self._fetch_ticket_model(ticket_model.ticket_id)
+                if not loaded_ticket:
+                    raise RuntimeError("Failed to persist ticket")
 
-            logger.info(
-                "Enqueued ticket %s with %d players",
-                ticket_id,
-                len(players),
-                extra={"pool_key": pool_key},
-            )
+                ticket = self._to_entity(loaded_ticket)
 
-            await self._cache_ticket(ticket)
+                logger.info(
+                    "Enqueued ticket %s with %d players",
+                    ticket_id,
+                    len(players),
+                    extra={"pool_key": pool_key},
+                )
 
-            return ticket
+        if not ticket:
+            raise RuntimeError("Failed to load ticket after enqueue")
+
+        await self._sync_ticket_cache(ticket)
+
+        return ticket
 
     async def get_ticket(self, ticket_id: str) -> Ticket | None:
         model = await self._fetch_ticket_model(ticket_id)
         return self._to_entity(model) if model else None
 
     async def cancel_ticket(self, ticket_id: str) -> Ticket | None:
+        ticket: Ticket | None = None
+
         async with self.session.begin():
             model = await self._fetch_ticket_model(ticket_id, for_update=True)
             if not model:
@@ -163,11 +170,16 @@ class PostgresTicketRepository(TicketRepository):
                     player.status = MatchTicketStatus.CANCELLED
 
             await self.session.flush()
-            return self._to_entity(model)
+            ticket = self._to_entity(model)
+
+        await self._sync_ticket_cache(ticket)
+        return ticket
 
     async def update_status(
         self, ticket_id: str, status: MatchTicketStatus
     ) -> Ticket | None:
+        ticket: Ticket | None = None
+
         async with self.session.begin():
             model = await self._fetch_ticket_model(ticket_id, for_update=True)
             if not model:
@@ -181,7 +193,10 @@ class PostgresTicketRepository(TicketRepository):
                     player.status = status
 
             await self.session.flush()
-            return self._to_entity(model)
+            ticket = self._to_entity(model)
+
+        await self._sync_ticket_cache(ticket)
+        return ticket
 
     async def update_soft_constraints(
         self,
@@ -210,7 +225,7 @@ class PostgresTicketRepository(TicketRepository):
             await self.session.flush()
             ticket = self._to_entity(model)
 
-        await self._cache_ticket(ticket)
+        await self._sync_ticket_cache(ticket)
         return ticket
 
     async def record_heartbeat(
@@ -234,8 +249,7 @@ class PostgresTicketRepository(TicketRepository):
             await self.session.flush()
             ticket = self._to_entity(model)
 
-        await self._cache_heartbeat(ticket)
-        await self._cache_ticket(ticket)
+        await self._sync_ticket_cache(ticket)
         return ticket
 
     async def find_stale_tickets(self, cutoff: datetime) -> list[Ticket]:
@@ -276,6 +290,8 @@ class PostgresTicketRepository(TicketRepository):
         proposal_id: str,
         proposal_timeout_at: datetime,
     ) -> list[Ticket]:
+        tickets: list[Ticket] = []
+
         async with self.session.begin():
             stmt = (
                 select(MatchTicketModel)
@@ -301,13 +317,20 @@ class PostgresTicketRepository(TicketRepository):
                         player.status = MatchTicketStatus.PROPOSING
 
             await self.session.flush()
-            return [self._to_entity(model) for model in models]
+            tickets = [self._to_entity(model) for model in models]
+
+        for ticket in tickets:
+            await self._sync_ticket_cache(ticket)
+
+        return tickets
 
     async def finalize_proposal(
         self, proposal_id: str, status: MatchTicketStatus
     ) -> list[Ticket]:
         if status not in {MatchTicketStatus.MATCHED, MatchTicketStatus.CANCELLED}:
             raise ValueError("Proposal can only transition to matched or cancelled")
+
+        tickets: list[Ticket] = []
 
         async with self.session.begin():
             stmt = (
@@ -333,7 +356,12 @@ class PostgresTicketRepository(TicketRepository):
                         player.status = status
 
             await self.session.flush()
-            return [self._to_entity(model) for model in models]
+            tickets = [self._to_entity(model) for model in models]
+
+        for ticket in tickets:
+            await self._sync_ticket_cache(ticket)
+
+        return tickets
 
     async def find_expired_proposals(self, cutoff: datetime) -> list[str]:
         stmt = (
@@ -377,44 +405,80 @@ class PostgresTicketRepository(TicketRepository):
 
         return None
 
-    async def _cache_heartbeat(self, ticket: Ticket) -> None:
-        if not (self.redis and self.enable_heartbeat_cache):
-            return
+    async def rebuild_cache_from_active(self) -> int:
+        """Repopulate Redis with active tickets from Postgres."""
 
-        if not ticket.heartbeat_timeout_at:
-            return
+        if not self._cache_enabled():
+            return 0
 
-        ttl_seconds = int(
-            max(
-                (ticket.heartbeat_timeout_at - datetime.now(timezone.utc)).total_seconds(),
-                0,
-            )
-        )
-        await self.redis.set(self._heartbeat_key(ticket.ticket_id), "1", ex=ttl_seconds)
+        tickets = await self.list_active_tickets()
+        for ticket in tickets:
+            await self._sync_ticket_cache(ticket)
+        return len(tickets)
 
-    async def _cache_ticket(self, ticket: Ticket) -> None:
-        if not (self.redis and self.enable_heartbeat_cache):
-            return
-
-        ttl_seconds = int(
-            max(
-                (ticket.heartbeat_timeout_at - datetime.now(timezone.utc)).total_seconds()
-                if ticket.heartbeat_timeout_at
-                else self.settings.HEARTBEAT_TIMEOUT_SECONDS,
-                0,
-            )
-        )
-        await self.redis.set(
-            self._ticket_key(ticket.ticket_id),
-            json.dumps(asdict(ticket), default=str),
-            ex=ttl_seconds,
-        )
-
-    def _heartbeat_key(self, ticket_id: str) -> str:
-        return f"matchmaking:ticket:{ticket_id}:heartbeat"
+    def _cache_enabled(self) -> bool:
+        return bool(self.redis and self.enable_heartbeat_cache)
 
     def _ticket_key(self, ticket_id: str) -> str:
-        return f"matchmaking:ticket:{ticket_id}"
+        return f"mm:ticket:{ticket_id}"
+
+    def _pool_zset_key(self, pool_key: str) -> str:
+        return f"mm:pool:{pool_key}:zset"
+
+    def _player_active_key(self, player_id: str) -> str:
+        return f"mm:player_active:{player_id}"
+
+    def _ticket_payload(self, ticket: Ticket) -> str:
+        return json.dumps(asdict(ticket), default=str)
+
+    def _cache_ttl_seconds(self, ticket: Ticket) -> int:
+        ttl_seconds = (
+            (ticket.heartbeat_timeout_at - datetime.now(timezone.utc)).total_seconds()
+            if ticket.heartbeat_timeout_at
+            else self.settings.HEARTBEAT_TIMEOUT_SECONDS
+        )
+        return max(int(ttl_seconds), 1)
+
+    async def _sync_ticket_cache(self, ticket: Ticket) -> None:
+        if not self._cache_enabled():
+            return
+
+        if ticket.status in _ACTIVE_STATUSES:
+            await self._write_ticket_cache(ticket)
+        else:
+            await self._purge_ticket_cache(ticket)
+
+    async def _write_ticket_cache(self, ticket: Ticket) -> None:
+        ttl_seconds = self._cache_ttl_seconds(ticket)
+        ticket_key = self._ticket_key(ticket.ticket_id)
+        pool_key = self._pool_zset_key(ticket.pool_key)
+        player_keys = [self._player_active_key(player.player_id) for player in ticket.players]
+
+        pipe = self.redis.pipeline()
+        pipe.set(ticket_key, self._ticket_payload(ticket), ex=ttl_seconds)
+        pipe.zadd(pool_key, {ticket.ticket_id: ticket.created_at.timestamp()})
+        for key in player_keys:
+            pipe.set(key, ticket.ticket_id, ex=ttl_seconds)
+        await pipe.execute()
+
+        await self._ensure_pool_ttl(pool_key, ttl_seconds)
+
+    async def _purge_ticket_cache(self, ticket: Ticket) -> None:
+        ticket_key = self._ticket_key(ticket.ticket_id)
+        pool_key = self._pool_zset_key(ticket.pool_key)
+        player_keys = [self._player_active_key(player.player_id) for player in ticket.players]
+
+        pipe = self.redis.pipeline()
+        pipe.delete(ticket_key)
+        pipe.zrem(pool_key, ticket.ticket_id)
+        for key in player_keys:
+            pipe.delete(key)
+        await pipe.execute()
+
+    async def _ensure_pool_ttl(self, pool_key: str, ttl_seconds: int) -> None:
+        current_ttl = await self.redis.ttl(pool_key)
+        effective_ttl = ttl_seconds if current_ttl in {-2, -1} else max(current_ttl, ttl_seconds)
+        await self.redis.expire(pool_key, effective_ttl)
 
     async def _fetch_ticket_model(
         self, ticket_id: str, *, for_update: bool = False

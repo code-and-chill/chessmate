@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field
 from app.api.dependencies import get_ticket_repo, get_token_data
 from app.core.config import get_settings
 from app.core.security import JWTTokenData
+from app.domain.utils.pool_key import format_pool_key
 from app.infrastructure.database.match_ticket_model import (
     MatchTicketStatus,
     MatchTicketType,
@@ -130,8 +131,11 @@ def _ensure_leader(token_data: JWTTokenData, ticket: Ticket) -> None:
 
 
 def _build_pool_key(constraints: ConstraintPayload) -> str:
-    return (
-        f"{constraints.variant}_{constraints.time_control}_{constraints.mode}_{constraints.region}"
+    return format_pool_key(
+        mode=constraints.mode,
+        variant=constraints.variant,
+        time_control=constraints.time_control,
+        region=constraints.region,
     )
 
 

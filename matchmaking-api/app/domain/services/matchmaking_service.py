@@ -333,7 +333,7 @@ class MatchmakingService:
 
         Args:
             tenant_id: Tenant ID
-            pool_key: Pool key (e.g., "standard_5+0_rated_ASIA")
+            pool_key: Pool key (e.g., "mode:rated|variant:standard|tc:5+0|region:ASIA")
 
         Returns:
             List of (entry1, entry2) tuples for potential matches

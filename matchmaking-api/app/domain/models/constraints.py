@@ -1,6 +1,8 @@
 """Constraint models for matchmaking tickets."""
 from typing import Optional
 
+from app.domain.utils.pool_key import format_pool_key
+
 
 class HardConstraints:
     """Hard requirements that must be satisfied for matchmaking."""
@@ -13,7 +15,9 @@ class HardConstraints:
 
     def pool_key(self) -> str:
         """Generate the pool key used for grouping tickets."""
-        return f"{self.variant}_{self.time_control}_{self.mode}_{self.region}"
+        return format_pool_key(
+            mode=self.mode, variant=self.variant, time_control=self.time_control, region=self.region
+        )
 
     def to_dict(self) -> dict:
         """Serialize the hard constraints."""
