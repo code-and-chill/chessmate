@@ -1,8 +1,10 @@
 """Unit tests for matchmaking service."""
 import pytest
+import pytest
 from datetime import datetime, timezone
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock
 
+from app.clients.rating_client import PlayerRating
 from app.domain.models import QueueEntry, QueueEntryStatus
 from app.domain.services.matchmaking_service import MatchmakingService
 from app.core.exceptions import AlreadyInQueueException, QueueEntryNotFoundException
@@ -27,9 +29,23 @@ def mock_live_game_api():
 
 
 @pytest.fixture
-def matchmaking_service(mock_queue_store, mock_match_repo, mock_live_game_api):
+def mock_rating_api():
+    """Create mock rating API client."""
+
+    client = AsyncMock()
+    client.get_bulk_ratings.return_value = {
+        "user_1": PlayerRating(rating=1500, rating_deviation=40.0),
+        "user_2": PlayerRating(rating=1525, rating_deviation=38.0),
+    }
+    return client
+
+
+@pytest.fixture
+def matchmaking_service(mock_queue_store, mock_match_repo, mock_live_game_api, mock_rating_api):
     """Create matchmaking service instance."""
-    return MatchmakingService(mock_queue_store, mock_match_repo, mock_live_game_api)
+    return MatchmakingService(
+        mock_queue_store, mock_match_repo, mock_live_game_api, mock_rating_api
+    )
 
 
 @pytest.mark.asyncio
@@ -158,7 +174,9 @@ class TestMatchmakingService:
 
         mock_live_game_api.create_game.return_value = "game_123"
 
-        success = await matchmaking_service.match_players(entry1, entry2, 1500, 1500)
+        success = await matchmaking_service.match_players(
+            entry1, entry2, 1500, 1500, "DEFAULT"
+        )
 
         assert success is True
         mock_live_game_api.create_game.assert_called_once()
@@ -202,7 +220,9 @@ class TestMatchmakingService:
         )
 
         assert len(matches) == 1
-        assert matches[0] == (entry1, entry2) or matches[0] == (entry2, entry1)
+        entries = {(matches[0][0], matches[0][1]), (matches[0][1], matches[0][0])}
+        assert (entry1, entry2) in entries
+        assert matches[0][2] == "DEFAULT"
 
     async def test_find_matches_empty_pool(
         self, matchmaking_service, mock_queue_store

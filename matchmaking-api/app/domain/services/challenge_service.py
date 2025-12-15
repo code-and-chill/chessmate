@@ -5,9 +5,11 @@ import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
+from app.clients.rating_client import RatingAPIClient
 from app.core.config import get_settings
 from app.domain.models import Challenge, ChallengeStatus
 from app.domain.repositories.challenge import ChallengeRepository
+from app.domain.utils.time_control import rating_pool_id_from_constraints
 from app.infrastructure.external.live_game_api import LiveGameAPIClient
 
 logger = logging.getLogger(__name__)
@@ -23,6 +25,7 @@ class ChallengeService:
         self,
         challenge_repo: ChallengeRepository,
         live_game_api: LiveGameAPIClient,
+        rating_api: RatingAPIClient,
     ) -> None:
         """Initialize challenge service.
 
@@ -32,6 +35,7 @@ class ChallengeService:
         """
         self.challenge_repo = challenge_repo
         self.live_game_api = live_game_api
+        self.rating_api = rating_api
         self.settings = get_settings()
 
     async def create_challenge(
@@ -103,8 +107,6 @@ class ChallengeService:
         self,
         challenge_id: str,
         user_id: str,
-        challenger_rating: int = 1500,
-        opponent_rating: int = 1500,
     ) -> Challenge:
         """Accept a challenge and create game.
 
@@ -153,9 +155,19 @@ class ChallengeService:
                 f"Challenge is in state {challenge.status.value}"
             )
 
-        # Determine colors based on preference
+        pool_id = rating_pool_id_from_constraints(
+            challenge.variant, challenge.time_control
+        )
+        ratings = await self.rating_api.get_bulk_ratings(
+            [challenge.challenger_user_id, challenge.opponent_user_id], pool_id
+        )
+        challenger_rating = ratings.get(challenge.challenger_user_id)
+        opponent_rating = ratings.get(challenge.opponent_user_id)
+
         white_user_id, black_user_id, white_rating, black_rating = self._assign_colors(
-            challenge, challenger_rating, opponent_rating
+            challenge,
+            challenger_rating.rating if challenger_rating else self.settings.RATING_DEFAULT_MMR,
+            opponent_rating.rating if opponent_rating else self.settings.RATING_DEFAULT_MMR,
         )
 
         try:
