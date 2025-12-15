@@ -51,7 +51,9 @@ class Settings(BaseSettings):
     MATCH_PAIRS_PER_BATCH: int = 50  # Number of pairs to attempt per batch
     HEARTBEAT_TIMEOUT_SECONDS: int = 30  # Heartbeat grace period
     HEARTBEAT_REAPER_INTERVAL_SECONDS: float = 5.0  # Sweep expired tickets
-    PROPOSAL_TIMEOUT_SECONDS: int = 10  # Time to accept/decline proposals
+    PROPOSING_TIMEOUT_SECONDS: int = 10  # Time to accept/decline proposals
+    MAX_PARTY_SIZE: int = 4
+    MAX_PARTY_MMR_SPREAD: int = 400
     TICKET_HEARTBEATS_REDIS_ENABLED: bool = False
 
     # Observability
