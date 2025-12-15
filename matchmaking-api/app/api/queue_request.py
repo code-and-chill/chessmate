@@ -1,14 +1,17 @@
 """Queue entry request model."""
-from typing import Optional
+from app.schemas.ticket import (
+    HardConstraintsSchema,
+    PlayerSchema,
+    QueueRequestSchema,
+    SoftConstraintsSchema,
+    TicketTypeEnum,
+)
 
-from pydantic import BaseModel
 
+class QueueRequest(QueueRequestSchema):
+    """Queue entry request schema aligning with ticket fields."""
 
-class QueueRequest(BaseModel):
-    """Queue entry request."""
-
-    time_control: str
-    mode: str
-    variant: str = "standard"
-    region: str = "DEFAULT"
-    client_metadata: Optional[dict] = None
+    ticket_type: TicketTypeEnum = TicketTypeEnum.SOLO
+    players: list[PlayerSchema] = []
+    hard_constraints: HardConstraintsSchema
+    soft_constraints: SoftConstraintsSchema | None = None

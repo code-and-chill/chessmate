@@ -1,70 +1,69 @@
 """Queue store repository interface."""
 from abc import ABC, abstractmethod
-from datetime import datetime
 from typing import Optional
 
-from app.domain.models import QueueEntry, QueueEntryStatus
+from app.domain.models import QueueEntryStatus, Ticket
 
 
 class QueueStoreRepository(ABC):
     """Repository interface for queue storage.
 
-    Manages queue entries in Redis.
+    Manages matchmaking tickets in Redis.
     """
 
     @abstractmethod
-    async def add_entry(self, entry: QueueEntry) -> None:
-        """Add entry to queue.
+    async def add_entry(self, entry: Ticket) -> None:
+        """Add ticket to queue.
 
         Args:
-            entry: Queue entry to add
+            entry: Ticket to add
         """
         pass
 
     @abstractmethod
-    async def get_entry(self, queue_entry_id: str) -> Optional[QueueEntry]:
-        """Get queue entry by ID.
+    async def get_entry(self, ticket_id: str) -> Optional[Ticket]:
+        """Get ticket by ID.
 
         Args:
-            queue_entry_id: ID of queue entry
+            ticket_id: ID of ticket
 
         Returns:
-            Queue entry or None if not found
+            Ticket or None if not found
         """
         pass
 
     @abstractmethod
     async def update_entry_status(
-        self, queue_entry_id: str, status: QueueEntryStatus, match_id: Optional[str] = None
+        self, ticket_id: str, status: QueueEntryStatus, match_id: Optional[str] = None
     ) -> None:
-        """Update entry status.
+        """Update ticket status.
 
         Args:
-            queue_entry_id: ID of queue entry
+            ticket_id: ID of ticket
             status: New status
             match_id: Match ID if matched
         """
         pass
 
     @abstractmethod
-    async def get_active_entry_for_user(self, user_id: str, tenant_id: str) -> Optional[QueueEntry]:
-        """Get active queue entry for user.
+    async def get_active_entry_for_user(self, user_id: str, tenant_id: str) -> Optional[Ticket]:
+        """Get active ticket for user.
 
         Args:
             user_id: User ID
             tenant_id: Tenant ID
 
         Returns:
-            Active queue entry or None
+            Active ticket or None
         """
         pass
 
     @abstractmethod
-    async def remove_entry(self, queue_entry_id: str) -> None:
-        """Remove entry from queue.
+    async def remove_entry(self, ticket_id: str) -> None:
+        """Remove ticket from queue.
 
         Args:
-            queue_entry_id: ID of queue entry
+            ticket_id: ID of ticket
         """
         pass
 
@@ -74,8 +73,8 @@ class QueueStoreRepository(ABC):
         tenant_id: str,
         pool_key: str,
         status: QueueEntryStatus = QueueEntryStatus.SEARCHING,
-    ) -> list[QueueEntry]:
-        """Get all entries in a pool by status.
+    ) -> list[Ticket]:
+        """Get all tickets in a pool by status.
 
         Args:
             tenant_id: Tenant ID
@@ -83,14 +82,12 @@ class QueueStoreRepository(ABC):
             status: Status filter
 
         Returns:
-            List of queue entries
+            List of tickets
         """
         pass
 
     @abstractmethod
-    async def get_queue_stats(
-        self, tenant_id: str, pool_key: str
-    ) -> dict:
+    async def get_queue_stats(self, tenant_id: str, pool_key: str) -> dict:
         """Get queue statistics.
 
         Args:

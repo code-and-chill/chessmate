@@ -5,7 +5,17 @@ from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 from app.core.config import get_settings
-from app.domain.models import MatchRecord, QueueEntry, QueueEntryStatus, RatingSnapshot
+from app.domain.models import (
+    HardConstraints,
+    MatchRecord,
+    Player,
+    QueueEntryStatus,
+    RatingSnapshot,
+    SoftConstraints,
+    Ticket,
+    TicketType,
+    WideningState,
+)
 from app.domain.repositories.match_record import MatchRecordRepository
 from app.domain.repositories.queue_store import QueueStoreRepository
 from app.infrastructure.external.live_game_api import LiveGameAPIClient
@@ -45,7 +55,12 @@ class MatchmakingService:
         mode: str,
         variant: str = "standard",
         region: str = "DEFAULT",
-    ) -> QueueEntry:
+        ticket_type: TicketType = TicketType.SOLO,
+        players: Optional[list[Player]] = None,
+        soft_constraints: Optional[SoftConstraints] = None,
+        idempotency_key: Optional[str] = None,
+        client_request_id: Optional[str] = None,
+    ) -> Ticket:
         """Enqueue player for matchmaking.
 
         Per service-spec 4.1.1 POST /v1/matchmaking/queue
@@ -57,9 +72,14 @@ class MatchmakingService:
             mode: Mode ("rated" or "casual")
             variant: Variant (default "standard")
             region: Region (default "DEFAULT")
+            ticket_type: Solo or party ticket
+            players: Optional explicit player roster
+            soft_constraints: Optional soft preferences
+            idempotency_key: Optional idempotency token
+            client_request_id: Optional request correlation
 
         Returns:
-            Queue entry
+            Ticket
 
         Raises:
             AlreadyInQueueException: If user already in queue
@@ -71,32 +91,41 @@ class MatchmakingService:
         if existing:
             raise AlreadyInQueueException(f"User {user_id} already in queue")
 
-        queue_entry_id = f"q_{uuid.uuid4().hex[:12]}"
+        ticket_id = f"t_{uuid.uuid4().hex[:12]}"
         now = datetime.now(timezone.utc)
 
-        entry = QueueEntry(
-            queue_entry_id=queue_entry_id,
+        hard_constraints = HardConstraints(
+            time_control=time_control, mode=mode, variant=variant, region=region
+        )
+        widening_state = WideningState(current_window=self.settings.INITIAL_RATING_WINDOW)
+
+        ticket_players = players or [Player(user_id=user_id)]
+
+        ticket = Ticket(
+            ticket_id=ticket_id,
             tenant_id=tenant_id,
-            user_id=user_id,
-            time_control=time_control,
-            mode=mode,
-            variant=variant,
-            region=region,
+            ticket_type=ticket_type,
             status=QueueEntryStatus.SEARCHING,
+            players=ticket_players,
+            hard_constraints=hard_constraints,
+            soft_constraints=soft_constraints,
+            widening_state=widening_state,
             enqueued_at=now,
             updated_at=now,
+            idempotency_key=idempotency_key,
+            client_request_id=client_request_id,
         )
 
-        await self.queue_store.add_entry(entry)
+        await self.queue_store.add_entry(ticket)
 
         logger.info(
             f"Enqueued player {user_id} for {time_control} {mode}",
-            extra={"queue_entry_id": queue_entry_id, "tenant_id": tenant_id},
+            extra={"queue_entry_id": ticket_id, "tenant_id": tenant_id},
         )
 
-        return entry
+        return ticket
 
-    async def cancel_queue_entry(self, queue_entry_id: str, user_id: str) -> QueueEntry:
+    async def cancel_queue_entry(self, queue_entry_id: str, user_id: str) -> Ticket:
         """Cancel queue entry.
 
         Per service-spec 4.1.2 DELETE /v1/matchmaking/queue/{queue_entry_id}
@@ -119,7 +148,7 @@ class MatchmakingService:
             raise QueueEntryNotFoundException()
 
         # Validate user owns entry
-        if entry.user_id != user_id:
+        if entry.players[0].user_id != user_id:
             raise QueueEntryNotFoundException()
 
         # Check if already matched or finalized
@@ -141,7 +170,7 @@ class MatchmakingService:
 
         return updated_entry
 
-    async def get_queue_status(self, queue_entry_id: str) -> QueueEntry:
+    async def get_queue_status(self, queue_entry_id: str) -> Ticket:
         """Get queue entry status.
 
         Per service-spec 4.1.3 GET /v1/matchmaking/queue/{queue_entry_id}
@@ -186,28 +215,17 @@ class MatchmakingService:
                 "queue_entry": None,
                 "match": {
                     "game_id": entry.match_id,
-                    "time_control": entry.time_control,
-                    "mode": entry.mode,
-                    "variant": entry.variant,
+                    "time_control": entry.hard_constraints.time_control,
+                    "mode": entry.hard_constraints.mode,
+                    "variant": entry.hard_constraints.variant,
                     # opponent info would be fetched from match record
                 },
             }
 
-        return {
-            "queue_entry": {
-                "queue_entry_id": entry.queue_entry_id,
-                "status": entry.status.value,
-                "time_control": entry.time_control,
-                "mode": entry.mode,
-                "variant": entry.variant,
-                "region": entry.region,
-                "enqueued_at": entry.enqueued_at.isoformat(),
-            },
-            "match": None,
-        }
+        return {"queue_entry": entry, "match": None}
 
     async def match_players(
-        self, entry1: QueueEntry, entry2: QueueEntry, rating1: int, rating2: int
+        self, entry1: Ticket, entry2: Ticket, rating1: int, rating2: int
     ) -> bool:
         """Match two players and create game.
 
@@ -236,15 +254,15 @@ class MatchmakingService:
             # Call live-game-api to create game
             game_id = await self.live_game_api.create_game(
                 tenant_id=entry1.tenant_id,
-                white_user_id=white_entry.user_id,
-                black_user_id=black_entry.user_id,
-                time_control=entry1.time_control,
-                mode=entry1.mode,
-                variant=entry1.variant,
+                white_user_id=white_entry.players[0].user_id,
+                black_user_id=black_entry.players[0].user_id,
+                time_control=entry1.hard_constraints.time_control,
+                mode=entry1.hard_constraints.mode,
+                variant=entry1.hard_constraints.variant,
                 rating_snapshot={"white": white_rating, "black": black_rating},
                 metadata={
                     "matchmaking_source": "auto",
-                    "region": entry1.region,
+                    "region": entry1.hard_constraints.region,
                 },
             )
 
@@ -254,11 +272,11 @@ class MatchmakingService:
                 match_id=match_id,
                 tenant_id=entry1.tenant_id,
                 game_id=game_id,
-                white_user_id=white_entry.user_id,
-                black_user_id=black_entry.user_id,
-                time_control=entry1.time_control,
-                mode=entry1.mode,
-                variant=entry1.variant,
+                white_user_id=white_entry.players[0].user_id,
+                black_user_id=black_entry.players[0].user_id,
+                time_control=entry1.hard_constraints.time_control,
+                mode=entry1.hard_constraints.mode,
+                variant=entry1.hard_constraints.variant,
                 created_at=datetime.now(timezone.utc),
                 queue_entry_ids=[entry1.queue_entry_id, entry2.queue_entry_id],
                 rating_snapshot=rating_snapshot,
@@ -277,8 +295,8 @@ class MatchmakingService:
             logger.info(
                 f"Created match {match_id} with game_id {game_id}",
                 extra={
-                    "white_user_id": white_entry.user_id,
-                    "black_user_id": black_entry.user_id,
+                    "white_user_id": white_entry.players[0].user_id,
+                    "black_user_id": black_entry.players[0].user_id,
                     "tenant_id": entry1.tenant_id,
                 },
             )
@@ -332,12 +350,20 @@ class MatchmakingService:
             wait_time = entry.time_in_queue_seconds(now)
 
             # Calculate rating window based on wait time
-            initial_window = self.settings.INITIAL_RATING_WINDOW
+            initial_window = (
+                entry.soft_constraints.rating_window
+                if entry.soft_constraints and entry.soft_constraints.rating_window
+                else entry.widening_state.current_window
+                if entry.widening_state.current_window
+                else self.settings.INITIAL_RATING_WINDOW
+            )
             widening_interval = self.settings.RATING_WINDOW_WIDENING_INTERVAL
             widening_amount = self.settings.RATING_WINDOW_WIDENING_AMOUNT
 
             windows_widened = int(wait_time / widening_interval)
             current_window = initial_window + (windows_widened * widening_amount)
+            entry.widening_state.current_window = current_window
+            entry.widening_state.widen_count = windows_widened
 
             # TODO: Get rating for player (from cache or external service)
             player_rating = 1500  # Placeholder
@@ -393,7 +419,7 @@ class MatchmakingService:
                 timed_out_count += 1
                 logger.info(
                     f"Timed out queue entry {entry.queue_entry_id}",
-                    extra={"user_id": entry.user_id, "wait_seconds": wait_time},
+                    extra={"user_id": entry.players[0].user_id, "wait_seconds": wait_time},
                 )
 
         return timed_out_count
