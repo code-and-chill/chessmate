@@ -55,6 +55,9 @@ class Ticket:
     search_params: dict[str, Any]
     widening_config: dict[str, Any]
     constraints: dict[str, Any]
+    soft_constraints: dict[str, Any]
+    mutation_seq: int
+    widening_stage: int
     last_heartbeat_at: datetime | None
     heartbeat_timeout_at: datetime | None
     created_at: datetime
@@ -77,6 +80,9 @@ class TicketRepository(ABC):
         search_params: dict[str, Any],
         widening_config: dict[str, Any],
         constraints: dict[str, Any],
+        soft_constraints: dict[str, Any],
+        mutation_seq: int,
+        widening_stage: int,
         players: Sequence[TicketPlayerInput],
         heartbeat_timeout_at: datetime | None = None,
     ) -> Ticket:
@@ -102,7 +108,12 @@ class TicketRepository(ABC):
 
     @abstractmethod
     async def update_soft_constraints(
-        self, ticket_id: str, constraints: dict[str, Any]
+        self,
+        ticket_id: str,
+        *,
+        soft_constraints: dict[str, Any],
+        mutation_seq: int,
+        widening_stage: int | None = None,
     ) -> Ticket | None:
         """Persist updated soft constraints for a ticket."""
         raise NotImplementedError
