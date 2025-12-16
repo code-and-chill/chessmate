@@ -1,10 +1,13 @@
-from sqlalchemy import Column, String, Integer, Float, DateTime, Boolean, Text, JSON, ForeignKey
+from sqlalchemy import Column, String, Integer, Float, DateTime, Boolean, Text, JSON, ForeignKey, Index
 from sqlalchemy.ext.declarative import declarative_base
 from datetime import datetime
 
 Base = declarative_base()
 
 class Puzzle(Base):
+    """
+    Puzzle model with optimized indexes for common query patterns.
+    """
     __tablename__ = "puzzles"
 
     id = Column(String(36), primary_key=True)
@@ -12,14 +15,19 @@ class Puzzle(Base):
     solution_moves = Column(JSON, nullable=False)
     side_to_move = Column(String(5), nullable=False)
     initial_depth = Column(Integer, nullable=False)
-    difficulty = Column(String(20), nullable=False)
+    difficulty = Column(String(20), nullable=False, index=True)  # Index for filtering by difficulty
     themes = Column(JSON, nullable=False)
     source = Column(String(50), nullable=False)
-    rating = Column(Integer, nullable=False)
+    rating = Column(Integer, nullable=False, index=True)  # Index for rating-based queries
     popularity_score = Column(Float, default=0.0)
-    is_active = Column(Boolean, default=True)
+    is_active = Column(Boolean, default=True, index=True)  # Index for active puzzle filtering
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Composite index for common query: active puzzles by difficulty and rating
+    __table_args__ = (
+        Index('ix_puzzles_active_difficulty_rating', 'is_active', 'difficulty', 'rating'),
+    )
 
 class DailyPuzzle(Base):
     __tablename__ = "daily_puzzles"
@@ -34,13 +42,16 @@ class DailyPuzzle(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
 class UserPuzzleAttempt(Base):
+    """
+    User puzzle attempt tracking with optimized indexes.
+    """
     __tablename__ = "puzzle_attempts"
 
     id = Column(String(36), primary_key=True)
     user_id = Column(String(36), nullable=False, index=True)
-    puzzle_id = Column(String(36), ForeignKey("puzzles.id"), nullable=False)
+    puzzle_id = Column(String(36), ForeignKey("puzzles.id"), nullable=False, index=True)
     is_daily = Column(Boolean, default=False)
-    started_at = Column(DateTime, default=datetime.utcnow)
+    started_at = Column(DateTime, default=datetime.utcnow, index=True)  # Index for recent attempts
     completed_at = Column(DateTime, nullable=True)
     status = Column(String(20), nullable=False)
     moves_played = Column(JSON, nullable=False)
@@ -49,6 +60,14 @@ class UserPuzzleAttempt(Base):
     time_spent_ms = Column(Integer, nullable=False)
     rating_change = Column(Integer, nullable=True)
     client_metadata = Column(JSON, nullable=True)
+
+    # Composite indexes for common query patterns
+    __table_args__ = (
+        # For querying user's daily attempts
+        Index('ix_attempts_user_puzzle_daily', 'user_id', 'puzzle_id', 'is_daily'),
+        # For getting user's recent attempts (history)
+        Index('ix_attempts_user_started', 'user_id', 'started_at'),
+    )
 
 class UserPuzzleStats(Base):
     __tablename__ = "user_puzzle_stats"

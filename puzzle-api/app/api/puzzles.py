@@ -112,34 +112,54 @@ def submit_puzzle_attempt(
     db: Session = Depends(get_db),
     user_id: str = "test-user-id"
 ):
+    # Check rate limit first (fail fast)
+    limiter = get_default_limiter()
+    rate = limiter.check(user_id)
+    if rate["remaining"] <= 0:
+        raise HTTPException(
+            status_code=429, 
+            detail="Rate limit exceeded", 
+            headers={"Retry-After": str(rate["reset_seconds"])}
+        )
+
+    # Validate puzzle exists
     puzzle = PuzzleRepository.get_puzzle_by_id(db, puzzle_id)
     if not puzzle:
         raise HTTPException(status_code=404, detail="Puzzle not found")
 
-    limiter = get_default_limiter()
-    rate = limiter.check(user_id)
-    if rate["remaining"] <= 0:
-        raise HTTPException(status_code=429, detail="Rate limit exceeded", headers={"Retry-After": str(rate["reset_seconds"])})
-
+    # Record the rate limit usage and get updated rate info
     limiter.record(user_id)
+    updated_rate = limiter.check(user_id)
 
-    result = PuzzleService.process_attempt(db=db, user_id=user_id, puzzle_id=puzzle_id, attempt_data=attempt.dict(), puzzle_rating=puzzle.rating, is_daily=attempt.is_daily)
+    # Process the attempt
+    result = PuzzleService.process_attempt(
+        db=db, 
+        user_id=user_id, 
+        puzzle_id=puzzle_id, 
+        attempt_data=attempt.dict(), 
+        puzzle_rating=puzzle.rating, 
+        is_daily=attempt.is_daily
+    )
 
+    # Create attempt record (don't fail the request if this fails)
+    attempt_id = None
     try:
         attempt_obj = UserPuzzleAttemptRepository.create_attempt(db, attempt)
+        attempt_id = attempt_obj.id
     except Exception:
-        attempt_obj = None
+        pass  # Log this in production
 
-    correct = getattr(result, 'correct', result.get('correct') if isinstance(result, dict) else False)
+    # Generate guidance for incorrect attempts
+    correct = result.get('correct', False) if isinstance(result, dict) else getattr(result, 'correct', False)
     guidance = None
     if not correct:
-        sol = getattr(puzzle, 'solution_moves', []) or []
+        sol = puzzle.solution_moves or []
         if sol:
-            guidance = sol[: min(3, len(sol)) ]
+            guidance = sol[:min(3, len(sol))]
 
     return {
         "result": result,
-        "attempt_id": getattr(attempt_obj, 'id', None),
+        "attempt_id": attempt_id,
         "guidance": guidance,
-        "rate_limit": limiter.check(user_id)
+        "rate_limit": updated_rate  # Use cached rate instead of re-checking
     }

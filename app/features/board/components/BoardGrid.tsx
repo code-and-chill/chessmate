@@ -1,5 +1,5 @@
-import React from 'react';
-import { View } from 'react-native';
+import React, { useMemo, useCallback } from 'react';
+import { View, StyleSheet } from 'react-native';
 import { Square } from './Square';
 import type { Piece as EnginePiece } from '@/core/utils/chess';
 import type { PieceTheme } from '../types/pieces';
@@ -20,7 +20,15 @@ type BoardGridProps = {
   translucentDark: string;
 };
 
-export const BoardGrid: React.FC<BoardGridProps> = ({
+// Pre-computed rank/file arrays to avoid Array.from() on each render
+const RANKS = [0, 1, 2, 3, 4, 5, 6, 7];
+const FILES = [0, 1, 2, 3, 4, 5, 6, 7];
+
+/**
+ * Optimized chess board grid component.
+ * Uses memoization and Set-based lookup for O(1) legal move checks.
+ */
+export const BoardGrid = React.memo<BoardGridProps>(({
   board,
   orientation,
   squareSize,
@@ -34,16 +42,36 @@ export const BoardGrid: React.FC<BoardGridProps> = ({
   checkColor,
   translucentDark,
 }) => {
+  // Convert legal moves array to Set for O(1) lookup instead of O(n) .some()
+  const legalMovesSet = useMemo(() => {
+    const set = new Set<string>();
+    for (const move of legalMoves) {
+      set.add(`${move.file}-${move.rank}`);
+    }
+    return set;
+  }, [legalMoves]);
+
+  // Memoize the check for legal moves
+  const isLegalMove = useCallback(
+    (file: number, rank: number) => legalMovesSet.has(`${file}-${rank}`),
+    [legalMovesSet]
+  );
+
+  // Memoize board dimensions
+  const boardDimensions = useMemo(
+    () => ({ width: squareSize * 8, height: squareSize * 8 }),
+    [squareSize]
+  );
+
   return (
-    <View style={{ width: squareSize * 8, height: squareSize * 8 }}>
-      {Array.from({ length: 8 }).map((_, rankIdx) => {
+    <View style={boardDimensions}>
+      {RANKS.map((rankIdx) => {
         const rank = orientation === 'white' ? 7 - rankIdx : rankIdx;
         return (
-          <View key={rank} style={{ flexDirection: 'row' }}>
-            {Array.from({ length: 8 }).map((_, fileIdx) => {
+          <View key={rank} style={styles.row}>
+            {FILES.map((fileIdx) => {
               const file = orientation === 'white' ? fileIdx : 7 - fileIdx;
               const isSelected = selectedSquare?.file === file && selectedSquare?.rank === rank;
-              const isLegalMove = legalMoves.some(m => m.file === file && m.rank === rank);
               const piece = board[rank][file];
               const isAnimatingFrom = animatingPiece?.fromFile === file && animatingPiece?.fromRank === rank;
               const isKingInCheckOnSquare = isMyKingInCheck && piece?.type === 'K' && piece?.color === (animatingPiece ? animatingPiece.piece.color : piece?.color);
@@ -57,7 +85,7 @@ export const BoardGrid: React.FC<BoardGridProps> = ({
                   squareSize={squareSize}
                   backgroundColor={getSquareBackground(file, rank)}
                   isSelected={isSelected}
-                  isLegalMove={isLegalMove}
+                  isLegalMove={isLegalMove(file, rank)}
                   piece={piece}
                   isAnimatingFrom={isAnimatingFrom}
                   isKingInCheckOnSquare={isKingInCheckOnSquare}
@@ -73,6 +101,14 @@ export const BoardGrid: React.FC<BoardGridProps> = ({
       })}
     </View>
   );
-};
+});
+
+BoardGrid.displayName = 'BoardGrid';
+
+const styles = StyleSheet.create({
+  row: {
+    flexDirection: 'row',
+  },
+});
 
 export default BoardGrid;
