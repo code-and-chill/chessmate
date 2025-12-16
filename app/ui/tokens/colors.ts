@@ -10,52 +10,54 @@ export type ColorToken = {
 
 export const colorTokens = {
   neutral: {
-    50: { light: '#FAFAFA', dark: '#0A0A0A' } as ColorToken,
-    100: { light: '#F3F3F3', dark: '#161616' } as ColorToken,
-    200: { light: '#E8E8E8', dark: '#262626' } as ColorToken,
-    300: { light: '#D4D4D4', dark: '#404040' } as ColorToken,
-    400: { light: '#A1A1A1', dark: '#7C7C7C' } as ColorToken,
-    500: { light: '#737373', dark: '#A3A3A3' } as ColorToken,
-    600: { light: '#525252', dark: '#D4D4D4' } as ColorToken,
-    700: { light: '#404040', dark: '#E4E4E7' } as ColorToken,
-    800: { light: '#262626', dark: '#F4F4F5' } as ColorToken,
-    900: { light: '#171717', dark: '#FAFAFA' } as ColorToken,
+    // Slate Palette (Cooler, Tech/AI Feel)
+    50: { light: '#F8FAFC', dark: '#020617' } as ColorToken,
+    100: { light: '#F1F5F9', dark: '#0F172A' } as ColorToken,
+    200: { light: '#E2E8F0', dark: '#1E293B' } as ColorToken,
+    300: { light: '#CBD5E1', dark: '#334155' } as ColorToken,
+    400: { light: '#94A3B8', dark: '#475569' } as ColorToken,
+    500: { light: '#64748B', dark: '#94A3B8' } as ColorToken,
+    600: { light: '#475569', dark: '#CBD5E1' } as ColorToken,
+    700: { light: '#334155', dark: '#E2E8F0' } as ColorToken,
+    800: { light: '#1E293B', dark: '#F1F5F9' } as ColorToken,
+    900: { light: '#0F172A', dark: '#F8FAFC' } as ColorToken,
   },
   blue: {
-    50: { light: '#F0F9FF', dark: '#0C1929' } as ColorToken,
-    100: { light: '#E1F4FE', dark: '#132748' } as ColorToken,
-    200: { light: '#B3E5FC', dark: '#1E5A8E' } as ColorToken,
-    300: { light: '#81D4FA', dark: '#2896D3' } as ColorToken,
-    400: { light: '#4FC3F7', dark: '#3A82F7' } as ColorToken,
-    500: { light: '#29B6F6', dark: '#60A5FA' } as ColorToken,
-    600: { light: '#03A9F4', dark: '#3B82F6' } as ColorToken,
-    700: { light: '#0288D1', dark: '#1D4ED8' } as ColorToken,
-    800: { light: '#0277BD', dark: '#1E40AF' } as ColorToken,
-    900: { light: '#01579B', dark: '#1E3A8A' } as ColorToken,
+    50: { light: '#F0F9FF', dark: '#082F49' } as ColorToken,
+    100: { light: '#E0F2FE', dark: '#0C4A6E' } as ColorToken,
+    200: { light: '#BAE6FD', dark: '#075985' } as ColorToken,
+    300: { light: '#7DD3FC', dark: '#0369A1' } as ColorToken,
+    400: { light: '#38BDF8', dark: '#0284C7' } as ColorToken, // Sky Blue - More Electric
+    500: { light: '#0EA5E9', dark: '#38BDF8' } as ColorToken,
+    600: { light: '#0284C7', dark: '#7DD3FC' } as ColorToken,
+    700: { light: '#0369A1', dark: '#BAE6FD' } as ColorToken,
+    800: { light: '#075985', dark: '#E0F2FE' } as ColorToken,
+    900: { light: '#0C4A6E', dark: '#F0F9FF' } as ColorToken,
   },
   purple: {
-    50: { light: '#F5F3FF', dark: '#2D1B4E' } as ColorToken,
-    100: { light: '#EDE9FE', dark: '#3D1F5C' } as ColorToken,
-    200: { light: '#DDD6FE', dark: '#5E2FB5' } as ColorToken,
-    300: { light: '#C4B5FD', dark: '#7C3AED' } as ColorToken,
-    400: { light: '#A78BFA', dark: '#8B5CF6' } as ColorToken,
+    50: { light: '#F5F3FF', dark: '#2E1065' } as ColorToken,
+    100: { light: '#EDE9FE', dark: '#4C1D95' } as ColorToken,
+    200: { light: '#DDD6FE', dark: '#5B21B6' } as ColorToken,
+    300: { light: '#C4B5FD', dark: '#6D28D9' } as ColorToken,
+    400: { light: '#A78BFA', dark: '#7C3AED' } as ColorToken, // Violet - More Neon
     500: { light: '#8B5CF6', dark: '#A78BFA' } as ColorToken,
-    600: { light: '#7C3AED', dark: '#9333EA' } as ColorToken,
-    700: { light: '#6D28D9', dark: '#7E22CE' } as ColorToken,
-    800: { light: '#5B21B6', dark: '#6B21A8' } as ColorToken,
-    900: { light: '#3F0F5C', dark: '#4C0519' } as ColorToken,
+    600: { light: '#7C3AED', dark: '#C4B5FD' } as ColorToken,
+    700: { light: '#6D28D9', dark: '#DDD6FE' } as ColorToken,
+    800: { light: '#5B21B6', dark: '#EDE9FE' } as ColorToken,
+    900: { light: '#4C1D95', dark: '#F5F3FF' } as ColorToken,
   },
   green: {
-    50: { light: '#F0FDF4', dark: '#0C2612' } as ColorToken,
-    100: { light: '#DCFCE7', dark: '#162E1B' } as ColorToken,
-    200: { light: '#BBF7D0', dark: '#236B3E' } as ColorToken,
-    300: { light: '#86EFAC', dark: '#34A853' } as ColorToken,
-    400: { light: '#4ADE80', dark: '#52CC6D' } as ColorToken,
-    500: { light: '#22C55E', dark: '#5FDD8E' } as ColorToken,
-    600: { light: '#16A34A', dark: '#34D399' } as ColorToken,
-    700: { light: '#15803D', dark: '#10B981' } as ColorToken,
-    800: { light: '#166534', dark: '#059669' } as ColorToken,
-    900: { light: '#0B4F1C', dark: '#047857' } as ColorToken,
+    // Emerald (Slightly cooler green)
+    50: { light: '#ECFDF5', dark: '#022C22' } as ColorToken,
+    100: { light: '#D1FAE5', dark: '#064E3B' } as ColorToken,
+    200: { light: '#A7F3D0', dark: '#065F46' } as ColorToken,
+    300: { light: '#6EE7B7', dark: '#047857' } as ColorToken,
+    400: { light: '#34D399', dark: '#059669' } as ColorToken,
+    500: { light: '#10B981', dark: '#34D399' } as ColorToken,
+    600: { light: '#059669', dark: '#6EE7B7' } as ColorToken,
+    700: { light: '#047857', dark: '#A7F3D0' } as ColorToken,
+    800: { light: '#065F46', dark: '#D1FAE5' } as ColorToken,
+    900: { light: '#064E3B', dark: '#ECFDF5' } as ColorToken,
   },
   red: {
     50: { light: '#FEF2F2', dark: '#3D0F0F' } as ColorToken,
@@ -128,8 +130,8 @@ export const semanticColors = (isDark: boolean) => ({
     onAccent: isDark ? getColor(colorTokens.neutral[50], isDark) : '#FFFFFF',
   },
   accent: {
-    primary: isDark ? getColor(colorTokens.blue[500], isDark) : getColor(colorTokens.blue[600], isDark),
-    secondary: isDark ? getColor(colorTokens.purple[500], isDark) : getColor(colorTokens.purple[600], isDark),
+    primary: isDark ? getColor(colorTokens.blue[400], isDark) : getColor(colorTokens.blue[600], isDark), // Sky Blue in dark mode
+    secondary: isDark ? getColor(colorTokens.purple[400], isDark) : getColor(colorTokens.purple[600], isDark), // Violet in dark mode
   },
   accentForeground: {
     primary: getColor(colorTokens.neutral[50], isDark),
@@ -146,13 +148,13 @@ export const semanticColors = (isDark: boolean) => ({
     disabled: getColor(colorTokens.neutral[300], isDark),
   },
   button: {
-    shadow: isDark ? 'rgba(96, 165, 250, 0.15)' : 'rgba(102, 126, 234, 0.25)',
+    shadow: isDark ? 'rgba(56, 189, 248, 0.25)' : 'rgba(102, 126, 234, 0.25)', // More vibrant blue shadow
   },
   translucent: {
-    light: isDark ? 'rgba(15, 15, 15, 0.7)' : 'rgba(255, 255, 255, 0.8)',
-    medium: isDark ? 'rgba(15, 15, 15, 0.5)' : 'rgba(255, 255, 255, 0.6)',
+    light: isDark ? 'rgba(2, 6, 23, 0.7)' : 'rgba(255, 255, 255, 0.8)', // Slate 950 base
+    medium: isDark ? 'rgba(2, 6, 23, 0.5)' : 'rgba(255, 255, 255, 0.6)',
     dark: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
   },
-  overlay: isDark ? 'rgba(0, 0, 0, 0.8)' : 'rgba(0, 0, 0, 0.7)',
+  overlay: isDark ? 'rgba(2, 6, 23, 0.85)' : 'rgba(0, 0, 0, 0.7)', // Slate 950 base
   border: getColor(colorTokens.neutral[300], isDark),
 });
