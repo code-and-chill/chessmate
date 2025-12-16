@@ -4,6 +4,8 @@ import { Button } from '../primitives/Button';
 import { colorTokens, getColor } from '../tokens/colors';
 import { useIsDark } from '../hooks/useThemeTokens';
 
+import { typographyTokens } from '@/ui/tokens/typography';
+
 type ScoreInputProps = {
   value: number;
   onChange: (value: number) => void;
@@ -51,7 +53,12 @@ export const ScoreInput: React.FC<ScoreInputProps> = ({
           variant="title"
           weight="bold"
           color={blueColor}
-          style={{ minWidth: 50, textAlign: 'center' }}
+          style={{ 
+            minWidth: 50, 
+            textAlign: 'center',
+            fontFamily: typographyTokens.fontFamily.mono,
+            fontVariant: ['tabular-nums'],
+          }}
         >
           {value}
         </Text>
