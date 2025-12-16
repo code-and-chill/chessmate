@@ -21,6 +21,7 @@ import {
   CoachAvatar,
   MoveQualityBadge,
   type MoveQuality,
+  Icon,
 } from '@/ui';
 import { useI18n } from '@/i18n/I18nContext';
 
@@ -102,11 +103,11 @@ export default function GameReviewScreen() {
   const getResultStyle = (result: GameResult) => {
     switch (result) {
       case 'win':
-        return { color: colors.success, emoji: '🏆', text: 'Win' };
+        return { color: colors.success, icon: 'trophy' as const, text: 'Win' };
       case 'loss':
-        return { color: colors.error, emoji: '❌', text: 'Loss' };
+        return { color: colors.error, icon: 'error' as const, text: 'Loss' };
       case 'draw':
-        return { color: colors.warning, emoji: '🤝', text: 'Draw' };
+        return { color: colors.warning, icon: 'success' as const, text: 'Draw' };
     }
   };
   
@@ -166,9 +167,12 @@ export default function GameReviewScreen() {
                       </VStack>
                     </HStack>
                     <View style={[styles.resultBadge, { backgroundColor: resultStyle.color + '20' }]}>
-                      <Text style={[styles.result, { color: resultStyle.color }]}>
-                        {resultStyle.emoji} {resultStyle.text}
-                      </Text>
+                      <HStack gap={2} alignItems="center">
+                        <Icon name={resultStyle.icon} size={16} color={resultStyle.color} />
+                        <Text style={[styles.result, { color: resultStyle.color }]}>
+                          {resultStyle.text}
+                        </Text>
+                      </HStack>
                     </View>
                   </HStack>
 

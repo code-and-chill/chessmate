@@ -11,7 +11,8 @@ type: standard
 
 > **Status**: Implementation Guide  
 > **Created**: November 18, 2025  
-> **Style**: ShadCN-Inspired, AI-Aesthetic (Slate/Sky/Violet), Mobile-Optimized
+> **Updated**: December 12, 2025  
+> **Style**: ShadCN-Inspired, AI-Aesthetic (Orange/Blue/Purple), Mobile-Optimized
 
 ---
 
@@ -1246,6 +1247,22 @@ export const ActionBar: React.FC<ActionBarProps> = ({ actions }) => {
 
 ## Theme System
 
+### Color Palette Selection
+
+The theme system now supports multiple color palettes for a personalized, AI-friendly aesthetic:
+
+- **Orange** (default): Warm, happy mood - perfect for an engaging chess experience
+- **Blue**: Cool, tech-focused aesthetic
+- **Purple**: Vibrant, creative palette
+
+Users can select their preferred palette in **Settings → Appearance → Color Palette**.
+
+The palette selection is persisted across app restarts and affects:
+- Accent colors (primary and secondary)
+- Interactive states (hover, active)
+- Button shadows
+- Glow effects
+
 ### 1. Theme Provider & Hook
 
 ```typescript
@@ -2311,6 +2328,66 @@ export default function PuzzleHubScreen() {
 
 ---
 
+## NativeWind Integration
+
+NativeWind v4 (Tailwind CSS for React Native) is integrated as an optional styling layer on top of DLS tokens.
+
+### Architecture
+
+```
+Features → Components (shadcn-like) → DLS Tokens → NativeWind (optional)
+```
+
+- **DLS tokens remain the source of truth** - All design values come from DLS
+- **NativeWind utilities map to DLS tokens** - Tailwind classes use DLS spacing, colors, typography
+- **Components can optionally use NativeWind** - Gradual adoption, no breaking changes
+
+### Usage
+
+```tsx
+import { cn } from '@/ui/utils/cn';
+
+export function StatCard({ className, ...props }) {
+  return (
+    <Card className={cn("flex-1 items-center", className)}>
+      {/* DLS tokens still used via useColors() */}
+    </Card>
+  );
+}
+```
+
+### Configuration
+
+- **Tailwind Config**: `app/tailwind.config.js` - Maps Tailwind utilities to DLS tokens
+- **Babel Plugin**: `@nativewind/babel` - Processes className props
+- **Utility Function**: `app/ui/utils/cn.ts` - Combines class names with conditional logic
+
+## SVG Icons
+
+All emojis have been replaced with SVG icons for better consistency, accessibility, and theming.
+
+### Available SVG Icons
+
+- **Stats**: `FlameIcon`, `BoltIcon`
+- **Status**: `CelebrationIcon`, `TrophyIcon`, `HandshakeIcon`
+- **Expressions**: `HappyIcon` (more expression icons can be added)
+
+### Usage
+
+```tsx
+import { FlameIcon } from '@/ui/icons/svg';
+
+<FlameIcon size={24} color={colors.accent.primary} />
+```
+
+Or via the Icon component:
+
+```tsx
+import { Icon } from '@/ui/icons';
+
+<Icon name="flame" size={24} color={colors.accent.primary} />
+```
+
 ## Future Enhancements
 
 - Animation presets (fade, slide, scale)
@@ -2323,4 +2400,5 @@ export default function PuzzleHubScreen() {
 - Advanced segmented control with icons
 - Accessibility improvements (A11y labels, focus management)
 - Performance monitoring hooks
+- Additional SVG expression icons
 

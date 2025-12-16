@@ -16,8 +16,8 @@ export function LearnScreen() {
       subtitle={t('learn.master_chess')}
       statsRow={
         <HStack gap={3}>
-          <StatCard value={`🔥 ${streak}`} label={t('learn.day_streak')} />
-          <StatCard value={`⚡ ${tacticsRating}`} label={t('learn.tactics_rating')} />
+          <StatCard icon="flame" value={streak} label={t('learn.day_streak')} />
+          <StatCard icon="bolt" value={tacticsRating} label={t('learn.tactics_rating')} />
         </HStack>
       }
     >

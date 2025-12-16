@@ -31,10 +31,10 @@ export type CardProps = {
 };
 
 const sizeConfig = {
-  sm: { padding: 12, radius: radiusTokens.md },
-  md: { padding: 16, radius: radiusTokens.lg },
-  lg: { padding: 24, radius: radiusTokens.xl },
-  xl: { padding: 32, radius: radiusTokens['2xl'] },
+  sm: { padding: 12, radius: 12 }, // More rounded like Claude
+  md: { padding: 16, radius: 12 },
+  lg: { padding: 20, radius: 12 }, // Consistent rounded corners
+  xl: { padding: 24, radius: 12 },
 };
 
 export const Card: React.FC<CardProps> = ({
@@ -90,20 +90,30 @@ export const Card: React.FC<CardProps> = ({
   };
 
   const variantStyles = {
-    default: { ...styles.default, backgroundColor: colors.background.card, ...shadowTokens.card },
-    elevated: { ...styles.elevated, backgroundColor: colors.background.elevated, ...shadowTokens.panel },
+    default: { 
+      ...styles.default, 
+      backgroundColor: colors.background.card, 
+      ...shadowTokens.card,
+      borderWidth: 0, // No borders like Claude
+    },
+    elevated: { 
+      ...styles.elevated, 
+      backgroundColor: colors.background.card, // White cards
+      ...shadowTokens.card, // Soft shadow
+      borderWidth: 0,
+    },
     glass: {
       ...styles.glass,
-      backgroundColor: colors.translucent.light,
-      borderColor: colors.border,
-      ...shadowTokens.panel,
+      backgroundColor: colors.background.card,
+      borderWidth: 0, // No borders
+      ...shadowTokens.card,
     },
-    gradient: { ...styles.gradient, ...shadowTokens.hover },
+    gradient: { ...styles.gradient, ...shadowTokens.hover, borderWidth: 0 },
     outline: { ...styles.outline, borderColor: colors.border },
-    glow: { ...styles.elevated, backgroundColor: colors.background.elevated, ...shadowTokens.glowMd, borderColor: colors.accent.primary, borderWidth: 1 },
-    surfaceElevated: getElevationStyle('surface8'),
-    surfaceFloating: getElevationStyle('surface16'),
-    surfaceModal: getElevationStyle('surface24'),
+    glow: { ...styles.elevated, backgroundColor: colors.background.card, ...shadowTokens.card, borderWidth: 0 },
+    surfaceElevated: { ...getElevationStyle('surface8'), borderWidth: 0 },
+    surfaceFloating: { ...getElevationStyle('surface16'), borderWidth: 0 },
+    surfaceModal: { ...getElevationStyle('surface24'), borderWidth: 0 },
   };
   
   const CardWrapper = animated ? Animated.View : View;

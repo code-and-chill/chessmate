@@ -73,9 +73,9 @@ export function FeatureCard({
         >
           {!isCompact && (
             <View style={[styles.leftZone]}>
-              <View style={[styles.iconBadge, isCompact && styles.iconBadgeCompact, { backgroundColor: colors.accent.primary + '15' }]}>
+              <View style={[styles.iconBadge, isCompact && styles.iconBadgeCompact, { backgroundColor: colors.background.secondary }]}>
                 {typeof icon === 'string' ? (
-                  <Icon name={icon as IconName} size={isCompact ? spacingScale.iconSize * 0.9 : spacingScale.iconSize * 1.4} color={colors.accent.primary} />
+                  <Icon name={icon as IconName} size={isCompact ? spacingScale.iconSize * 0.9 : spacingScale.iconSize * 1.2} color={colors.foreground.primary} />
                 ) : (
                   icon
                 )}
@@ -99,19 +99,18 @@ export function FeatureCard({
               style={[
                 styles.description,
                 isCompact && { fontSize: typographyTokens.fontSize.sm },
-                { color: colors.foreground.secondary },
               ]}
               numberOfLines={2}
               ellipsizeMode="tail"
             >
               {description}
             </Text>
-            {progress && <Text style={[styles.progress, { color: colors.accent.primary }]}>{progress}</Text>}
+            {progress && <Text style={styles.progress}>{progress}</Text>}
           </View>
 
           <View style={[styles.rightZone]}>
             <View style={styles.actionWrap}>
-              <Text style={[styles.arrow, { color: colors.accent.primary }]}>{'→'}</Text>
+              <Text style={[styles.arrow, { color: colors.foreground.secondary, textAlignVertical: 'center', includeFontPadding: false }]}>{'→'}</Text>
             </View>
           </View>
          </InteractivePressable>
@@ -136,13 +135,13 @@ export function FeatureCard({
      flexDirection: 'column',
      alignItems: 'stretch',
    },
-   iconBadge: {
-     width: spacingScale.avatarLg,
-     height: spacingScale.avatarLg,
-     borderRadius: spacingScale.avatarLg / 2,
-     justifyContent: 'center',
-     alignItems: 'center',
-   },
+  iconBadge: {
+    width: spacingScale.avatarLg,
+    height: spacingScale.avatarLg,
+    borderRadius: 12, // More rounded like Claude
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
    iconBadgeCompact: {
      marginBottom: spacingScale.sm,
      alignSelf: 'center',
@@ -181,28 +180,30 @@ export function FeatureCard({
      justifyContent: 'center',
      alignItems: 'center',
    },
-   title: {
-     fontFamily: typographyTokens.fontFamily.displayMedium,
-     fontSize: typographyTokens.fontSize.xl,
-     fontWeight: typographyTokens.fontWeight.bold,
-     marginBottom: spacingScale.xs,
-     letterSpacing: -0.4,
-     flexShrink: 1,
-     maxWidth: '100%',
-   },
-   description: {
-     fontFamily: typographyTokens.fontFamily.primary,
-     fontSize: typographyTokens.fontSize.base,
-     lineHeight: 20,
-     flexShrink: 1,
-     maxWidth: '100%',
-   },
-   progress: {
-     fontFamily: typographyTokens.fontFamily.primaryMedium,
-     fontSize: typographyTokens.fontSize.sm,
-     fontWeight: typographyTokens.fontWeight.semibold,
-     marginTop: spacingScale.xs,
-   },
+  title: {
+    fontFamily: typographyTokens.fontFamily.displayMedium,
+    fontSize: typographyTokens.fontSize.xl,
+    fontWeight: typographyTokens.fontWeight.semibold, // Less heavy
+    marginBottom: spacingScale.xs,
+    letterSpacing: -0.2, // Tighter spacing
+    flexShrink: 1,
+    maxWidth: '100%',
+  },
+  description: {
+    fontFamily: typographyTokens.fontFamily.primary,
+    fontSize: typographyTokens.fontSize.base,
+    lineHeight: 22, // Slightly more breathing room
+    flexShrink: 1,
+    maxWidth: '100%',
+    color: '#6B7280', // Medium gray like Claude
+  },
+  progress: {
+    fontFamily: typographyTokens.fontFamily.primaryMedium,
+    fontSize: typographyTokens.fontSize.sm,
+    fontWeight: typographyTokens.fontWeight.semibold,
+    marginTop: spacingScale.xs,
+    color: '#6B7280', // Medium gray like Claude
+  },
    arrow: {
      fontWeight: '600',
      marginLeft: spacingScale.md,

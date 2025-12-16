@@ -358,9 +358,9 @@ export const CoachTooltip: React.FC<CoachTooltipProps> = ({
   const content = (
     <>
       {showPointer && <Box style={pointerStyle} />}
-      <Box style={{ flexDirection: 'row', alignItems: 'flex-start', gap: spacingTokens[2] }}>
+      <Box style={{ flexDirection: 'row', alignItems: 'center', gap: spacingTokens[2] }}>
         {icon && (
-          <Text style={{ fontSize: 20, lineHeight: 24 }}>
+          <Text style={{ fontSize: 20, lineHeight: 24, textAlignVertical: 'center', includeFontPadding: false }}>
             {icon}
           </Text>
         )}
@@ -378,7 +378,7 @@ export const CoachTooltip: React.FC<CoachTooltipProps> = ({
         </Box>
         {showCloseButton && (
           <Pressable onPress={handleDismiss} hitSlop={8}>
-            <Text style={{ fontSize: 18, color: '#9CA3AF' }}>×</Text>
+            <Text style={{ fontSize: 18, color: '#9CA3AF', textAlignVertical: 'center', includeFontPadding: false }}>×</Text>
           </Pressable>
         )}
       </Box>

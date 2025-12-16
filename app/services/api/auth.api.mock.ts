@@ -2,22 +2,35 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MOCK_USER, delay } from './mock-data';
 import type { AuthResponse } from '@/types/auth';
 import type { IAuthApiClient } from './auth.api';
+import { isClient } from '@/core/utils/platform';
 
 const AUTH_TOKEN_KEY = '@chess_auth_token';
 const AUTH_USER_KEY = '@chess_auth_user';
 
 export class MockAuthApiClient implements IAuthApiClient {
   constructor() {
-    void this.initializeMockSession();
+    // Only initialize on client-side (not during SSR)
+    if (isClient()) {
+      void this.initializeMockSession();
+    }
   }
 
   private async initializeMockSession() {
+    if (!isClient()) return;
+    
+    try {
       const existingToken = await AsyncStorage.getItem(AUTH_TOKEN_KEY);
       if (!existingToken) {
           const session = this.getSession();
           await AsyncStorage.setItem(AUTH_TOKEN_KEY, session.token);
           await AsyncStorage.setItem(AUTH_USER_KEY, JSON.stringify(session.user));
       }
+    } catch (error) {
+      // Ignore AsyncStorage errors (e.g., during SSR)
+      if (__DEV__) {
+        console.warn('Failed to initialize mock session:', error);
+      }
+    }
   }
 
   async login(_email: string, _password: string): Promise<AuthResponse> {

@@ -2,11 +2,13 @@ import React, {useEffect} from 'react';
 import {DarkTheme, DefaultTheme, ThemeProvider as RNThemeProvider} from '@react-navigation/native';
 import {Stack, usePathname} from 'expo-router';
 import {StatusBar} from 'expo-status-bar';
-import {Platform, useColorScheme} from 'react-native';
+import {Platform} from 'react-native';
 import 'react-native-reanimated';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
+import '../global.css';
 
 import {ThemeProvider} from '@/ui/theme/ThemeProvider';
+import {useIsDark} from '@/ui/hooks/useThemeTokens';
 import {GlobalLayout} from './GlobalLayout';
 import {
     ApiProvider,
@@ -21,9 +23,10 @@ import {
 import {I18nProvider} from '@/i18n/I18nContext';
 import {useAppFonts} from '@/config/fonts';
 
-export default function RootLayout() {
-  const colorScheme = useColorScheme();
+// Inner component that can access ThemeProvider
+function RootLayoutContent() {
   const pathname = usePathname();
+  const isDark = useIsDark();
   const [fontsLoaded, fontError] = useAppFonts();
 
   useEffect(() => {
@@ -49,8 +52,47 @@ export default function RootLayout() {
     return null;
   }
 
-   return (
-     <I18nProvider defaultLocale="en">
+  return (
+    <RNThemeProvider value={isDark ? DarkTheme : DefaultTheme}>
+      <SafeAreaProvider>
+        <GlobalLayout>
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="(tabs)" />
+            <Stack.Screen name="(drawer)" />
+            <Stack.Screen name="puzzle" />
+            <Stack.Screen name="learning" />
+            <Stack.Screen name="social" />
+            <Stack.Screen name="game" />
+            <Stack.Screen name="not-found" />
+            <Stack.Screen name="404" />
+            <Stack.Screen
+              name="login"
+              options={{
+                presentation: 'modal',
+                headerShown: true,
+                title: 'Sign In',
+              }}
+            />
+            <Stack.Screen
+              name="register"
+              options={{
+                presentation: 'modal',
+                headerShown: true,
+                title: 'Sign Up',
+              }}
+            />
+            <Stack.Screen name="settings" />
+          </Stack>
+        </GlobalLayout>
+      </SafeAreaProvider>
+      <StatusBar style={isDark ? 'light' : 'dark'} />
+    </RNThemeProvider>
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <I18nProvider defaultLocale="en">
       <ApiProvider>
         <AuthProvider>
           <SocialProvider>
@@ -58,51 +100,18 @@ export default function RootLayout() {
               <MatchmakingProvider>
                 <PuzzleProvider>
                   <LearningProvider>
-                    <ThemeProvider defaultMode={colorScheme === 'dark' ? 'dark' : 'light'}>
-                       <BoardThemeProvider>
-                        <RNThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-                          <SafeAreaProvider>
-                            <GlobalLayout>
-                              <Stack screenOptions={{ headerShown: false }}>
-                                <Stack.Screen name="(tabs)" />
-                                <Stack.Screen name="(drawer)" />
-                                <Stack.Screen name="puzzle" />
-                                <Stack.Screen name="learning" />
-                                 <Stack.Screen name="social" />
-                                <Stack.Screen name="game" />
-                                <Stack.Screen name="not-found" />
-                                <Stack.Screen name="404" />
-                                <Stack.Screen
-                                  name="login"
-                                  options={{
-                                    presentation: 'modal',
-                                    headerShown: true,
-                                    title: 'Sign In',
-                                  }}
-                                />
-                                <Stack.Screen
-                                  name="register"
-                                  options={{
-                                    presentation: 'modal',
-                                    headerShown: true,
-                                    title: 'Sign Up',
-                                  }}
-                                />
-                                <Stack.Screen name="settings" />
-                              </Stack>
-                            </GlobalLayout>
-                          </SafeAreaProvider>
-                          <StatusBar style="auto" />
-                        </RNThemeProvider>
+                    <ThemeProvider defaultMode="auto">
+                      <BoardThemeProvider>
+                        <RootLayoutContent />
                       </BoardThemeProvider>
                     </ThemeProvider>
                   </LearningProvider>
-              </PuzzleProvider>
-            </MatchmakingProvider>
-          </GameProvider>
-        </SocialProvider>
-      </AuthProvider>
-    </ApiProvider>
+                </PuzzleProvider>
+              </MatchmakingProvider>
+            </GameProvider>
+          </SocialProvider>
+        </AuthProvider>
+      </ApiProvider>
     </I18nProvider>
   );
 }

@@ -26,6 +26,7 @@ import {
   useCriticalMomentDetection,
   useExpressionForSentiment,
   type MoveQuality,
+  Icon,
 } from '@/ui';
 
 type GameResult = 'win' | 'loss' | 'draw';
@@ -151,28 +152,28 @@ export default function GameAnalysisScreen() {
   
   const getCoachMessage = (): string => {
     if (gameData.result === 'win' && gameData.playerAccuracy >= 90) {
-      return '🎉 Outstanding performance! You played with incredible precision. Keep up the excellent work!';
+      return 'Outstanding performance! You played with incredible precision. Keep up the excellent work!';
     }
     if (gameData.result === 'win') {
-      return '✨ Great win! You capitalized on your opponent\'s mistakes. Watch out for those inaccuracies though.';
+      return 'Great win! You capitalized on your opponent\'s mistakes. Watch out for those inaccuracies though.';
     }
     if (gameData.result === 'loss' && gameData.playerAccuracy < 70) {
-      return '💪 Tough game, but there\'s a lot to learn here. Focus on reducing blunders in critical positions.';
+      return 'Tough game, but there\'s a lot to learn here. Focus on reducing blunders in critical positions.';
     }
     if (gameData.result === 'loss') {
-      return '🤔 You played well but couldn\'t convert. Review the critical moments to understand where the advantage slipped.';
+      return 'You played well but couldn\'t convert. Review the critical moments to understand where the advantage slipped.';
     }
-    return '🤝 A well-fought draw! Both sides had chances. Great defensive play in the endgame.';
+    return 'A well-fought draw! Both sides had chances. Great defensive play in the endgame.';
   };
   
   const getResultStyle = (result: GameResult) => {
     switch (result) {
       case 'win':
-        return { color: colors.success, emoji: '🏆', text: 'Victory' };
+        return { color: colors.success, icon: 'trophy' as const, text: 'Victory' };
       case 'loss':
-        return { color: colors.error, emoji: '😔', text: 'Defeat' };
+        return { color: colors.error, icon: 'error' as const, text: 'Defeat' };
       case 'draw':
-        return { color: colors.warning, emoji: '🤝', text: 'Draw' };
+        return { color: colors.warning, icon: 'success' as const, text: 'Draw' };
     }
   };
   
@@ -203,9 +204,12 @@ export default function GameAnalysisScreen() {
           </VStack>
           
           <View style={[styles.resultBadge, { backgroundColor: resultStyle.color + '20' }]}>
-            <Text style={[styles.resultText, { color: resultStyle.color }]}>
-              {resultStyle.emoji} {resultStyle.text}
-            </Text>
+            <HStack gap={2} alignItems="center">
+              <Icon name={resultStyle.icon as any} size={20} color={resultStyle.color} />
+              <Text style={[styles.resultText, { color: resultStyle.color }]}>
+                {resultStyle.text}
+              </Text>
+            </HStack>
           </View>
         </View>
 

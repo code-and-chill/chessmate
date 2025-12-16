@@ -109,52 +109,76 @@ export const colorTokens = {
   },
 };
 
+export type ColorPalette = 'blue' | 'orange' | 'purple';
+
 export const getColor = (token: ColorToken | string, isDark: boolean): string => {
   if (typeof token === 'string') return token;
   return isDark ? token.dark : token.light;
 };
-export const semanticColors = (isDark: boolean) => ({
-  background: {
-    primary: getColor(colorTokens.neutral[50], isDark),
-    secondary: getColor(colorTokens.neutral[100], isDark),
-    tertiary: getColor(colorTokens.neutral[200], isDark),
-    card: getColor(colorTokens.neutral[100], isDark),
-    elevated: getColor(colorTokens.neutral[200], isDark),
-    accentSubtle: isDark ? getColor(colorTokens.blue[100], isDark) : getColor(colorTokens.blue[50], isDark),
-  },
-  foreground: {
-    primary: getColor(colorTokens.neutral[900], isDark),
-    secondary: getColor(colorTokens.neutral[700], isDark),
-    tertiary: getColor(colorTokens.neutral[600], isDark),
-    muted: getColor(colorTokens.neutral[500], isDark),
-    onAccent: isDark ? getColor(colorTokens.neutral[50], isDark) : '#FFFFFF',
-  },
-  accent: {
-    primary: isDark ? getColor(colorTokens.blue[400], isDark) : getColor(colorTokens.blue[600], isDark), // Sky Blue in dark mode
-    secondary: isDark ? getColor(colorTokens.purple[400], isDark) : getColor(colorTokens.purple[600], isDark), // Violet in dark mode
-  },
-  accentForeground: {
-    primary: getColor(colorTokens.neutral[50], isDark),
-    secondary: getColor(colorTokens.neutral[50], isDark),
-  },
-  success: getColor(colorTokens.green[600], isDark),
-  error: getColor(colorTokens.red[600], isDark),
-  warning: getColor(colorTokens.amber[500], isDark),
-  info: getColor(colorTokens.cyan[600], isDark),
-  interactive: {
-    default: isDark ? getColor(colorTokens.blue[500], isDark) : getColor(colorTokens.blue[600], isDark),
-    hover: isDark ? getColor(colorTokens.blue[400], isDark) : getColor(colorTokens.blue[700], isDark),
-    active: isDark ? getColor(colorTokens.blue[300], isDark) : getColor(colorTokens.blue[800], isDark),
-    disabled: getColor(colorTokens.neutral[300], isDark),
-  },
-  button: {
-    shadow: isDark ? 'rgba(56, 189, 248, 0.25)' : 'rgba(102, 126, 234, 0.25)', // More vibrant blue shadow
-  },
-  translucent: {
-    light: isDark ? 'rgba(2, 6, 23, 0.7)' : 'rgba(255, 255, 255, 0.8)', // Slate 950 base
-    medium: isDark ? 'rgba(2, 6, 23, 0.5)' : 'rgba(255, 255, 255, 0.6)',
-    dark: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
-  },
-  overlay: isDark ? 'rgba(2, 6, 23, 0.85)' : 'rgba(0, 0, 0, 0.7)', // Slate 950 base
-  border: getColor(colorTokens.neutral[300], isDark),
-});
+
+export const semanticColors = (isDark: boolean, palette: ColorPalette = 'orange') => {
+  // Get accent colors based on palette
+  const accentPalette = colorTokens[palette];
+  const secondaryPalette = palette === 'orange' ? colorTokens.purple : palette === 'blue' ? colorTokens.purple : colorTokens.blue;
+
+  // Get shadow color based on palette
+  const getShadowColor = () => {
+    if (palette === 'orange') {
+      return isDark ? 'rgba(251, 146, 60, 0.25)' : 'rgba(234, 88, 12, 0.25)'; // Orange shadow
+    } else if (palette === 'purple') {
+      return isDark ? 'rgba(167, 139, 250, 0.25)' : 'rgba(124, 58, 237, 0.25)'; // Purple shadow
+    } else {
+      return isDark ? 'rgba(56, 189, 248, 0.25)' : 'rgba(2, 132, 199, 0.25)'; // Blue shadow
+    }
+  };
+
+  return {
+    background: {
+      // Note: neutral tokens are inverted (light = dark color, dark = light color)
+      // For dark mode backgrounds, we want dark colors, so use the 'light' token value
+      primary: isDark ? colorTokens.neutral[900].light : '#F7F7F7', // Dark: #0F172A (slate-900), Light: Claude-like light gray
+      secondary: isDark ? colorTokens.neutral[800].light : '#FFFFFF', // Dark: #1E293B (slate-800), Light: Pure white for cards
+      tertiary: isDark ? colorTokens.neutral[700].light : colorTokens.neutral[200].light, // Dark: #334155, Light: #E2E8F0
+      card: isDark ? colorTokens.neutral[800].light : '#FFFFFF', // Dark: #1E293B (slate-800), Light: White cards like Claude
+      elevated: isDark ? colorTokens.neutral[700].light : '#FFFFFF', // Dark: #334155 (slate-700), Light: White
+      accentSubtle: isDark ? getColor(accentPalette[100], isDark) : getColor(accentPalette[50], isDark),
+    },
+    foreground: {
+      // For dark mode text, we want light colors (use .light property which has light values like #F8FAFC)
+      // For light mode, use accent color for primary text to match theme (using 800 for good readability)
+      primary: isDark ? colorTokens.neutral[50].light : accentPalette[800].light, // Dark: #F8FAFC (light), Light: Accent (e.g., orange-800: #9A3412)
+      secondary: isDark ? colorTokens.neutral[300].light : colorTokens.neutral[600].light, // Dark: #CBD5E1 (light gray), Light: #475569 (medium gray)
+      tertiary: isDark ? colorTokens.neutral[400].light : colorTokens.neutral[600].light, // Dark: #94A3B8, Light: #475569
+      muted: isDark ? colorTokens.neutral[500].light : colorTokens.neutral[500].light, // Dark: #64748B, Light: #64748B
+      onAccent: isDark ? colorTokens.neutral[50].light : '#FFFFFF', // Dark: #F8FAFC, Light: White
+    },
+    accent: {
+      primary: isDark ? getColor(accentPalette[400], isDark) : getColor(accentPalette[600], isDark),
+      secondary: isDark ? getColor(secondaryPalette[400], isDark) : getColor(secondaryPalette[600], isDark),
+    },
+    accentForeground: {
+      primary: isDark ? colorTokens.neutral[50].light : '#FFFFFF', // Dark: #F8FAFC (light), Light: White
+      secondary: isDark ? colorTokens.neutral[50].light : '#FFFFFF', // Dark: #F8FAFC (light), Light: White
+    },
+    success: getColor(colorTokens.green[600], isDark),
+    error: getColor(colorTokens.red[600], isDark),
+    warning: getColor(colorTokens.amber[500], isDark),
+    info: getColor(colorTokens.cyan[600], isDark),
+    interactive: {
+      default: isDark ? getColor(accentPalette[500], isDark) : getColor(accentPalette[600], isDark),
+      hover: isDark ? getColor(accentPalette[400], isDark) : getColor(accentPalette[700], isDark),
+      active: isDark ? getColor(accentPalette[300], isDark) : getColor(accentPalette[800], isDark),
+      disabled: getColor(colorTokens.neutral[300], isDark),
+    },
+    button: {
+      shadow: getShadowColor(),
+    },
+    translucent: {
+      light: isDark ? 'rgba(2, 6, 23, 0.7)' : 'rgba(255, 255, 255, 0.8)', // Slate 950 base
+      medium: isDark ? 'rgba(2, 6, 23, 0.5)' : 'rgba(255, 255, 255, 0.6)',
+      dark: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+    },
+    overlay: isDark ? 'rgba(2, 6, 23, 0.85)' : 'rgba(0, 0, 0, 0.7)', // Slate 950 base
+    border: isDark ? getColor(colorTokens.neutral[700], isDark) : '#E5E7EB', // Very subtle borders like Claude
+  };
+};

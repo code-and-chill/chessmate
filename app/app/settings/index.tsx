@@ -36,18 +36,25 @@ export default function SettingsScreen() {
       delay: 400,
     },
     {
+      icon: 'palette',
+      title: 'Appearance',
+      description: 'Customize theme mode and color palette',
+      onPress: () => router.push('/settings/appearance' as RelativePathString),
+      delay: 500,
+    },
+    {
       icon: 'lock-closed',
       title: 'Account',
       description: 'Account security and billing',
       onPress: () => router.push('/settings/account' as RelativePathString),
-      delay: 500,
+      delay: 600,
     },
     {
       icon: 'accessibility',
       title: 'Accessibility',
       description: 'Adjust contrast, motion, and font sizes',
       onPress: () => router.push('/settings/accessibility' as RelativePathString),
-      delay: 600,
+      delay: 700,
     },
   ];
 

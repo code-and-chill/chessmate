@@ -44,10 +44,14 @@ export function StatCard({
     <Card variant="elevated" size="sm" style={styles.container}>
       {icon && (
         <View style={styles.iconContainer}>
-          <Icon name={icon} size={24} color={colors.accent.primary} />
+          <Icon name={icon} size={18} color={colors.foreground.secondary} />
         </View>
       )}
-      <Text style={[styles.value, { color: colors.accent.primary }]}>{value}</Text>
+      <Text style={[styles.value, { color: colors.foreground.primary }]}>
+        {typeof value === 'string' && (value.includes('🔥') || value.includes('⚡')) 
+          ? value.replace('🔥', '').replace('⚡', '').trim()
+          : value}
+      </Text>
       <Text style={[styles.label, { color: colors.foreground.secondary }]}>{label}</Text>
     </Card>
   );
@@ -57,7 +61,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',
+    justifyContent: 'center',
     padding: spacingTokens[4],
+    minHeight: 120,
   },
   iconContainer: {
     marginBottom: spacingTokens[2],
@@ -67,9 +73,11 @@ const styles = StyleSheet.create({
     fontSize: typographyTokens.fontSize['2xl'],
     marginBottom: spacingTokens[1],
     fontVariantNumeric: 'tabular-nums',
+    textAlign: 'center',
   },
   label: {
     fontSize: typographyTokens.fontSize.sm,
     fontWeight: typographyTokens.fontWeight.medium,
+    textAlign: 'center',
   },
 });

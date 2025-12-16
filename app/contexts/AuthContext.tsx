@@ -37,6 +37,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const loadAuthState = async () => {
+    // Only load from storage on client-side (not during SSR)
+    if (typeof window === 'undefined' && !(typeof global !== 'undefined' && global.navigator?.product === 'ReactNative')) {
+      setIsLoading(false);
+      return;
+    }
+    
     try {
       const [savedToken, savedUser] = await Promise.all([
         AsyncStorage.getItem(AUTH_TOKEN_KEY),
@@ -55,8 +61,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const sessionOrPromise = (authApi as any).getSession();
           const session = sessionOrPromise instanceof Promise ? await sessionOrPromise : sessionOrPromise;
           if (session && session.token && session.user) {
-              await AsyncStorage.setItem(AUTH_TOKEN_KEY, session.token);
-              await AsyncStorage.setItem(AUTH_USER_KEY, JSON.stringify(session.user));
+              if (typeof window !== 'undefined' || (typeof global !== 'undefined' && global.navigator?.product === 'ReactNative')) {
+                await AsyncStorage.setItem(AUTH_TOKEN_KEY, session.token);
+                await AsyncStorage.setItem(AUTH_USER_KEY, JSON.stringify(session.user));
+              }
               setToken(session.token);
               setUser(session.user);
               setIsLoading(false);
@@ -74,8 +82,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const response = await authApi.login(email, password);
 
-      await AsyncStorage.setItem(AUTH_TOKEN_KEY, response.token);
-      await AsyncStorage.setItem(AUTH_USER_KEY, JSON.stringify(response.user));
+      if (typeof window !== 'undefined' || (typeof global !== 'undefined' && global.navigator?.product === 'ReactNative')) {
+        await AsyncStorage.setItem(AUTH_TOKEN_KEY, response.token);
+        await AsyncStorage.setItem(AUTH_USER_KEY, JSON.stringify(response.user));
+      }
 
       setToken(response.token);
       setUser(response.user);
@@ -89,8 +99,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const response = await authApi.register(username, email, password);
 
-      await AsyncStorage.setItem(AUTH_TOKEN_KEY, response.token);
-      await AsyncStorage.setItem(AUTH_USER_KEY, JSON.stringify(response.user));
+      if (typeof window !== 'undefined' || (typeof global !== 'undefined' && global.navigator?.product === 'ReactNative')) {
+        await AsyncStorage.setItem(AUTH_TOKEN_KEY, response.token);
+        await AsyncStorage.setItem(AUTH_USER_KEY, JSON.stringify(response.user));
+      }
 
       setToken(response.token);
       setUser(response.user);
@@ -105,7 +117,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (token) {
         await authApi.logout(token);
       }
-      await AsyncStorage.multiRemove([AUTH_TOKEN_KEY, AUTH_USER_KEY]);
+      if (typeof window !== 'undefined' || (typeof global !== 'undefined' && global.navigator?.product === 'ReactNative')) {
+        await AsyncStorage.multiRemove([AUTH_TOKEN_KEY, AUTH_USER_KEY]);
+      }
       setToken(null);
       setUser(null);
     } catch (error) {
@@ -119,7 +133,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!token) return;
       
       const response = await authApi.refreshToken(token);
-      await AsyncStorage.setItem(AUTH_TOKEN_KEY, response.token);
+      if (typeof window !== 'undefined' || (typeof global !== 'undefined' && global.navigator?.product === 'ReactNative')) {
+        await AsyncStorage.setItem(AUTH_TOKEN_KEY, response.token);
+      }
       setToken(response.token);
     } catch (error) {
       console.error('Token refresh failed:', error);

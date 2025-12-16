@@ -1,5 +1,7 @@
 // Learn more https://docs.expo.io/guides/customizing-metro
 const { getDefaultConfig } = require('expo/metro-config');
+const { withNativeWind } = require('nativewind/metro');
+const os = require('os');
 const path = require('path');
 
 /** @type {import('expo/metro-config').MetroConfig} */
@@ -32,7 +34,9 @@ config.resolver = {
 };
 
 // Performance optimizations for bundling
-config.maxWorkers = process.env.CI ? 2 : undefined; // Limit workers in CI for stability
+// Calculate 50% of available CPUs as a number (Metro requires a number, not a string)
+const cpuCount = os.cpus().length;
+config.maxWorkers = process.env.CI ? 2 : Math.max(1, Math.floor(cpuCount * 0.5));
 config.resetCache = false; // Don't reset cache by default (faster rebuilds)
 
-module.exports = config;
+module.exports = withNativeWind(config, { input: './global.css' });

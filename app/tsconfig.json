@@ -4,21 +4,40 @@
     "strict": true,
     "jsx": "react-native",
     "paths": {
-      "@/*": ["./*"],
-      "@/app/*": ["./app/*"],
-      "@/features/*": ["./features/*"],
-      "@/ui/*": ["./ui/*"],
-      "@/services/*": ["./services/*"],
-      "@/core/*": ["./core/*"],
-      "@/platform/*": ["./platform/*"],
-      "@/assets/*": ["./assets/*"],
-      "@/types/*": ["./types/*"]
+      "@/*": [
+        "./*"
+      ],
+      "@/app/*": [
+        "./app/*"
+      ],
+      "@/features/*": [
+        "./features/*"
+      ],
+      "@/ui/*": [
+        "./ui/*"
+      ],
+      "@/services/*": [
+        "./services/*"
+      ],
+      "@/core/*": [
+        "./core/*"
+      ],
+      "@/platform/*": [
+        "./platform/*"
+      ],
+      "@/assets/*": [
+        "./assets/*"
+      ],
+      "@/types/*": [
+        "./types/*"
+      ]
     }
   },
   "include": [
     "**/*.ts",
     "**/*.tsx",
     ".expo/types/**/*.ts",
-    "expo-env.d.ts"
+    "expo-env.d.ts",
+    "nativewind-env.d.ts"
   ]
 }

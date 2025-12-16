@@ -18,7 +18,9 @@ export type IconName =
   | 'clock' | 'history' | 'trending-up' | 'trending-down'
   // Social
   | 'person' | 'group' | 'chat' | 'send' | 'notifications'
-  | 'favorite' | 'share' | 'emoji-events';
+  | 'favorite' | 'share' | 'emoji-events'
+  // Appearance
+  | 'palette' | 'color-lens' | 'brush' | 'format-color-fill';
 
 const iconMap: Record<IconName, keyof typeof MaterialIcons.glyphMap> = {
   // Navigation
@@ -82,6 +84,12 @@ const iconMap: Record<IconName, keyof typeof MaterialIcons.glyphMap> = {
   favorite: 'favorite',
   share: 'share',
   'emoji-events': 'emoji-events',
+  
+  // Appearance
+  palette: 'palette',
+  'color-lens': 'color-lens',
+  brush: 'brush',
+  'format-color-fill': 'format-color-fill',
 };
 
 export type IconProps = {

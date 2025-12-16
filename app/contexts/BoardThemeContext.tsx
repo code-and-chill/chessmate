@@ -32,6 +32,12 @@ export const BoardThemeProvider: React.FC<BoardThemeProviderProps> = ({ children
 
   // Load from storage on mount
   useEffect(() => {
+    // Only load from storage on client-side (not during SSR)
+    if (typeof window === 'undefined' && !(typeof global !== 'undefined' && global.navigator?.product === 'ReactNative')) {
+      setIsLoading(false);
+      return;
+    }
+    
     let mounted = true;
     
     const loadThemeFromStorage = async () => {
@@ -59,6 +65,11 @@ export const BoardThemeProvider: React.FC<BoardThemeProviderProps> = ({ children
   }, []);
 
   const saveThemeToStorage = async (config: { boardTheme: BoardTheme; pieceTheme: PieceTheme }) => {
+    // Only save to storage on client-side (not during SSR)
+    if (typeof window === 'undefined' && !(typeof global !== 'undefined' && global.navigator?.product === 'ReactNative')) {
+      return;
+    }
+    
     try {
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(config));
     } catch (error) {

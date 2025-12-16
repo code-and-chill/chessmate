@@ -3,7 +3,7 @@ import { StyleSheet, View, TouchableOpacity, Text, SafeAreaView, ScrollView, Act
 import { useRouter } from 'expo-router';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { Panel } from '@/ui/primitives/Panel';
-import { VStack, HStack } from '@/ui';
+import { VStack, HStack, Icon } from '@/ui';
 import { useAuth } from '@/contexts/AuthContext';
 import { useGame } from '@/contexts/GameContext';
 import { useThemeTokens } from '@/ui';
@@ -19,12 +19,12 @@ export default function BotPlayScreen() {
   const { createBotGame, isCreatingGame } = useGame();
   
   const BOT_LEVELS = [
-    { id: 'beginner' as BotDifficulty, label: `👶 ${t('game_modes.beginner')}`, rating: 400, description: t('game_modes.perfect_for_learning') },
-    { id: 'easy' as BotDifficulty, label: `😊 ${t('game_modes.easy')}`, rating: 800, description: t('game_modes.casual_play') },
-    { id: 'medium' as BotDifficulty, label: `🎯 ${t('game_modes.intermediate')}`, rating: 1200, description: t('game_modes.good_challenge') },
-    { id: 'hard' as BotDifficulty, label: `💪 ${t('game_modes.advanced')}`, rating: 1600, description: t('game_modes.strong_opponent') },
-    { id: 'expert' as BotDifficulty, label: `🔥 ${t('game_modes.master')}`, rating: 2000, description: t('game_modes.very_difficult') },
-    { id: 'master' as BotDifficulty, label: `🏆 ${t('game_modes.grandmaster')}`, rating: 2400, description: t('game_modes.grandmaster_level') },
+    { id: 'beginner' as BotDifficulty, label: t('game_modes.beginner'), icon: 'person' as const, rating: 400, description: t('game_modes.perfect_for_learning') },
+    { id: 'easy' as BotDifficulty, label: t('game_modes.easy'), icon: 'person' as const, rating: 800, description: t('game_modes.casual_play') },
+    { id: 'medium' as BotDifficulty, label: t('game_modes.intermediate'), icon: 'target' as const, rating: 1200, description: t('game_modes.good_challenge') },
+    { id: 'hard' as BotDifficulty, label: t('game_modes.advanced'), icon: 'bolt' as const, rating: 1600, description: t('game_modes.strong_opponent') },
+    { id: 'expert' as BotDifficulty, label: t('game_modes.master'), icon: 'flame' as const, rating: 2000, description: t('game_modes.very_difficult') },
+    { id: 'master' as BotDifficulty, label: t('game_modes.grandmaster'), icon: 'trophy' as const, rating: 2400, description: t('game_modes.grandmaster_level') },
   ];
   
   const [difficulty, setDifficulty] = useState<BotDifficulty>('medium');
@@ -99,7 +99,7 @@ export default function BotPlayScreen() {
                   >
                     <HStack gap={4} style={{ alignItems: 'center' }}>
                       <View style={[styles.botBadge, { backgroundColor: colors.translucent.light }]}>
-                        <Text style={styles.botIcon}>{bot.label.split(' ')[0]}</Text>
+                        <Icon name={bot.icon} size={24} color={colors.foreground.primary} />
                       </View>
                       <VStack gap={1} style={{ flex: 1 }}>
                         <Text style={[styles.botTitle, { color: colors.foreground.primary }]}>
@@ -113,7 +113,7 @@ export default function BotPlayScreen() {
                         </Text>
                       </VStack>
                       {difficulty === bot.id && (
-                        <Text style={[styles.checkmark, { color: colors.accent.primary }]}>✓</Text>
+                        <Text style={[styles.checkmark, { color: colors.accent.primary, textAlignVertical: 'center', includeFontPadding: false }]}>✓</Text>
                       )}
                     </HStack>
                   </Panel>
@@ -145,20 +145,25 @@ export default function BotPlayScreen() {
                       onPress={() => setPlayerColor(color)}
                       activeOpacity={0.7}
                     >
-                      <Text
-                        style={[
-                          styles.colorButtonText,
-                          {
-                            color: playerColor === color
-                              ? colors.accent.primary
-                              : colors.foreground.secondary,
-                          },
-                        ]}
-                      >
-                        {color === 'white' && `⚪ ${t('game_modes.white')}`}
-                        {color === 'black' && `⚫ ${t('game_modes.black')}`}
-                        {color === 'random' && `🎲 ${t('game_modes.random')}`}
-                      </Text>
+                      <HStack gap={2} alignItems="center">
+                        {color === 'white' && <View style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: colors.border }} />}
+                        {color === 'black' && <View style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: '#000000' }} />}
+                        {color === 'random' && <Icon name="bolt" size={14} color={playerColor === color ? colors.accent.primary : colors.foreground.secondary} />}
+                        <Text
+                          style={[
+                            styles.colorButtonText,
+                            {
+                              color: playerColor === color
+                                ? colors.accent.primary
+                                : colors.foreground.secondary,
+                            },
+                          ]}
+                        >
+                          {color === 'white' && t('game_modes.white')}
+                          {color === 'black' && t('game_modes.black')}
+                          {color === 'random' && t('game_modes.random')}
+                        </Text>
+                      </HStack>
                     </TouchableOpacity>
                   ))}
                 </HStack>
@@ -228,7 +233,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   botIcon: {
-    fontSize: 28,
+    // Removed - using Icon component instead
   },
   botTitle: {
     fontSize: 20,

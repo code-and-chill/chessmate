@@ -1,7 +1,7 @@
 import React from 'react';
-import { TouchableOpacity } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 import { Panel } from '@/ui/primitives/Panel';
-import { VStack, HStack, Text } from '@/ui';
+import { VStack, HStack, Text, Icon } from '@/ui';
 import { useThemeTokens } from '@/ui';
 import { useI18n } from '@/i18n/I18nContext';
 
@@ -44,11 +44,16 @@ export const PlayerColorSelector: React.FC<Props> = ({ value, onChange, label })
               onPress={() => onChange(color)}
               activeOpacity={0.7}
             >
-              <Text variant="body" weight="semibold" color={value === color ? colors.accent.primary : colors.foreground.secondary}>
-                {color === 'white' && `⚪ ${t('game_modes.white')}`}
-                {color === 'black' && `⚫ ${t('game_modes.black')}`}
-                {color === 'random' && `🎲 ${t('game_modes.random')}`}
-              </Text>
+              <HStack gap={2} alignItems="center">
+                {color === 'white' && <View style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: colors.border }} />}
+                {color === 'black' && <View style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: '#000000' }} />}
+                {color === 'random' && <Icon name="bolt" size={14} color={value === color ? colors.accent.primary : colors.foreground.secondary} />}
+                <Text variant="body" weight="semibold" color={value === color ? colors.accent.primary : colors.foreground.secondary}>
+                  {color === 'white' && t('game_modes.white')}
+                  {color === 'black' && t('game_modes.black')}
+                  {color === 'random' && t('game_modes.random')}
+                </Text>
+              </HStack>
             </TouchableOpacity>
           ))}
         </HStack>

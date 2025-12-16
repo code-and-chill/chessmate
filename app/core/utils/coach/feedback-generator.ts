@@ -52,7 +52,7 @@ const feedbackTemplates: FeedbackTemplate[] = [
   {
     priority: 100,
     condition: (a) => a.result === 'win' && a.playerAccuracy >= 90 && (a.moveQualities.brilliant || 0) >= 2,
-    message: (a) => `🎉 Outstanding performance! You played with incredible precision (${a.playerAccuracy}% accuracy) and delivered ${a.moveQualities.brilliant} brilliant moves. Keep up the excellent work!`,
+    message: (a) => `Outstanding performance! You played with incredible precision (${a.playerAccuracy}% accuracy) and delivered ${a.moveQualities.brilliant} brilliant moves. Keep up the excellent work!`,
     sentiment: 'positive',
   },
   

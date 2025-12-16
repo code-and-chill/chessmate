@@ -1,8 +1,8 @@
 export const radiusTokens = {
   none: 0,
-  sm: 4,     // Small elements (badges, tags)
+  sm: 6,     // Small elements (badges, tags) - slightly more rounded
   md: 8,     // Buttons, inputs
-  lg: 12,    // Cards, panels
+  lg: 12,    // Cards, panels - Claude-style rounded
   xl: 16,    // Modals, drawers
   '2xl': 20, // Hero cards
   full: 9999, // Circular avatars

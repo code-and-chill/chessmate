@@ -59,6 +59,9 @@ export const Text = React.forwardRef<RNText, Props>(
       lineHeight: finalFontSize * v.lineHeight,
       letterSpacing: ('letterSpacing' in v && v.letterSpacing) || typographyTokens.letterSpacing.normal,
       color: color || colors.foreground.primary,
+      // Fix alignment for emojis and special characters
+      textAlignVertical: 'center' as const,
+      includeFontPadding: false, // Android: removes extra padding for better alignment
     };
 
     return (

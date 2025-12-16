@@ -205,7 +205,7 @@ export const MoveList = React.memo(
                         <Box flexDirection="row" alignItems="center" gap={4}>
                           {/* Piece Icon */}
                           {pieceIcon && (
-                            <Text style={{ fontSize: 16, opacity: 0.7 }}>
+                            <Text style={{ fontSize: 16, opacity: 0.7, textAlignVertical: 'center', includeFontPadding: false }}>
                               {pieceIcon}
                             </Text>
                           )}
@@ -222,9 +222,9 @@ export const MoveList = React.memo(
                             }}
                           >
                             {parsed.displayText}
-                            {parsed.isCapture && <Text style={{ opacity: 0.6 }}> ×</Text>}
-                            {parsed.isCheckmate && <Text style={{ color: colors.error, fontWeight: 'bold' }}> #</Text>}
-                            {parsed.isCheck && !parsed.isCheckmate && <Text style={{ opacity: 0.8 }}> +</Text>}
+                            {parsed.isCapture && <Text style={{ opacity: 0.6, textAlignVertical: 'center', includeFontPadding: false }}> ×</Text>}
+                            {parsed.isCheckmate && <Text style={{ color: colors.error, fontWeight: 'bold', textAlignVertical: 'center', includeFontPadding: false }}> #</Text>}
+                            {parsed.isCheck && !parsed.isCheckmate && <Text style={{ opacity: 0.8, textAlignVertical: 'center', includeFontPadding: false }}> +</Text>}
                           </Text>
                           
                           {/* Annotation */}
@@ -264,7 +264,7 @@ export const MoveList = React.memo(
                         <Box flexDirection="row" alignItems="center" gap={4}>
                           {/* Piece Icon */}
                           {pieceIcon && (
-                            <Text style={{ fontSize: 16, opacity: 0.7 }}>
+                            <Text style={{ fontSize: 16, opacity: 0.7, textAlignVertical: 'center', includeFontPadding: false }}>
                               {pieceIcon}
                             </Text>
                           )}
@@ -281,9 +281,9 @@ export const MoveList = React.memo(
                             }}
                           >
                             {parsed.displayText}
-                            {parsed.isCapture && <Text style={{ opacity: 0.6 }}> ×</Text>}
-                            {parsed.isCheckmate && <Text style={{ color: colors.error, fontWeight: 'bold' }}> #</Text>}
-                            {parsed.isCheck && !parsed.isCheckmate && <Text style={{ opacity: 0.8 }}> +</Text>}
+                            {parsed.isCapture && <Text style={{ opacity: 0.6, textAlignVertical: 'center', includeFontPadding: false }}> ×</Text>}
+                            {parsed.isCheckmate && <Text style={{ color: colors.error, fontWeight: 'bold', textAlignVertical: 'center', includeFontPadding: false }}> #</Text>}
+                            {parsed.isCheck && !parsed.isCheckmate && <Text style={{ opacity: 0.8, textAlignVertical: 'center', includeFontPadding: false }}> +</Text>}
                           </Text>
                           
                           {/* Annotation */}

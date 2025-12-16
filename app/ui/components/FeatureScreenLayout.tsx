@@ -96,7 +96,7 @@ export function FeatureScreenLayout({
           {/* Header Section */}
           <Animated.View entering={FadeInUp.duration(400).delay(100)}>
             <VStack gap={3} style={styles.headerSection}>
-              <Text style={[styles.title, { color: colors.accent.primary }]}>{title}</Text>
+              <Text style={[styles.title, { color: colors.foreground.primary }]}>{title}</Text>
               <Text style={[styles.subtitle, { color: colors.foreground.secondary }]}>{subtitle}</Text>
             </VStack>
           </Animated.View>
@@ -152,10 +152,10 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   title: {
-    fontSize: typographyTokens.fontSize['4xl'],
-    fontWeight: typographyTokens.fontWeight.extrabold,
+    fontSize: 32, // More refined, less heavy
+    fontWeight: typographyTokens.fontWeight.bold, // Less heavy than extrabold
     textAlign: 'center',
-    letterSpacing: -0.5,
+    letterSpacing: -0.3, // Tighter spacing
   },
   subtitle: {
     fontSize: typographyTokens.fontSize.lg,

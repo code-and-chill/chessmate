@@ -110,7 +110,7 @@ export const RatedToggle: React.FC<RatedToggleProps> = ({
                 : colors.foreground.primary,
             }}
           >
-            🎮 Casual
+            Casual
           </Text>
         </TouchableOpacity>
       </View>

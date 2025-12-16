@@ -216,6 +216,7 @@ export { Skeleton, SkeletonCard, SkeletonList } from './primitives/SkeletonLoade
 export { FeatureScreenLayout } from './components/FeatureScreenLayout';
 export { FeatureCard } from './components/FeatureCard';
 export { StatCard } from './components/StatCard';
+export { InlineIcon } from './components/InlineIcon';
 export { ChoiceChip } from './primitives/ChoiceChip';
 export { Tabs } from './components/Tabs';
 export type { TabItem } from './components/Tabs';

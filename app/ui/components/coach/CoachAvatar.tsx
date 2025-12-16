@@ -92,7 +92,7 @@ const sizeMap = {
   xl: 100,
 };
 
-// Expression emoji mappings
+// Expression emoji mappings (deprecated - use SVG icons instead)
 const expressionEmojis: Record<CoachExpression, string> = {
   happy: '😊',
   thoughtful: '🤔',
@@ -272,6 +272,9 @@ const styles = StyleSheet.create({
   },
   emoji: {
     textAlign: 'center',
+    textAlignVertical: 'center',
+    includeFontPadding: false, // Android: removes extra padding for better alignment
+    lineHeight: undefined, // Let fontSize determine line height
   },
   name: {
     fontSize: 12,

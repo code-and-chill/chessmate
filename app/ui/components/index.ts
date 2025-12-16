@@ -2,6 +2,7 @@ export { FeatureScreenLayout } from './FeatureScreenLayout';
 export { DetailScreenLayout } from './DetailScreenLayout';
 export { FeatureCard } from './FeatureCard';
 export { StatCard } from './StatCard';
+export { InlineIcon } from './InlineIcon';
 export { GlobalLayout } from '@/app/GlobalLayout';
 export { Sidebar } from './Sidebar';
 export type { SidebarItem } from './Sidebar';
