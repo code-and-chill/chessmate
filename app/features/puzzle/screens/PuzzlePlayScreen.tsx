@@ -1,30 +1,26 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Alert } from 'react-native';
-import { FadeInUp } from 'react-native-reanimated';
-import { PawnPromotionModal, type PieceType } from '@/features/game';
-import { createPlayScreenConfig, getHydratedBoardProps, type PlayScreenConfig } from '@/features/board/config';
-import { moveToFen } from '@/core/utils/chess/logic/parsing';
-import { ChessJsAdapter } from '@/core/utils/chess';
-import { useReducedMotion } from '@/features/board/hooks/useReducedMotion';
-import { useBoardLayout } from '@/features/board/hooks/useBoardLayout';
-import { usePromotionModal } from '@/features/board/hooks/usePromotionModal';
-import { Box } from '@/ui/primitives/Box';
-import { VStack } from '@/ui/primitives/Stack';
-import { useThemeTokens } from '@/ui/hooks/useThemeTokens';
-import { spacingTokens } from '@/ui/tokens/spacing';
-import { radiusTokens } from '@/ui/tokens/radii';
-import { entranceAnimations } from '@/ui/animations/presets';
-import type { Move } from '@/types/game';
-import { useBoardTheme } from '@/contexts/BoardThemeContext';
-import { DevBadge } from '@/ui/primitives/DevBadge';
-import { BoardColumn } from '@/features/board/components/BoardColumn';
-import { MovesColumn } from '@/features/board/components/MovesColumn';
-import { useApiClients } from '@/contexts/ApiContext';
-import { ChessBoard } from '@/features/board';
-import { Card } from '@/ui/primitives/Card';
-import { usePuzzleAttempt } from '@/features/puzzle/hooks/usePuzzleAttempt';
-import { Text } from '@/ui/primitives/Text';
-import { useI18n } from '@/i18n/I18nContext';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {FadeInUp} from 'react-native-reanimated';
+import {PawnPromotionModal, type PieceType} from '@/features/game';
+import {createPlayScreenConfig, getHydratedBoardProps, type PlayScreenConfig} from '@/features/board/config';
+import {moveToFen} from '@/core/utils/chess/logic/parsing';
+import {ChessJsAdapter} from '@/core/utils/chess';
+import {useReducedMotion} from '@/features/board/hooks/useReducedMotion';
+import {useBoardLayout} from '@/features/board/hooks/useBoardLayout';
+import {usePromotionModal} from '@/features/board/hooks/usePromotionModal';
+import {Box} from '@/ui/primitives/Box';
+import {useThemeTokens} from '@/ui/hooks/useThemeTokens';
+import {spacingTokens} from '@/ui/tokens/spacing';
+import {entranceAnimations} from '@/ui/animations/presets';
+import type {Move} from '@/types/game';
+import {useBoardTheme} from '@/contexts/BoardThemeContext';
+import {DevBadge} from '@/ui/primitives/DevBadge';
+import {MovesColumn} from '@/features/board/components/MovesColumn';
+import {useApiClients} from '@/contexts/ApiContext';
+import {ChessBoard} from '@/features/board';
+import {Card} from '@/ui/primitives/Card';
+import {usePuzzleAttempt} from '@/features/puzzle/hooks/usePuzzleAttempt';
+import {Text} from '@/ui/primitives/Text';
+import {useI18n} from '@/i18n/I18nContext';
 
 interface PuzzlePlayScreenProps {
   puzzleId?: string;
@@ -42,7 +38,7 @@ export const PuzzlePlayScreen: React.FC<PuzzlePlayScreenProps> = ({ puzzleId: _p
   );
 
   const reduceMotion = useReducedMotion();
-  const { isHorizontalLayout, boardSize, squareSize, boardColumnFlex, movesColumnFlex, onLayout } = useBoardLayout();
+    const {isHorizontalLayout, boardSize, squareSize, movesColumnFlex, onLayout} = useBoardLayout();
   const api = useApiClients();
   const { t } = useI18n();
 
@@ -50,7 +46,6 @@ export const PuzzlePlayScreen: React.FC<PuzzlePlayScreenProps> = ({ puzzleId: _p
   const [puzzle, setPuzzle] = useState<any | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [movesPlayed, setMovesPlayed] = useState<string[]>([]);
-  const [rateLimitInfo, setRateLimitInfo] = useState<any | null>(null);
 
   const [puzzleState, setPuzzleState] = useState<{
     status: 'in_progress' | 'ended';
@@ -68,68 +63,44 @@ export const PuzzlePlayScreen: React.FC<PuzzlePlayScreenProps> = ({ puzzleId: _p
 
   const [promotionState, promotionActions] = usePromotionModal();
 
-  const handleRateLimited = useCallback(() => {
-    Alert.alert(t('rateLimited.title'), t('rateLimited.message'));
-  }, [t]);
-
   // loadPuzzle will be defined as a stable callback so we can reference it from other callbacks
   const loadPuzzle = useCallback(async () => {
     setLoading(true);
     setError(null);
     setMovesPlayed([]);
-    setRateLimitInfo(null);
 
     try {
-      let env: any;
-      // support daily mode: call getDailyPuzzle when requested
-      if (daily && typeof (api.puzzleApi as any).getDailyPuzzle === 'function') {
-        env = await (api.puzzleApi as any).getDailyPuzzle();
-      } else {
-        env = await (api.puzzleApi as any).getRandomPuzzle();
-      }
-      if (!env) {
+        const fetcher = daily && typeof (api.puzzleApi as any).getDailyPuzzle === 'function'
+            ? (api.puzzleApi as any).getDailyPuzzle
+            : (api.puzzleApi as any).getRandomPuzzle;
+
+        const data = await fetcher.call(api.puzzleApi);
+        if (!data) {
         setError(t('errors.loadFailed'));
-        setLoading(false);
         return;
       }
 
-      // normalize envelope vs direct puzzle result
-      const isEnvelope = typeof env === 'object' && ('ok' in env || 'status' in env || 'result' in env);
-      if (isEnvelope && env.ok === false) {
-        if (env.status === 429) {
-          handleRateLimited();
-          setLoading(false);
-          return;
-        }
-        setError(env.error ?? t('errors.loadFailed'));
-        setLoading(false);
-        return;
-      }
-
-      const data = isEnvelope ? env.result ?? env : env;
       setPuzzle(data);
 
       const fen = data?.problem?.fen ?? data?.fen ?? puzzleState.fen;
       const side = data?.problem?.side_to_move ?? data?.problem?.sideToMove ?? data?.sideToMove ?? puzzleState.sideToMove;
       setPuzzleState(prev => ({ ...prev, fen, sideToMove: side, moves: [], status: 'in_progress', endReason: '' }));
-      if ((env as any).rateLimit) setRateLimitInfo((env as any).rateLimit);
     } catch {
       setError(t('errors.loadFailed'));
     } finally {
       setLoading(false);
     }
-  }, [api.puzzleApi, t, puzzleState.fen, puzzleState.sideToMove, handleRateLimited, daily]);
+  }, [api.puzzleApi, t, puzzleState.fen, puzzleState.sideToMove, daily]);
 
-  // onSolved should reload a new puzzle; keep stable reference
+    // onSolved should reload a new puzzle; keep a stable reference
   const onSolvedCallback = useCallback(() => {
     void loadPuzzle();
   }, [loadPuzzle]);
 
-  const { submitDebounced, guidance, rateLimit, cancel } = usePuzzleAttempt({
+    const {submitDebounced, guidance, cancel} = usePuzzleAttempt({
     puzzleId: puzzle?.id ?? '',
     debounceMs: 250,
     onSolved: onSolvedCallback,
-    onRateLimited: handleRateLimited,
   });
 
   useEffect(() => {
@@ -194,7 +165,7 @@ export const PuzzlePlayScreen: React.FC<PuzzlePlayScreenProps> = ({ puzzleId: _p
     [reduceMotion],
   );
 
-  const interactive = puzzleState.status === 'in_progress' && ((rateLimit?.remaining ?? rateLimitInfo?.remaining) ?? 1) > 0;
+    const interactive = puzzleState.status === 'in_progress';
 
   const boardProps = useMemo(
     () => ({
@@ -207,8 +178,6 @@ export const PuzzlePlayScreen: React.FC<PuzzlePlayScreenProps> = ({ puzzleId: _p
     }),
     [screenConfigObj, puzzleState, handleMove, interactive],
   );
-
-  const hidePlayerSection = daily || (puzzle?.problem?.show_player_section === false) || (puzzle?.problem?.showPlayerSection === false) || (puzzle?.show_player_section === false) || (puzzle?.showPlayerSection === false);
 
   return (
     <>
@@ -226,54 +195,14 @@ export const PuzzlePlayScreen: React.FC<PuzzlePlayScreenProps> = ({ puzzleId: _p
 
       {!loading && !error && puzzle && (
         <Box style={{ flex: 1 }} onLayout={onLayout}>
-          {hidePlayerSection ? (
             <Box flexDirection={isHorizontalLayout ? 'row' : 'column'} flex={1} gap={4}>
-              <Box alignItems="center" style={{ width: isHorizontalLayout ? boardSize : '100%' }}>
-                <Card variant="glass" size="md" padding={0}>
-                  {boardProps.fen ? <ChessBoard {...boardProps} size={boardSize} squareSize={squareSize} /> : null}
-                </Card>
-              </Box>
-              <MovesColumn moves={puzzleState.moves} anim={createAnimConfig(100)} flex={movesColumnFlex} />
+                <Box alignItems="center" style={{width: isHorizontalLayout ? boardSize : '100%'}}>
+                    <Card variant="glass" size="md" padding={0}>
+                        {boardProps.fen ? <ChessBoard {...boardProps} size={boardSize} squareSize={squareSize}/> : null}
+                    </Card>
+                </Box>
+                <MovesColumn moves={puzzleState.moves} anim={createAnimConfig(100)} flex={movesColumnFlex}/>
             </Box>
-          ) : isHorizontalLayout ? (
-            <Box flexDirection="row" flex={1} gap={4}>
-              <BoardColumn
-                boardSize={boardSize}
-                squareSize={squareSize}
-                boardProps={boardProps}
-                gameState={{ fen: puzzleState.fen, sideToMove: puzzleState.sideToMove, status: puzzleState.status, endReason: puzzleState.endReason }}
-                timerState={{ whiteTimeMs: 0, blackTimeMs: 0 }}
-                onTimeExpire={() => {}}
-                onResign={() => {}}
-                onOfferDraw={() => {}}
-                drawOfferPending={false}
-                anim={createAnimConfig}
-                isCompact={true}
-                flex={boardColumnFlex}
-              />
-
-              <MovesColumn moves={puzzleState.moves} anim={createAnimConfig(100)} flex={movesColumnFlex} />
-            </Box>
-          ) : (
-            <VStack flex={1} gap={4}>
-              <BoardColumn
-                boardSize={boardSize}
-                squareSize={squareSize}
-                boardProps={boardProps}
-                gameState={{ fen: puzzleState.fen, sideToMove: puzzleState.sideToMove, status: puzzleState.status, endReason: puzzleState.endReason }}
-                timerState={{ whiteTimeMs: 0, blackTimeMs: 0 }}
-                onTimeExpire={() => {}}
-                onResign={() => {}}
-                onOfferDraw={() => {}}
-                drawOfferPending={false}
-                anim={createAnimConfig}
-                isCompact={false}
-                flex={boardColumnFlex}
-              />
-
-              <MovesColumn moves={puzzleState.moves} anim={createAnimConfig(100)} flex={movesColumnFlex} />
-            </VStack>
-          )}
         </Box>
       )}
 
@@ -307,14 +236,6 @@ export const PuzzlePlayScreen: React.FC<PuzzlePlayScreenProps> = ({ puzzleId: _p
             <Box>
               <Text>{`puzzleFen: ${puzzle?.problem?.fen ?? puzzleState.fen}`}</Text>
             </Box>
-            <Box>
-              <Text>{`show_player_section: ${String(puzzle?.problem?.show_player_section)}`}</Text>
-            </Box>
-            {rateLimitInfo && (
-              <Box>
-                <Text>{`rate remaining: ${rateLimitInfo.remaining}`}</Text>
-              </Box>
-            )}
           </Box>
         </DevBadge>
       )}

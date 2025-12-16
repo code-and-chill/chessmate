@@ -1,13 +1,18 @@
-import { StyleSheet } from 'react-native';
-import { InteractivePressable, Box, Text, IconSymbol, useThemeTokens, spacingScale, radiusTokens, getSidebarWidthForBreakpoint, getCurrentBreakpoint, SegmentedControl } from '@/ui';
-import { useRouter, usePathname } from 'expo-router';
-import Animated, {
-  useAnimatedStyle,
-  withSpring,
-  useSharedValue,
-} from 'react-native-reanimated';
+import {StyleSheet} from 'react-native';
+import {InteractivePressable} from '@/ui/primitives/InteractivePressable';
+import {Box} from '@/ui/primitives/Box';
+import {Text} from '@/ui/primitives/Text';
+import {IconSymbol} from '@/ui/primitives/icon-symbol';
+import {useThemeTokens} from '@/ui/hooks/useThemeTokens';
+import {spacingScale} from '@/ui/tokens/spacing';
+import {radiusTokens} from '@/ui/tokens/radii';
+import {getSidebarWidthForBreakpoint} from '@/ui/tokens/layout';
+import {getCurrentBreakpoint} from '@/ui/tokens/breakpoints';
+import {SegmentedControl} from '@/ui/components/SegmentedControl';
+import {usePathname, useRouter} from 'expo-router';
+import Animated, {useAnimatedStyle, useSharedValue, withSpring,} from 'react-native-reanimated';
 
-import { useAuth } from '@/contexts/AuthContext';
+import {useAuth} from '@/contexts/AuthContext';
 import React from 'react';
 
 export interface SidebarItem {

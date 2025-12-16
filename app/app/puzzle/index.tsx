@@ -1,8 +1,6 @@
-import {useEffect, useState} from 'react';
-import {Text} from 'react-native';
+import {useEffect} from 'react';
 import {useRouter} from 'expo-router';
-import {Panel} from '@/ui/primitives/Panel';
-import {HStack, useThemeTokens, VStack} from '@/ui';
+import {HStack, VStack} from '@/ui';
 import {StatCard} from '@/ui/components/StatCard';
 import {usePuzzle} from '@/contexts/PuzzleContext';
 import {useI18n} from '@/i18n/I18nContext';
@@ -11,7 +9,6 @@ import {FeatureCard} from '@/ui/components/FeatureCard';
 
 export default function PuzzleHubScreen() {
     const router = useRouter();
-    const {colors} = useThemeTokens();
     const {t, ti} = useI18n();
     const {dailyPuzzle, puzzleStats, getDailyPuzzle, getUserStats, isLoading} = usePuzzle();
 

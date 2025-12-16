@@ -1,16 +1,14 @@
-import { useState } from 'react';
-import { ScrollView, Pressable } from 'react-native';
-import { Text } from '@/ui/primitives/Text';
-import { useRouter } from 'expo-router';
-import { PlayScreen } from '@/features/board';
-import { Panel } from '@/ui/primitives/Panel';
-import { StatCard } from '@/ui/components/StatCard';
-import { VStack, HStack, useThemeTokens, Icon } from '@/ui';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useI18n } from '@/i18n/I18nContext';
-import { spacingTokens } from '@/ui/tokens/spacing';
-import { FeatureCard } from '@/ui/components/FeatureCard';
-import { FeatureScreenLayout } from '@/ui/components/FeatureScreenLayout';
+import {useState} from 'react';
+import {useRouter} from 'expo-router';
+import {PlayScreen} from '@/features/board';
+import {StatCard} from '@/ui/components/StatCard';
+import {HStack, VStack} from '@/ui/primitives/Stack';
+import {useThemeTokens} from '@/ui/hooks/useThemeTokens';
+import {SafeAreaView} from 'react-native-safe-area-context';
+import {useI18n} from '@/i18n/I18nContext';
+import {spacingTokens} from '@/ui/tokens/spacing';
+import {FeatureCard} from '@/ui/components/FeatureCard';
+import {FeatureScreenLayout} from '@/ui/components/FeatureScreenLayout';
 
 export default function PlayTab() {
   const router = useRouter();
@@ -94,4 +92,3 @@ const styles = {
     paddingBottom: spacingTokens[10],
   },
 };
-

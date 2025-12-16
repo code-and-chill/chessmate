@@ -1,6 +1,8 @@
-import React, { useMemo, useState, useEffect } from 'react';
-import { useColorScheme } from 'react-native';
-import { ThemeMode, ThemeContext, semanticColors, typographyTokens } from '@/ui';
+import React, {useEffect, useMemo, useState} from 'react';
+import {useColorScheme} from 'react-native';
+import {ThemeContext, ThemeMode} from '../hooks/useThemeTokens';
+import {semanticColors} from '../tokens/colors';
+import {typographyTokens} from '../tokens/typography';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const STORAGE_KEY = 'themeMode';

@@ -1,6 +1,6 @@
-import { Drawer } from 'expo-router/drawer';
-import { useColorScheme } from 'react-native';
-import { IconSymbol } from '@/ui';
+import {Drawer} from 'expo-router/drawer';
+import {useColorScheme} from 'react-native';
+import {IconSymbol} from '@/ui/primitives/icon-symbol';
 import {Colors} from "@/core/constants/theme/theme";
 
 export default function DrawerLayout() {

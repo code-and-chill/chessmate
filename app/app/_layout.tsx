@@ -1,25 +1,25 @@
-import React, { useEffect } from 'react';
-import { DarkTheme, DefaultTheme, ThemeProvider as RNThemeProvider } from '@react-navigation/native';
-import { Stack, usePathname } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import { useColorScheme, Platform } from 'react-native';
+import React, {useEffect} from 'react';
+import {DarkTheme, DefaultTheme, ThemeProvider as RNThemeProvider} from '@react-navigation/native';
+import {Stack, usePathname} from 'expo-router';
+import {StatusBar} from 'expo-status-bar';
+import {Platform, useColorScheme} from 'react-native';
 import 'react-native-reanimated';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import {SafeAreaProvider} from 'react-native-safe-area-context';
 
-import { ThemeProvider } from '@/ui';
-import { GlobalLayout } from './GlobalLayout';
+import {ThemeProvider} from '@/ui/theme/ThemeProvider';
+import {GlobalLayout} from './GlobalLayout';
 import {
-  ApiProvider,
-  AuthProvider, 
-  GameProvider, 
-  MatchmakingProvider,
-  PuzzleProvider,
-  LearningProvider,
-  SocialProvider,
-  BoardThemeProvider 
+    ApiProvider,
+    AuthProvider,
+    BoardThemeProvider,
+    GameProvider,
+    LearningProvider,
+    MatchmakingProvider,
+    PuzzleProvider,
+    SocialProvider
 } from '@/contexts';
-import { I18nProvider } from '@/i18n/I18nContext';
-import { useAppFonts } from '@/config/fonts';
+import {I18nProvider} from '@/i18n/I18nContext';
+import {useAppFonts} from '@/config/fonts';
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();

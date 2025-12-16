@@ -1,12 +1,22 @@
-import { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, SafeAreaView, FlatList, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
-import { useRouter } from 'expo-router';
-import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
-import { Card } from '@/ui/primitives/Card';
-import { VStack } from '@/ui';
-import { useSocial } from '@/contexts/SocialContext';
-import type { Conversation, Message } from '@/contexts/SocialContext';
-import { useThemeTokens } from '@/ui';
+import {useEffect, useState} from 'react';
+import {
+  FlatList,
+  KeyboardAvoidingView,
+  Platform,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
+} from 'react-native';
+import {useRouter} from 'expo-router';
+import Animated, {FadeIn, FadeInDown} from 'react-native-reanimated';
+import {Card} from '@/ui/primitives/Card';
+import {VStack} from '@/ui/primitives/Stack';
+import {useThemeTokens} from '@/ui/hooks/useThemeTokens';
+import {useSocial} from '@/contexts/SocialContext';
+import {Conversation, Message} from "@/types/social";
 
 export default function MessagesScreen() {
   const router = useRouter();

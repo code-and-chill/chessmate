@@ -1,31 +1,30 @@
-import { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, SafeAreaView, ScrollView, FlatList } from 'react-native';
-import { useRouter } from 'expo-router';
-import Animated, { FadeInDown } from 'react-native-reanimated';
-import { Card } from '@/ui/primitives/Card';
-import { VStack } from '@/ui';
-import { usePuzzle } from '@/contexts/PuzzleContext';
-import type { PuzzleAttempt } from '@/contexts/PuzzleContext';
-import { useThemeTokens } from '@/ui';
-import { useI18n } from '@/i18n/I18nContext';
+import {useCallback, useEffect, useState} from 'react';
+import {FlatList, SafeAreaView, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import {useRouter} from 'expo-router';
+import Animated, {FadeInDown} from 'react-native-reanimated';
+import {Card} from '@/ui/primitives/Card';
+import {useThemeTokens, VStack} from '@/ui';
+import type {PuzzleAttempt} from '@/contexts/PuzzleContext';
+import {usePuzzle} from '@/contexts/PuzzleContext';
+import {useI18n} from '@/i18n/I18nContext';
 
 export default function PuzzleHistoryScreen() {
   const router = useRouter();
   const { colors } = useThemeTokens();
   const { t, ti } = useI18n();
-  const { puzzleStats, getUserHistory, isLoading } = usePuzzle();
-  
+    const {puzzleStats, getAttemptHistory} = usePuzzle();
+
   const [history, setHistory] = useState<PuzzleAttempt[]>([]);
   const [selectedFilter, setSelectedFilter] = useState<'all' | 'solved' | 'failed'>('all');
 
-  useEffect(() => {
-    loadHistory();
-  }, []);
-
-  const loadHistory = async () => {
-    const data = await getUserHistory();
+    const loadHistory = useCallback(async () => {
+        const data = await getAttemptHistory();
     setHistory(data);
-  };
+    }, [getAttemptHistory]);
+
+    useEffect(() => {
+        void loadHistory();
+    }, [loadHistory]);
 
   const filteredHistory = history.filter((attempt) => {
     if (selectedFilter === 'solved') return attempt.solved;
@@ -38,14 +37,14 @@ export default function PuzzleHistoryScreen() {
       <Card variant="default" size="md" style={{ marginBottom: 12 }}>
         <TouchableOpacity
           style={styles.attemptCard}
-          onPress={() => router.push({ pathname: '/puzzle/review', params: { attemptId: item.attemptId } })}
+          onPress={() => router.push({pathname: '/puzzle/review', params: {attemptId: item.attemptId}} as any)}
         >
           <View style={styles.attemptHeader}>
             <Text style={styles.attemptIcon}>{item.solved ? '✓' : '✗'}</Text>
             <VStack gap={1} style={{ flex: 1 }}>
               <Text style={[styles.attemptTitle, { color: colors.foreground.primary }]}>{ti('puzzle.puzzle_number', { id: item.puzzleId.slice(0, 8) })}</Text>
               <Text style={[styles.attemptDate, { color: colors.foreground.secondary }]}>
-                {new Date(item.timestamp).toLocaleDateString('en-US', {
+                  {new Date(item.timestamp ?? Date.now()).toLocaleDateString('en-US', {
                   month: 'short',
                   day: 'numeric',
                   hour: '2-digit',
@@ -58,8 +57,8 @@ export default function PuzzleHistoryScreen() {
               <Text style={[styles.attemptTime, { color: colors.foreground.secondary }]}>{item.timeSpent}s</Text>
             </VStack>
           </View>
-          
-          {item.ratingChange !== 0 && (
+
+            {typeof item.ratingChange === 'number' && item.ratingChange !== 0 && (
             <View style={styles.ratingChange}>
               <Text
                 style={[
@@ -104,7 +103,8 @@ export default function PuzzleHistoryScreen() {
                     <Text style={[styles.statLabel, { color: colors.foreground.secondary }]}>{t('puzzle.current_streak')}</Text>
                   </View>
                   <View style={styles.statItem}>
-                    <Text style={[styles.statValue, { color: colors.foreground.primary }]}>{puzzleStats.bestStreak}🏆</Text>
+                      <Text
+                          style={[styles.statValue, {color: colors.foreground.primary}]}>{puzzleStats.longestStreak}🏆</Text>
                     <Text style={[styles.statLabel, { color: colors.foreground.secondary }]}>{t('puzzle.best_streak')}</Text>
                   </View>
                 </View>
@@ -112,12 +112,19 @@ export default function PuzzleHistoryScreen() {
                 {/* Difficulty Breakdown */}
                 <View style={[styles.difficultyBreakdown, { borderTopColor: colors.background.tertiary }]}>
                   <Text style={[styles.breakdownTitle, { color: colors.foreground.secondary }]}>{t('puzzle.by_difficulty')}</Text>
-                  {Object.entries(puzzleStats.byDifficulty).map(([difficulty, count]) => (
-                    <View key={difficulty} style={styles.breakdownRow}>
-                      <Text style={[styles.breakdownLabel, { color: colors.foreground.secondary }]}>{difficulty}</Text>
-                      <Text style={[styles.breakdownValue, { color: colors.foreground.primary }]}>{count}</Text>
-                    </View>
-                  ))}
+                    {Object.entries(puzzleStats.byDifficulty).map(([difficulty, count]) => {
+                        // `count` is an object like { attempted: number, solved: number }
+                        const attempted = (count as any)?.attempted ?? 0;
+                        const solved = (count as any)?.solved ?? 0;
+                        return (
+                            <View key={difficulty} style={styles.breakdownRow}>
+                                <Text
+                                    style={[styles.breakdownLabel, {color: colors.foreground.secondary}]}>{difficulty}</Text>
+                                <Text
+                                    style={[styles.breakdownValue, {color: colors.foreground.primary}]}>{`${attempted} / ${solved}`}</Text>
+                            </View>
+                        );
+                    })}
                 </View>
               </VStack>
             </Card>
@@ -173,7 +180,7 @@ export default function PuzzleHistoryScreen() {
             <FlatList
               data={filteredHistory}
               renderItem={renderAttemptCard}
-              keyExtractor={(item) => item.attemptId}
+              keyExtractor={(item) => (item.attemptId ?? `${item.puzzleId}_${item.timestamp ?? ''}`) as string}
               showsVerticalScrollIndicator={false}
               contentContainerStyle={{ paddingBottom: 20 }}
             />

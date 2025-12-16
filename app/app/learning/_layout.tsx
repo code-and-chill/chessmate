@@ -1,5 +1,5 @@
-import { Stack } from 'expo-router';
-import { useThemeTokens } from '@/ui';
+import {Stack} from 'expo-router';
+import {useThemeTokens} from '@/ui/hooks/useThemeTokens';
 
 export default function LearningLayout() {
   const { colors } = useThemeTokens();

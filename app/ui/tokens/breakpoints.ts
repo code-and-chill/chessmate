@@ -5,13 +5,13 @@
  * Defines screen size breakpoints for responsive layouts
  */
 
-import { Dimensions, Platform } from 'react-native';
+import {Dimensions, Platform} from 'react-native';
 
 /**
  * Standard breakpoint values (in pixels)
  */
 export const breakpointValues = {
-  xs: 0,       // Extra small devices (phones)
+    xs: 0,       // Tiny devices (phones)
   sm: 576,     // Small devices (large phones, small tablets)
   md: 768,     // Medium devices (tablets)
   lg: 1024,    // Large devices (desktops, large tablets landscape)
@@ -44,7 +44,7 @@ export const getCurrentBreakpoint = (): Breakpoint => {
 };
 
 /**
- * Check if screen is at least a certain size
+ * Check if the screen is at least a certain size
  */
 export const isBreakpoint = {
   xs: () => getScreenDimensions().width >= breakpointValues.xs,
@@ -88,8 +88,8 @@ export const deviceType = {
 export const responsive = <T>(values: Partial<Record<Breakpoint, T>>): T | undefined => {
   const currentBreakpoint = getCurrentBreakpoint();
   const breakpoints: Breakpoint[] = ['xxl', 'xl', 'lg', 'md', 'sm', 'xs'];
-  
-  // Start from current breakpoint and look for nearest defined value
+
+    // Start from the current breakpoint and look for nearest defined value
   const startIndex = breakpoints.indexOf(currentBreakpoint);
   for (let i = startIndex; i < breakpoints.length; i++) {
     const bp = breakpoints[i];
