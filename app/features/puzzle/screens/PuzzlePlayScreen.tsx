@@ -229,7 +229,7 @@ export const PuzzlePlayScreen: React.FC<PuzzlePlayScreenProps> = ({ puzzleId: _p
           {hidePlayerSection ? (
             <Box flexDirection={isHorizontalLayout ? 'row' : 'column'} flex={1} gap={4}>
               <Box alignItems="center" style={{ width: isHorizontalLayout ? boardSize : '100%' }}>
-                <Card variant="elevated" size="md" padding={0}>
+                <Card variant="glass" size="md" padding={0}>
                   {boardProps.fen ? <ChessBoard {...boardProps} size={boardSize} squareSize={squareSize} /> : null}
                 </Card>
               </Box>

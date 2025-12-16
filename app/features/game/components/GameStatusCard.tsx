@@ -27,7 +27,7 @@ export const GameStatusCard: React.FC<GameStatusCardProps> = ({
   const turnLabel = currentTurn === 'w' ? 'White' : 'Black';
 
   return (
-    <Card variant="default" size="md" padding={16}>
+    <Card variant="glass" size="md" padding={16}>
       <VStack gap={spacingTokens[2]}>
         <Text variant="titleSmall" weight="semibold" style={{ fontSize: 16 }}>
           Game Status
