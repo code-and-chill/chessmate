@@ -2,6 +2,7 @@ import React from 'react';
 import { Pressable, ViewStyle } from 'react-native';
 import { HStack, Text, spacingTokens, radiusTokens, shadowTokens } from '@/ui';
 import { useThemeTokens } from '@/ui/hooks/useThemeTokens';
+import { View } from 'react-native';
 
 export type TabItem = {
   id: string;
@@ -38,24 +39,32 @@ export const Tabs: React.FC<TabsProps> = ({ items, selectedId, onSelect, size = 
     lg: 48,
   } as const;
 
+  // Use a glass panel background for the tabs container
   return (
-    <HStack gap={2} style={[{ justifyContent: 'center', alignItems: 'center' }, style]}>
-      <HStack gap={2} style={{ alignItems: 'center' }}>
+    <View style={[
+      { 
+        backgroundColor: colors.background.secondary, // or transparent if glass needed
+        borderRadius: radiusTokens.md,
+        padding: 4,
+        alignSelf: 'center',
+        ...style 
+      }
+    ]}>
+      <HStack gap={0} style={{ alignItems: 'center' }}>
         {items.map((item) => {
           const selected = selectedId === item.id;
           const tabStyle: ViewStyle = {
             paddingHorizontal: paddingMap[size],
             minHeight: heightMap[size],
-            borderRadius: radiusTokens.md,
+            borderRadius: radiusTokens.sm, // Slightly smaller radius for items
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: selected ? colors.accent.primary : 'transparent',
-            borderWidth: selected ? 0 : 1,
-            borderColor: selected ? 'transparent' : colors.background.tertiary,
-            ...(selected ? (shadowTokens.xs as any) : {}),
+            backgroundColor: selected ? colors.background.primary : 'transparent',
+            // Glow/Shadow for selected state
+            ...(selected ? shadowTokens.sm : {}),
           };
 
-          const textColor = selected ? (colors.foreground?.onAccent ?? '#FFFFFF') : colors.foreground.primary;
+          const textColor = selected ? colors.foreground.primary : colors.foreground.secondary;
 
           return (
             <Pressable
@@ -67,10 +76,10 @@ export const Tabs: React.FC<TabsProps> = ({ items, selectedId, onSelect, size = 
               style={tabStyle}
             >
               <HStack gap={2} style={{ alignItems: 'center', justifyContent: 'center' }}>
-                {item.icon}
+                {item.icon && <Text style={{ fontSize: fontMap[size] }}>{item.icon}</Text>}
                 {item.label && (
                   <Text
-                    weight={selected ? 'bold' : 'medium'}
+                    weight={selected ? 'semibold' : 'medium'}
                     style={{ fontSize: fontMap[size], color: textColor }}
                   >
                     {item.label}
@@ -81,7 +90,7 @@ export const Tabs: React.FC<TabsProps> = ({ items, selectedId, onSelect, size = 
           );
         })}
       </HStack>
-    </HStack>
+    </View>
   );
 };
 

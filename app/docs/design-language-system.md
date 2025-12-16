@@ -11,7 +11,7 @@ type: standard
 
 > **Status**: Implementation Guide  
 > **Created**: November 18, 2025  
-> **Style**: ShadCN-Inspired, AI-Aesthetic, Mobile-Optimized
+> **Style**: ShadCN-Inspired, AI-Aesthetic (Slate/Sky/Violet), Mobile-Optimized
 
 ---
 
@@ -74,40 +74,41 @@ export type ColorToken = {
 
 export const colorTokens = {
   neutral: {
-    50: { light: '#FAFAFA', dark: '#0A0A0A' },
-    100: { light: '#F3F3F3', dark: '#161616' },
-    200: { light: '#E8E8E8', dark: '#262626' },
-    300: { light: '#D4D4D4', dark: '#404040' },
-    400: { light: '#A1A1A1', dark: '#7C7C7C' },
-    500: { light: '#737373', dark: '#A3A3A3' },
-    600: { light: '#525252', dark: '#D4D4D4' },
-    700: { light: '#404040', dark: '#E4E4E7' },
-    800: { light: '#262626', dark: '#F4F4F5' },
-    900: { light: '#171717', dark: '#FAFAFA' },
+    // Slate Palette (Cooler, Tech/AI Feel)
+    50: { light: '#F8FAFC', dark: '#020617' },
+    100: { light: '#F1F5F9', dark: '#0F172A' },
+    200: { light: '#E2E8F0', dark: '#1E293B' },
+    300: { light: '#CBD5E1', dark: '#334155' },
+    400: { light: '#94A3B8', dark: '#475569' },
+    500: { light: '#64748B', dark: '#94A3B8' },
+    600: { light: '#475569', dark: '#CBD5E1' },
+    700: { light: '#334155', dark: '#E2E8F0' },
+    800: { light: '#1E293B', dark: '#F1F5F9' },
+    900: { light: '#0F172A', dark: '#F8FAFC' },
   },
   blue: {
-    50: { light: '#F0F9FF', dark: '#0C1929' },
-    100: { light: '#E1F4FE', dark: '#132748' },
-    200: { light: '#B3E5FC', dark: '#1E5A8E' },
-    300: { light: '#81D4FA', dark: '#2896D3' },
-    400: { light: '#4FC3F7', dark: '#3A82F7' },
-    500: { light: '#29B6F6', dark: '#60A5FA' },
-    600: { light: '#03A9F4', dark: '#3B82F6' },
-    700: { light: '#0288D1', dark: '#1D4ED8' },
-    800: { light: '#0277BD', dark: '#1E40AF' },
-    900: { light: '#01579B', dark: '#1E3A8A' },
+    50: { light: '#F0F9FF', dark: '#082F49' },
+    100: { light: '#E0F2FE', dark: '#0C4A6E' },
+    200: { light: '#BAE6FD', dark: '#075985' },
+    300: { light: '#7DD3FC', dark: '#0369A1' },
+    400: { light: '#38BDF8', dark: '#0284C7' }, // Sky Blue - More Electric
+    500: { light: '#0EA5E9', dark: '#38BDF8' },
+    600: { light: '#0284C7', dark: '#7DD3FC' },
+    700: { light: '#0369A1', dark: '#BAE6FD' },
+    800: { light: '#075985', dark: '#E0F2FE' },
+    900: { light: '#0C4A6E', dark: '#F0F9FF' },
   },
   purple: {
-    50: { light: '#F5F3FF', dark: '#2D1B4E' },
-    100: { light: '#EDE9FE', dark: '#3D1F5C' },
-    200: { light: '#DDD6FE', dark: '#5E2FB5' },
-    300: { light: '#C4B5FD', dark: '#7C3AED' },
-    400: { light: '#A78BFA', dark: '#8B5CF6' },
+    50: { light: '#F5F3FF', dark: '#2E1065' },
+    100: { light: '#EDE9FE', dark: '#4C1D95' },
+    200: { light: '#DDD6FE', dark: '#5B21B6' },
+    300: { light: '#C4B5FD', dark: '#6D28D9' },
+    400: { light: '#A78BFA', dark: '#7C3AED' }, // Violet - More Neon
     500: { light: '#8B5CF6', dark: '#A78BFA' },
-    600: { light: '#7C3AED', dark: '#9333EA' },
-    700: { light: '#6D28D9', dark: '#7E22CE' },
-    800: { light: '#5B21B6', dark: '#6B21A8' },
-    900: { light: '#3F0F5C', dark: '#4C0519' },
+    600: { light: '#7C3AED', dark: '#C4B5FD' },
+    700: { light: '#6D28D9', dark: '#DDD6FE' },
+    800: { light: '#5B21B6', dark: '#EDE9FE' },
+    900: { light: '#4C1D95', dark: '#F5F3FF' },
   },
   green: { /* success palette */ },
   red: { /* error palette */ },
@@ -331,6 +332,28 @@ export const radiusScale = {
 
 export const shadowTokens = {
   none: 'none',
+  // Glow effects (AI Aesthetic)
+  glowSm: {
+    shadowColor: '#38BDF8', // Sky 400
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  glowMd: {
+    shadowColor: '#38BDF8',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  glowLg: {
+    shadowColor: '#A78BFA', // Violet 400
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.6,
+    shadowRadius: 24,
+    elevation: 12,
+  },
   xs: {
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },

@@ -6,9 +6,9 @@ import Animated, {
   useSharedValue,
   withSpring,
 } from 'react-native-reanimated';
-import { Text, microInteractions, radiusTokens, spacingTokens, colorTokens, getColor, useThemeTokens, useIsDark } from '@/ui';
+import { Text, microInteractions, radiusTokens, spacingTokens, colorTokens, shadowTokens, getColor, useThemeTokens, useIsDark } from '@/ui';
 
-type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'outline' | 'destructive' | 'subtle' | 'default';
+type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'outline' | 'destructive' | 'subtle' | 'default' | 'glow' | 'glass';
 type ButtonSize = 'sm' | 'md' | 'lg';
 
 type ButtonStyle = { 
@@ -17,6 +17,7 @@ type ButtonStyle = {
   border: string;
   hoverBg: string;
   activeBg: string;
+  shadow?: any;
 };
 
 type ButtonProps = PressableProps & {
@@ -82,6 +83,21 @@ const getButtonStyles = (isDark: boolean, semantic: ReturnType<typeof useThemeTo
     border: 'none',
     hoverBg: semantic.background.tertiary,
     activeBg: semantic.background.elevated,
+  },
+  glow: {
+    bg: semantic.accent.primary,
+    text: semantic.foreground.onAccent ?? '#FFFFFF',
+    border: 'none',
+    hoverBg: semantic.interactive.hover,
+    activeBg: semantic.interactive.active,
+    shadow: shadowTokens.glowMd,
+  },
+  glass: {
+    bg: semantic.translucent.medium,
+    text: semantic.foreground.primary,
+    border: semantic.border,
+    hoverBg: semantic.translucent.light,
+    activeBg: semantic.translucent.dark,
   },
 });
 
@@ -151,6 +167,7 @@ export const Button: React.FC<ButtonProps> = ({
     alignItems: 'center',
     flexDirection: 'row',
     gap: spacingTokens[2],
+    ...(variantStyle?.shadow || {}),
   };
 
   return (

@@ -41,6 +41,28 @@ export const shadowTokens: Record<string, ShadowStyle> = {
     shadowRadius: 25,
     elevation: 10,
   },
+  // Glow effects (AI Aesthetic)
+  glowSm: {
+    shadowColor: '#38BDF8', // Sky 400
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  glowMd: {
+    shadowColor: '#38BDF8',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  glowLg: {
+    shadowColor: '#A78BFA', // Violet 400
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.6,
+    shadowRadius: 24,
+    elevation: 12,
+  },
   // Semantic shadows
   card: {
     shadowColor: '#000',

@@ -12,12 +12,16 @@ import type { TextInputProps } from 'react-native';
 import { Box } from './Box';
 import { Text } from './Text';
 import { useColors } from '../hooks/useThemeTokens';
+import { shadowTokens } from '../tokens/shadows';
+
+type InputVariant = 'default' | 'glass';
 
 type InputProps = TextInputProps & {
   label?: string;
   leftAccessory?: React.ReactNode;
   rightAccessory?: React.ReactNode;
   error?: string;
+  variant?: InputVariant;
 };
 
 export const Input = React.forwardRef<TextInput, InputProps>(
@@ -27,6 +31,7 @@ export const Input = React.forwardRef<TextInput, InputProps>(
       leftAccessory,
       rightAccessory,
       error,
+      variant = 'default',
       editable = true,
       style,
       ...rest
@@ -36,6 +41,18 @@ export const Input = React.forwardRef<TextInput, InputProps>(
     const colors = useColors();
     const [isFocused, setIsFocused] = React.useState(false);
     const disabled = editable === false;
+
+    const getBackgroundColor = () => {
+      if (variant === 'glass') return colors.translucent.medium;
+      return colors.background.secondary;
+    };
+
+    const getBorderColor = () => {
+      if (error) return colors.error;
+      if (isFocused) return colors.accent.primary;
+      if (variant === 'glass') return colors.border;
+      return colors.foreground.muted;
+    };
 
     return (
       <Box gap={2}>
@@ -49,17 +66,14 @@ export const Input = React.forwardRef<TextInput, InputProps>(
           alignItems="center"
           padding={3}
           radius="md"
-          backgroundColor={colors.background.secondary}
+          backgroundColor={getBackgroundColor()}
           borderWidth={1}
-          borderColor={
-            error
-              ? colors.error
-              : isFocused
-              ? colors.accent.primary
-              : colors.foreground.muted
-          }
+          borderColor={getBorderColor()}
           gap={2}
-          style={{ opacity: disabled ? 0.5 : 1 }}
+          style={[
+            { opacity: disabled ? 0.5 : 1 },
+            isFocused && variant === 'glass' ? shadowTokens.glowSm : {}
+          ]}
         >
           {leftAccessory}
           <TextInput

@@ -12,7 +12,7 @@ import { getElevation, getElevationBlur } from '@/ui/tokens/elevation';
 import { radiusTokens } from '@/ui/tokens/radii';
 import { shadowTokens } from '@/ui/tokens/shadows';
 
-export type CardVariant = 'default' | 'elevated' | 'glass' | 'gradient' | 'outline' | 'surfaceElevated' | 'surfaceFloating' | 'surfaceModal';
+export type CardVariant = 'default' | 'elevated' | 'glass' | 'gradient' | 'outline' | 'surfaceElevated' | 'surfaceFloating' | 'surfaceModal' | 'glow';
 export type CardSize = 'sm' | 'md' | 'lg' | 'xl';
 
 export type CardProps = {
@@ -100,6 +100,7 @@ export const Card: React.FC<CardProps> = ({
     },
     gradient: { ...styles.gradient, ...shadowTokens.hover },
     outline: { ...styles.outline, borderColor: colors.border },
+    glow: { ...styles.elevated, backgroundColor: colors.background.elevated, ...shadowTokens.glowMd, borderColor: colors.accent.primary, borderWidth: 1 },
     surfaceElevated: getElevationStyle('surface8'),
     surfaceFloating: getElevationStyle('surface16'),
     surfaceModal: getElevationStyle('surface24'),
@@ -108,12 +109,13 @@ export const Card: React.FC<CardProps> = ({
   const CardWrapper = animated ? Animated.View : View;
   
   // Use BlurView for glass and elevated surface variants
-  const useBlur = (variant === 'glass' || variant === 'surfaceElevated' || variant === 'surfaceFloating' || variant === 'surfaceModal') && Platform.OS !== 'web';
-  
+  const useBlur = (variant === 'glass' || variant === 'surfaceElevated' || variant === 'surfaceFloating' || variant === 'surfaceModal' || variant === 'glow') && Platform.OS !== 'web';
+
   const blurIntensity = variant === 'glass' ? (isDark ? 40 : 60) :
                         variant === 'surfaceElevated' ? getElevationBlur('surface8') :
                         variant === 'surfaceFloating' ? getElevationBlur('surface16') :
-                        variant === 'surfaceModal' ? getElevationBlur('surface24') : 0;
+                        variant === 'surfaceModal' ? getElevationBlur('surface24') :
+                        variant === 'glow' ? 20 : 0;
 
   const cardStyle = [
     styles.card,

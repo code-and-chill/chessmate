@@ -33,7 +33,7 @@ export const GameInfo: React.FC<GameInfoProps> = ({
     : `${statusText} · ${movesText}`;
 
   return (
-    <Card variant="default" size="md" padding={16}>
+    <Card variant="glass" size="md" padding={16}>
       <Text 
         variant="body" 
         color={colors.foreground.secondary} 

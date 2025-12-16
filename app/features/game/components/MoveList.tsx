@@ -5,6 +5,8 @@ import { Text } from '@/ui/primitives/Text';
 import { useThemeTokens } from '@/ui/hooks/useThemeTokens';
 import type { Move } from '@/types/game';
 
+import { typographyTokens } from '@/ui/tokens/typography';
+
 export interface MoveListProps {
   moves?: Move[];
   onMoveSelect?: (moveIndex: number) => void;
@@ -214,7 +216,7 @@ export const MoveList = React.memo(
                             color={isWhiteSelected ? colors.accentForeground.primary : colors.foreground.primary} 
                             weight="medium"
                             style={{ 
-                              fontFamily: typography.fontFamily.mono, 
+                              fontFamily: typographyTokens.fontFamily.mono, 
                               fontSize: 14,
                               fontVariant: ['tabular-nums'],
                             }}
@@ -273,7 +275,7 @@ export const MoveList = React.memo(
                             color={isBlackSelected ? colors.accentForeground.primary : colors.foreground.primary} 
                             weight="medium"
                             style={{ 
-                              fontFamily: typography.fontFamily.mono, 
+                              fontFamily: typographyTokens.fontFamily.mono, 
                               fontSize: 14,
                               fontVariant: ['tabular-nums'],
                             }}

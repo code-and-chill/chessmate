@@ -27,7 +27,7 @@ export function MovesColumn({ isDesktop, moves, anim, style, flex }: MovesColumn
           <MoveList moves={moves} />
         </Panel>
       ) : (
-        <Card variant="default" size="md" padding={0} style={{ flex: 1 }}>
+        <Card variant="glass" size="md" padding={0} style={{ flex: 1 }}>
           <MoveList moves={moves} />
         </Card>
       )}
