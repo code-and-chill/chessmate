@@ -42,11 +42,16 @@ export const MatchCard: React.FC<MatchCardProps> = ({
 }) => {
   const isDark = useIsDark();
   const statusColors = useStatusColors();
+  
+  // Use 'glow' variant for active matches to give them an AI/Neon feel
+  const cardVariant = status === 'active' ? 'glow' : 'elevated';
+  
   return (
     <Pressable onPress={onPress}>
       <Card
-        borderColor={statusColors[status]}
-        borderWidth={status === 'active' ? 2 : 1}
+        variant={cardVariant}
+        borderColor={status !== 'active' ? statusColors[status] : undefined}
+        borderWidth={status !== 'active' ? 1 : undefined}
       >
         <Box gap={4}>
           <Box flexDirection="row" justifyContent="space-between" alignItems="center">

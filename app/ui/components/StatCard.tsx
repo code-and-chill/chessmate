@@ -63,8 +63,8 @@ const styles = StyleSheet.create({
     marginBottom: spacingTokens[2],
   },
   value: {
+    fontFamily: typographyTokens.fontFamily.monoBold,
     fontSize: typographyTokens.fontSize['2xl'],
-    fontWeight: typographyTokens.fontWeight.bold,
     marginBottom: spacingTokens[1],
     fontVariantNumeric: 'tabular-nums',
   },

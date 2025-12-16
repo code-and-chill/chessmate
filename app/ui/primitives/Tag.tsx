@@ -10,8 +10,9 @@ import { Pressable } from 'react-native';
 import { Text } from './Text';
 import { Box } from './Box';
 import { useColors } from '../hooks/useThemeTokens';
+import { shadowTokens } from '../tokens/shadows';
 
-type TagVariant = 'default' | 'success' | 'error' | 'warning' | 'info';
+type TagVariant = 'default' | 'success' | 'error' | 'warning' | 'info' | 'glow';
 type TagSize = 'sm' | 'md' | 'lg';
 type TagStyle = 'filled' | 'outline';
 
@@ -45,9 +46,10 @@ export const Tag: React.FC<TagProps> = ({
     error: { color: colors.error, bg: colors.error + '20' },
     warning: { color: colors.warning, bg: colors.warning + '20' },
     info: { color: colors.info, bg: colors.info + '20' },
+    glow: { color: colors.accent.primary, bg: colors.accent.primary + '20', shadow: shadowTokens.glowSm },
   };
 
-  const { color, bg } = variantColors[variant];
+  const { color, bg, shadow } = variantColors[variant];
 
   return (
     <Box
@@ -59,6 +61,7 @@ export const Tag: React.FC<TagProps> = ({
       borderWidth={style === 'outline' ? 1 : 0}
       borderColor={style === 'outline' ? color : undefined}
       gap={1}
+      style={shadow}
     >
       <Text
         variant="label"
