@@ -1,3 +1,12 @@
+/**
+ * Button Primitive Component
+ * app/ui/primitives/Button.tsx
+ * 
+ * Supports both DLS props (variant, size) and Tailwind className.
+ * DLS props take precedence over Tailwind classes for design values.
+ * Tailwind classes are useful for layout utilities.
+ */
+
 import React from 'react';
 import { Pressable, ActivityIndicator, View } from 'react-native';
 import type { PressableProps, ViewStyle } from 'react-native';
@@ -7,6 +16,7 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated';
 import { Text, microInteractions, radiusTokens, spacingTokens, colorTokens, shadowTokens, getColor, useThemeTokens, useIsDark } from '@/ui';
+import { cn } from '../utils/cn';
 
 type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'outline' | 'destructive' | 'subtle' | 'default' | 'glow' | 'glass';
 type ButtonSize = 'sm' | 'md' | 'lg';
@@ -32,6 +42,7 @@ type ButtonProps = PressableProps & {
   color?: string;
   animated?: boolean;
   isDark?: boolean;
+  className?: string;
 };
 
 const getButtonStyles = (isDark: boolean, semantic: ReturnType<typeof useThemeTokens>['colors']): Record<ButtonVariant, ButtonStyle> => ({
@@ -121,6 +132,7 @@ export const Button: React.FC<ButtonProps> = ({
   color,
   animated = true,
   isDark: isDarkOverride,
+  className,
   style,
   ...rest
 }: ButtonProps) => {
@@ -173,6 +185,7 @@ export const Button: React.FC<ButtonProps> = ({
   return (
     <AnimatedPressable
       disabled={disabled || isLoading}
+      className={cn(className)}
       style={[buttonStyle, animated && animatedStyle, typeof style === 'function' ? {} : style]}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}

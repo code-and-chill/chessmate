@@ -2328,39 +2328,218 @@ export default function PuzzleHubScreen() {
 
 ---
 
-## NativeWind Integration
+## Tailwind CSS Integration (NativeWind v4)
 
-NativeWind v4 (Tailwind CSS for React Native) is integrated as an optional styling layer on top of DLS tokens.
+Tailwind CSS via NativeWind v4 is fully integrated with the Design Language System. All Tailwind utilities map to DLS tokens, ensuring consistency and maintainability.
 
 ### Architecture
 
 ```
-Features → Components (shadcn-like) → DLS Tokens → NativeWind (optional)
+Features/Routes → DLS Components → DLS Tokens → Tailwind Utilities
 ```
 
-- **DLS tokens remain the source of truth** - All design values come from DLS
-- **NativeWind utilities map to DLS tokens** - Tailwind classes use DLS spacing, colors, typography
-- **Components can optionally use NativeWind** - Gradual adoption, no breaking changes
+**Key Principles:**
+- **DLS tokens are the single source of truth** - All design values come from DLS
+- **Tailwind utilities map to DLS tokens** - Every Tailwind class uses DLS spacing, colors, typography, etc.
+- **DLS-first approach** - Use DLS props for design values, Tailwind classes for layout utilities
+- **Primitives support both** - All DLS primitives accept both DLS props and `className` for Tailwind
 
-### Usage
+### Tailwind to DLS Token Mapping
+
+#### Spacing
+All spacing utilities map to `spacingTokens`:
 
 ```tsx
+// Tailwind class → DLS token
+p-1  → spacingTokens[1]  (4px)
+p-2  → spacingTokens[2]  (8px)
+p-3  → spacingTokens[3]  (12px)
+p-4  → spacingTokens[4]  (16px)
+p-5  → spacingTokens[5]  (24px)
+p-6  → spacingTokens[6]  (32px)
+// ... up to p-12 (96px)
+
+// Same for margin (m-*), gap (gap-*), etc.
+```
+
+#### Colors
+Base color palettes map directly to `colorTokens`:
+
+```tsx
+// Base colors
+bg-neutral-500  → colorTokens.neutral[500]
+text-blue-600   → colorTokens.blue[600]
+border-purple-400 → colorTokens.purple[400]
+
+// Semantic colors (theme-aware via CSS variables)
+bg-background-primary    → colors.background.primary
+text-foreground-primary  → colors.foreground.primary
+bg-accent-primary        → colors.accent.primary
+text-success             → colors.success
+```
+
+#### Typography
+Font sizes, families, and weights map to `typographyTokens`:
+
+```tsx
+// Font sizes
+text-xs   → typographyTokens.fontSize.xs  (12px)
+text-sm   → typographyTokens.fontSize.sm  (14px)
+text-base → typographyTokens.fontSize.base (16px)
+text-lg   → typographyTokens.fontSize.lg  (18px)
+// ... up to text-4xl (32px)
+
+// Font families
+font-display      → typographyTokens.fontFamily.display
+font-primary      → typographyTokens.fontFamily.primary
+font-mono         → typographyTokens.fontFamily.mono
+
+// Font weights
+font-normal   → typographyTokens.fontWeight.normal (400)
+font-medium   → typographyTokens.fontWeight.medium (500)
+font-semibold → typographyTokens.fontWeight.semibold (600)
+font-bold     → typographyTokens.fontWeight.bold (700)
+```
+
+#### Border Radius
+Radius utilities map to `radiusTokens`:
+
+```tsx
+rounded-sm   → radiusTokens.sm  (6px)
+rounded-md   → radiusTokens.md  (8px)
+rounded-lg   → radiusTokens.lg  (12px)
+rounded-xl   → radiusTokens.xl  (16px)
+rounded-2xl  → radiusTokens['2xl'] (20px)
+rounded-full → radiusTokens.full (9999px)
+```
+
+#### Shadows
+Shadow utilities map to `shadowTokens`:
+
+```tsx
+shadow-xs      → shadowTokens.xs
+shadow-sm      → shadowTokens.sm
+shadow-md      → shadowTokens.md
+shadow-lg      → shadowTokens.lg
+shadow-xl      → shadowTokens.xl
+shadow-glow-sm → shadowTokens.glowSm
+shadow-glow-md → shadowTokens.glowMd
+shadow-card    → shadowTokens.card
+shadow-panel   → shadowTokens.panel
+```
+
+### Usage Patterns
+
+#### Pattern 1: DLS Props (Recommended for Design Values)
+
+Use DLS props for colors, spacing, typography, and other design values:
+
+```tsx
+import { Box, Text, Button } from '@/ui';
+
+// ✅ Preferred: DLS props for design values
+<Box padding={4} backgroundColor={colors.background.card} radius="lg">
+  <Text variant="title" color={colors.foreground.primary}>
+    Hello World
+  </Text>
+  <Button variant="primary" size="md">
+    Click Me
+  </Button>
+</Box>
+```
+
+#### Pattern 2: Tailwind Classes (Useful for Layout Utilities)
+
+Use Tailwind classes for layout utilities while keeping DLS props for design values:
+
+```tsx
+import { Box, Text } from '@/ui';
 import { cn } from '@/ui/utils/cn';
 
-export function StatCard({ className, ...props }) {
-  return (
-    <Card className={cn("flex-1 items-center", className)}>
-      {/* DLS tokens still used via useColors() */}
-    </Card>
-  );
-}
+// ✅ Acceptable: Tailwind for layout, DLS for design
+<Box 
+  padding={4} 
+  className={cn("flex-1 items-center justify-between")}
+>
+  <Text variant="body">Content</Text>
+</Box>
+```
+
+#### Pattern 3: Hybrid Approach
+
+Combine DLS props with Tailwind classes when appropriate:
+
+```tsx
+import { Box, Text } from '@/ui';
+import { cn } from '@/ui/utils/cn';
+
+// ✅ Good: DLS props for design, Tailwind for layout
+<Box 
+  padding={4}
+  backgroundColor={colors.background.card}
+  className={cn("flex-row items-center gap-2")}
+>
+  <Text variant="body">Label</Text>
+  <Text variant="caption" color={colors.foreground.secondary}>
+    Value
+  </Text>
+</Box>
+```
+
+### When to Use What
+
+**Use DLS Props For:**
+- ✅ Colors (use `useColors()` hook)
+- ✅ Spacing (use `spacingTokens[n]` or DLS props)
+- ✅ Typography (use `variant`, `size`, `weight` props)
+- ✅ Border radius (use `radius` prop)
+- ✅ Shadows (use `shadow` prop)
+
+**Use Tailwind Classes For:**
+- ✅ Layout utilities (`flex-1`, `items-center`, `justify-between`)
+- ✅ Display utilities (`hidden`, `block`, `flex`)
+- ✅ Position utilities (`absolute`, `relative`)
+- ✅ Overflow utilities (`overflow-hidden`, `overflow-scroll`)
+
+**Avoid:**
+- ❌ Direct Tailwind color classes (`bg-blue-500`) - use DLS colors
+- ❌ Direct Tailwind spacing (`p-4`) - use DLS `padding` prop
+- ❌ Direct Tailwind typography (`text-lg`) - use DLS `variant` prop
+- ❌ Hard-coded values (`padding: 16`) - use DLS tokens
+
+### Primitives with className Support
+
+All DLS primitives support the `className` prop:
+
+```tsx
+import { Box, Text, Button, Card, Panel } from '@/ui';
+
+// All primitives accept className
+<Box className="flex-1 items-center" padding={4}>
+  <Text className="text-center" variant="title">
+    Title
+  </Text>
+  <Button className="self-stretch" variant="primary">
+    Click
+  </Button>
+  <Card className="w-full" variant="elevated">
+    Content
+  </Card>
+  <Panel className="flex-row" variant="glass">
+    Panel
+  </Panel>
+</Box>
 ```
 
 ### Configuration
 
-- **Tailwind Config**: `app/tailwind.config.js` - Maps Tailwind utilities to DLS tokens
+- **Tailwind Config**: `app/tailwind.config.js` - Complete DLS token mapping
 - **Babel Plugin**: `@nativewind/babel` - Processes className props
 - **Utility Function**: `app/ui/utils/cn.ts` - Combines class names with conditional logic
+
+### Migration Guide
+
+See [`tailwind-dls-integration.md`](./tailwind-dls-integration.md) for detailed migration patterns and best practices.
 
 ## SVG Icons
 

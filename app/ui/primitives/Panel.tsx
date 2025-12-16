@@ -1,3 +1,12 @@
+/**
+ * Panel Primitive Component
+ * app/ui/primitives/Panel.tsx
+ * 
+ * Supports both DLS props (variant, density, padding) and Tailwind className.
+ * DLS props take precedence over Tailwind classes for design values.
+ * Tailwind classes are useful for layout utilities.
+ */
+
 import React from 'react';
 import type { ViewStyle, StyleProp } from 'react-native';
 import { View, StyleSheet, Platform } from 'react-native';
@@ -5,7 +14,7 @@ import { BlurView } from 'expo-blur';
 import { useThemeTokens } from '@/ui/hooks/useThemeTokens';
 import { shadowTokens } from '@/ui/tokens/shadows';
 import { radiusTokens } from '@/ui/tokens/radii';
-
+import { cn } from '../utils/cn';
 
 type PanelVariant = 'glass' | 'solid' | 'translucent';
 type PanelDensity = 'light' | 'medium' | 'dark';
@@ -16,6 +25,7 @@ type PanelProps = {
   density?: PanelDensity;
   padding?: number;
   blur?: boolean;
+  className?: string;
   // Accept single style or array so callers can pass conditional styles
   style?: StyleProp<ViewStyle>;
 };
@@ -26,6 +36,7 @@ export const Panel: React.FC<PanelProps> = ({
   density = 'medium',
   padding = 16,
   blur = true,
+  className,
   style,
 }) => {
   const { colors, isDark } = useThemeTokens();
@@ -51,6 +62,7 @@ export const Panel: React.FC<PanelProps> = ({
   if (variant === 'glass' && blur && Platform.OS !== 'web') {
     return (
       <BlurView
+        className={cn(className)}
         intensity={isDark ? 40 : 60}
         tint={isDark ? 'dark' : 'light'}
         style={[
@@ -71,6 +83,7 @@ export const Panel: React.FC<PanelProps> = ({
   // Fallback for web or non-blur variants
   return (
     <View
+      className={cn(className)}
       style={[
         styles.container,
         shadowTokens.panel,

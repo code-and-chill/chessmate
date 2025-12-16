@@ -222,6 +222,8 @@ export { Tabs } from './components/Tabs';
 export type { TabItem } from './components/Tabs';
 export { SegmentedControl } from './components/SegmentedControl';
 export { RatedToggle } from './components/RatedToggle';
+export { SelectionCard } from './components/SelectionCard';
+export type { SelectionCardProps } from './components/SelectionCard';
 
 // Re-export style utilities
 export { safeStyles, safeStyleArray } from './utilities/safeStyles';

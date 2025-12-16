@@ -1,11 +1,11 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { VStack, Text, useColors, HStack, Button } from '@/ui';
 import { useBoardTheme } from '@/contexts/BoardThemeContext';
 import { themeConfigOptions, getBoardColors as getThemeColors, defaultThemeConfig } from '@/features/board/config/themeConfig';
 import type { BoardTheme } from '@/features/board/config/themeConfig';
-import { spacingScale } from '@/ui/tokens/spacing';
+import { spacingScale, spacingTokens } from '@/ui/tokens/spacing';
 import {BoardThemeLayout} from './components/BoardThemeLayout';
 import BoardThemeLeftTools from './components/BoardThemeLeftTools';
 import {BoardThemeBoardCanvas} from './components/BoardThemeBoardCanvas';
@@ -48,10 +48,16 @@ export const BoardSettingsPanel: React.FC = () => {
 
   useEffect(() => setDraft(initial), [initial]);
 
+  // Track if there are unsaved changes (draft differs from initial)
+  const hasUnsavedChanges = useMemo(() => {
+    return draft.boardColorId !== initial.boardColorId || draft.pieceTheme !== initial.pieceTheme;
+  }, [draft, initial]);
+
   // Do not auto-save to provider; allow explicit Save
 
   const handleQuickChange = (newDraft: any) => {
     setDraft((prev) => ({ ...prev, ...newDraft }));
+    setIsSaved(false); // Clear saved state when changes are made
   };
 
   const handleSave = async () => {
@@ -76,12 +82,23 @@ export const BoardSettingsPanel: React.FC = () => {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background.primary }]}>
-      <VStack gap={spacingScale.gap} style={styles.header}>
-        <Text variant="display" weight="bold">Board Theme</Text>
-        <Text variant="body">Customize your chess board appearance</Text>
+      <VStack gap={spacingTokens[2]} style={styles.header}>
+        <VStack gap={spacingTokens[1]}>
+          <Text variant="display" weight="bold" style={styles.title}>Board Theme</Text>
+          <Text variant="body" style={styles.subtitle}>
+            Personalize your playing experience with custom board colors and piece styles
+          </Text>
+        </VStack>
+        {hasUnsavedChanges && (
+          <View style={styles.unsavedIndicator}>
+            <Text variant="caption" style={[styles.unsavedText, { color: colors.accent.primary }]}>
+              • Unsaved changes
+            </Text>
+          </View>
+        )}
       </VStack>
 
-      <BoardThemeLayout compactAt={640}>
+      <BoardThemeLayout compactAt={768}>
         <BoardThemeLeftTools
           boardColors={boardColors}
           selectedId={draft.boardColorId}
@@ -91,19 +108,74 @@ export const BoardSettingsPanel: React.FC = () => {
           onSelectPiece={(t: string) => handleQuickChange({ pieceTheme: t })}
         />
 
-        <BoardThemeBoardCanvas
-          draft={draft}
-          availableBoardColors={boardColors}
-        />
-        <HStack gap={spacingScale.gap} style={{ marginTop: spacingScale.gap, justifyContent: 'center' }}>
-          <Button variant="primary" onPress={handleSave} isLoading={isSaving}>{isSaved ? 'Saved' : 'Save'}</Button>
-        </HStack>
+        <VStack gap={spacingTokens[3]} style={styles.previewSection}>
+          <BoardThemeBoardCanvas
+            draft={draft}
+            availableBoardColors={boardColors}
+          />
+          <VStack gap={spacingTokens[2]} style={styles.saveButtonContainer}>
+            {hasUnsavedChanges && (
+              <Text variant="caption" style={[styles.hintText, { color: colors.foreground.tertiary }]}>
+                Your changes will be applied to all future games
+              </Text>
+            )}
+            <Button 
+              variant="primary" 
+              onPress={handleSave} 
+              isLoading={isSaving}
+              disabled={!hasUnsavedChanges && !isSaving}
+              style={styles.saveButton}
+            >
+              {isSaved ? 'Saved ✓' : hasUnsavedChanges ? 'Save Changes' : 'No Changes'}
+            </Button>
+          </VStack>
+        </VStack>
        </BoardThemeLayout>
      </SafeAreaView>
    );
  };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: spacingScale.gutter },
-  header: { marginBottom: spacingScale.lg },
+  container: { 
+    flex: 1, 
+    paddingHorizontal: spacingScale.gutter,
+    paddingTop: spacingTokens[3],
+    paddingBottom: spacingTokens[4],
+  },
+  header: { 
+    marginBottom: spacingTokens[4],
+  },
+  title: {
+    fontSize: 28,
+    letterSpacing: -0.5,
+  },
+  subtitle: {
+    fontSize: 14,
+    opacity: 0.7,
+  },
+  previewSection: {
+    flex: 1,
+    minWidth: 280,
+  },
+  saveButtonContainer: {
+    justifyContent: 'center',
+    width: '100%',
+  },
+  saveButton: {
+    flex: 1,
+    maxWidth: 400,
+    alignSelf: 'center',
+  },
+  unsavedIndicator: {
+    marginTop: spacingTokens[1],
+  },
+  unsavedText: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  hintText: {
+    fontSize: 12,
+    textAlign: 'center',
+    lineHeight: 16,
+  },
 });

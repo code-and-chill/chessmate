@@ -1,19 +1,34 @@
-import { useState, useEffect, useCallback } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, FlatList, TextInput, Alert } from 'react-native';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { StyleSheet, View, useWindowDimensions, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
-import Animated, { FadeInDown } from 'react-native-reanimated';
-import { Card } from '@/ui/primitives/Card';
-import { VStack, useThemeTokens } from '@/ui';
+import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { 
+  Card, 
+  VStack, 
+  HStack, 
+  Text, 
+  Button, 
+  Input, 
+  Avatar,
+  useColors,
+  useThemeTokens,
+  InteractivePressable,
+  SegmentedControl,
+  Spacer,
+} from '@/ui';
 import { useSocial } from '@/contexts/SocialContext';
 import type { Friend, FriendRequest } from '@/contexts/SocialContext';
-import { GlobalContainer } from '@/ui/primitives/GlobalContainer';
-import { spacingScale, spacingTokens } from '@/ui/tokens/spacing';
-import { typographyTokens } from '@/ui/tokens/typography';
-import { radiusScale } from '@/ui/tokens/radii';
+import { spacingScale, spacingTokens, touchTargets } from '@/ui/tokens/spacing';
+import { radiusTokens } from '@/ui/tokens/radii';
+import { shadowTokens } from '@/ui/tokens/shadows';
+
+type TabType = 'friends' | 'requests' | 'add';
 
 export default function FriendsScreen() {
   const router = useRouter();
   const { colors } = useThemeTokens();
+  const { width } = useWindowDimensions();
   const {
     getFriends,
     getFriendRequests,
@@ -25,11 +40,14 @@ export default function FriendsScreen() {
   
   const [friends, setFriends] = useState<Friend[]>([]);
   const [requests, setRequests] = useState<FriendRequest[]>([]);
-  const [selectedTab, setSelectedTab] = useState<'friends' | 'requests' | 'add'>('friends');
+  const [selectedTab, setSelectedTab] = useState<TabType>('friends');
   const [searchQuery, setSearchQuery] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSendingRequest, setIsSendingRequest] = useState(false);
 
   const loadData = useCallback(async () => {
     try {
+      setIsLoading(true);
       const [friendsData, requestsData] = await Promise.all([
         getFriends(),
         getFriendRequests(),
@@ -40,6 +58,8 @@ export default function FriendsScreen() {
       console.error('Failed to load friends data:', error);
       setFriends([]);
       setRequests([]);
+    } finally {
+      setIsLoading(false);
     }
   }, [getFriends, getFriendRequests]);
 
@@ -49,20 +69,37 @@ export default function FriendsScreen() {
 
   const handleSendRequest = async () => {
     if (!searchQuery.trim()) return;
-    await sendFriendRequest(searchQuery);
-    Alert.alert('Request Sent', `Friend request sent to ${searchQuery}`);
-    setSearchQuery('');
+    try {
+      setIsSendingRequest(true);
+      await sendFriendRequest(searchQuery);
+      Alert.alert('Request Sent', `Friend request sent to ${searchQuery}`);
+      setSearchQuery('');
+      setSelectedTab('friends');
+      loadData();
+    } catch (error) {
+      Alert.alert('Error', 'Failed to send friend request');
+    } finally {
+      setIsSendingRequest(false);
+    }
   };
 
   const handleAcceptRequest = async (requestId: string) => {
-    await acceptFriendRequest(requestId);
-    loadData();
-    Alert.alert('Friend Added', 'You are now friends!');
+    try {
+      await acceptFriendRequest(requestId);
+      loadData();
+      Alert.alert('Friend Added', 'You are now friends!');
+    } catch (error) {
+      Alert.alert('Error', 'Failed to accept friend request');
+    }
   };
 
   const handleDeclineRequest = async (requestId: string) => {
-    await declineFriendRequest(requestId);
-    loadData();
+    try {
+      await declineFriendRequest(requestId);
+      loadData();
+    } catch (error) {
+      Alert.alert('Error', 'Failed to decline friend request');
+    }
   };
 
   const handleRemoveFriend = (friendId: string, username: string) => {
@@ -75,8 +112,12 @@ export default function FriendsScreen() {
           text: 'Remove',
           style: 'destructive',
           onPress: async () => {
-            await removeFriend(friendId);
-            loadData();
+            try {
+              await removeFriend(friendId);
+              loadData();
+            } catch (error) {
+              Alert.alert('Error', 'Failed to remove friend');
+            }
           },
         },
       ]
@@ -84,508 +125,507 @@ export default function FriendsScreen() {
   };
 
   const handleChallengeFriend = (friend: Friend) => {
-    Alert.alert(
-      'Challenge Friend',
-      `Challenge ${friend.username} to a game?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Challenge',
-          onPress: () => router.push({ pathname: '/play/friend', params: { friendId: friend.id } }),
-        },
-      ]
-    );
+    router.push({ pathname: '/play/friend', params: { friendId: friend.id } });
   };
 
-  const renderFriendCard = ({ item, index }: { item: Friend; index: number }) => (
-    <Animated.View entering={FadeInDown.delay(index * 50).duration(400)}>
-      <Card variant="default" size="md" style={{ marginBottom: spacingScale.md }}>
-        <View style={styles.friendCard}>
-          <View style={styles.friendInfo}>
-            <View style={[styles.avatar, { backgroundColor: colors.accent.primary }]}> 
-              <Text style={[styles.avatarText, { color: colors.accentForeground.primary }]}> 
-                {item.username[0].toUpperCase()} 
+  // Memoized filtered data
+  const onlineFriends = useMemo(() => friends.filter((f) => f.online), [friends]);
+  const offlineFriends = useMemo(() => friends.filter((f) => !f.online), [friends]);
+  const pendingRequests = useMemo(() => requests.filter((r) => r.status === 'pending'), [requests]);
+
+  // Responsive layout
+  const isCompact = width < 640;
+  const cardPadding = isCompact ? spacingTokens[3] : spacingTokens[4];
+
+  return (
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background.primary }]}>
+      <VStack gap={spacingTokens[4]} style={styles.content}>
+        {/* Header */}
+        <Animated.View entering={FadeInUp.delay(100).duration(400)}>
+          <VStack gap={spacingTokens[1]}>
+            <Text variant="display" weight="bold" style={styles.title}>
+              Friends
+            </Text>
+            <Text variant="body" style={[styles.subtitle, { color: colors.foreground.secondary }]}>
+              Connect with players, challenge friends, and build your chess community
+            </Text>
+            <HStack gap={spacingTokens[2]} style={styles.stats}>
+              <Text variant="caption" style={{ color: colors.foreground.tertiary }}>
+                {friends.length} {friends.length === 1 ? 'friend' : 'friends'}
               </Text>
-            </View>
-            <VStack gap={1} style={{ flex: 1 }}>
-              <View style={styles.friendHeader}>
-                <Text style={[styles.friendName, { color: colors.foreground.primary }]}>{item.username}</Text>
-                {item.online && <View style={[styles.onlineBadge, { backgroundColor: colors.success }]} />}
-              </View>
-              <Text style={[styles.friendRating, { color: colors.foreground.secondary }]}>Rating: {item.rating}</Text>
+              <Text variant="caption" style={{ color: colors.foreground.tertiary }}>•</Text>
+              <Text variant="caption" style={{ color: colors.foreground.tertiary }}>
+                {onlineFriends.length} online
+              </Text>
+            </HStack>
+          </VStack>
+        </Animated.View>
+
+        {/* Tabs */}
+        <Animated.View entering={FadeInDown.delay(200).duration(400)}>
+          <SegmentedControl
+            segments={['friends', 'requests', 'add']}
+            selectedSegment={selectedTab}
+            onSegmentChange={(tab) => setSelectedTab(tab as TabType)}
+            labelFormatter={(tab) => {
+              if (tab === 'friends') return `Friends (${friends.length})`;
+              if (tab === 'requests') return `Requests (${pendingRequests.length})`;
+              return 'Add Friend';
+            }}
+            style={styles.tabs}
+          />
+        </Animated.View>
+
+        {/* Content */}
+        {selectedTab === 'friends' && (
+          <FriendsList
+            onlineFriends={onlineFriends}
+            offlineFriends={offlineFriends}
+            onChallenge={handleChallengeFriend}
+            onRemove={handleRemoveFriend}
+            onMessage={(friend) => router.push({ pathname: '/social/messages', params: { friendId: friend.id } })}
+            isLoading={isLoading}
+            colors={colors}
+            isCompact={isCompact}
+          />
+        )}
+
+        {selectedTab === 'requests' && (
+          <RequestsList
+            requests={pendingRequests}
+            onAccept={handleAcceptRequest}
+            onDecline={handleDeclineRequest}
+            colors={colors}
+            isCompact={isCompact}
+          />
+        )}
+
+        {selectedTab === 'add' && (
+          <AddFriendForm
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            onSend={handleSendRequest}
+            isSending={isSendingRequest}
+            colors={colors}
+          />
+        )}
+      </VStack>
+    </SafeAreaView>
+  );
+}
+
+// Friend Card Component
+interface FriendCardProps {
+  friend: Friend;
+  onChallenge: (friend: Friend) => void;
+  onRemove: (friendId: string, username: string) => void;
+  onMessage: (friend: Friend) => void;
+  colors: ReturnType<typeof useThemeTokens>['colors'];
+  index: number;
+  isCompact: boolean;
+}
+
+const FriendCard: React.FC<FriendCardProps> = ({ 
+  friend, 
+  onChallenge, 
+  onRemove, 
+  onMessage,
+  colors,
+  index,
+  isCompact,
+}) => {
+  return (
+    <Animated.View entering={FadeInDown.delay(300 + index * 50).duration(400)}>
+      <Card variant="elevated" size="md" style={styles.friendCard}>
+        <HStack gap={spacingTokens[3]} alignItems="center" style={styles.friendCardContent}>
+          {/* Avatar & Info */}
+          <HStack gap={spacingTokens[3]} alignItems="center" style={{ flex: 1, minWidth: 0 }}>
+            <Avatar 
+              name={friend.username} 
+              size={isCompact ? 'md' : 'lg'}
+              status={friend.online ? 'online' : 'offline'}
+            />
+            <VStack gap={spacingTokens[1]} style={{ flex: 1, minWidth: 0 }}>
+              <HStack gap={spacingTokens[2]} alignItems="center">
+                <Text 
+                  variant="body" 
+                  weight="semibold" 
+                  style={[styles.friendName, { color: colors.foreground.primary }]}
+                  numberOfLines={1}
+                >
+                  {friend.username}
+                </Text>
+              </HStack>
+              <Text variant="caption" style={{ color: colors.foreground.secondary }}>
+                Rating: {friend.rating}
+              </Text>
             </VStack>
-          </View>
-          
-          <View style={styles.friendActions}>
-            <TouchableOpacity
-              style={[styles.actionButton, { 
-                backgroundColor: colors.background.secondary,
-                borderColor: colors.background.tertiary,
-                borderWidth: 2,
-              }]}
-              onPress={() => handleChallengeFriend(item)}
+          </HStack>
+
+          {/* Actions */}
+          <HStack gap={spacingTokens[1]} alignItems="center">
+            {friend.online && !friend.playing && (
+              <InteractivePressable
+                onPress={() => onChallenge(friend)}
+                accessibilityLabel={`Challenge ${friend.username}`}
+                hapticStyle="light"
+                style={styles.actionButton}
+              >
+                <Text style={styles.actionIcon}>⚔️</Text>
+              </InteractivePressable>
+            )}
+            <InteractivePressable
+              onPress={() => onMessage(friend)}
+              accessibilityLabel={`Message ${friend.username}`}
+              hapticStyle="light"
+              style={styles.actionButton}
             >
-              <Text style={styles.actionButtonText}>⚔️</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.actionButton, { 
-                backgroundColor: colors.background.secondary,
-                borderColor: colors.background.tertiary,
-                borderWidth: 2,
-              }]}
-              onPress={() => router.push({ pathname: '/social/messages', params: { friendId: item.id } })}
+              <Text style={styles.actionIcon}>💬</Text>
+            </InteractivePressable>
+            <InteractivePressable
+              onPress={() => onRemove(friend.id, friend.username)}
+              accessibilityLabel={`Remove ${friend.username}`}
+              hapticStyle="medium"
+              style={[styles.actionButton, styles.removeButton]}
             >
-              <Text style={styles.actionButtonText}>💬</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.actionButton, { 
-                backgroundColor: colors.error + '20',
-                borderColor: colors.error,
-                borderWidth: 2,
-              }]}
-              onPress={() => handleRemoveFriend(item.id, item.username)}
-            >
-              <Text style={styles.actionButtonText}>🗑️</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+              <Text style={styles.actionIcon}>🗑️</Text>
+            </InteractivePressable>
+          </HStack>
+        </HStack>
       </Card>
     </Animated.View>
   );
+};
 
-  const renderRequestCard = ({ item, index }: { item: FriendRequest; index: number }) => (
-    <Animated.View entering={FadeInDown.delay(index * 50).duration(400)}>
-      <Card variant="default" size="md" style={{ marginBottom: spacingScale.md }}>
-        <View style={styles.requestCard}>
-          <View style={styles.requestInfo}>
-            <View style={[styles.avatar, { backgroundColor: colors.accent.primary }]}> 
-              <Text style={[styles.avatarText, { color: colors.accentForeground.primary }]}> 
-                {item.from.username[0].toUpperCase()}
+// Friends List Component
+interface FriendsListProps {
+  onlineFriends: Friend[];
+  offlineFriends: Friend[];
+  onChallenge: (friend: Friend) => void;
+  onRemove: (friendId: string, username: string) => void;
+  onMessage: (friend: Friend) => void;
+  isLoading: boolean;
+  colors: ReturnType<typeof useThemeTokens>['colors'];
+  isCompact: boolean;
+}
+
+const FriendsList: React.FC<FriendsListProps> = ({
+  onlineFriends,
+  offlineFriends,
+  onChallenge,
+  onRemove,
+  onMessage,
+  isLoading,
+  colors,
+  isCompact,
+}) => {
+  if (isLoading) {
+    return (
+      <Card variant="elevated" size="md">
+        <VStack gap={spacingTokens[3]} alignItems="center" style={styles.emptyState}>
+          <Text variant="body" style={{ color: colors.foreground.secondary }}>
+            Loading friends...
+          </Text>
+        </VStack>
+      </Card>
+    );
+  }
+
+  if (onlineFriends.length === 0 && offlineFriends.length === 0) {
+    return (
+      <Card variant="elevated" size="md">
+        <VStack gap={spacingTokens[4]} alignItems="center" style={styles.emptyState}>
+          <Text style={styles.emptyIcon}>👥</Text>
+          <VStack gap={spacingTokens[1]} alignItems="center">
+            <Text variant="title" weight="semibold" style={{ color: colors.foreground.primary }}>
+              No friends yet
+            </Text>
+            <Text variant="body" style={[styles.emptyText, { color: colors.foreground.secondary }]}>
+              Add friends to play and chat together
+            </Text>
+          </VStack>
+        </VStack>
+      </Card>
+    );
+  }
+
+  return (
+    <VStack gap={spacingTokens[4]}>
+      {onlineFriends.length > 0 && (
+        <VStack gap={spacingTokens[3]}>
+          <Text variant="label" weight="semibold" style={[styles.sectionTitle, { color: colors.foreground.primary }]}>
+            Online ({onlineFriends.length})
+          </Text>
+          {onlineFriends.map((friend, index) => (
+            <FriendCard
+              key={friend.id}
+              friend={friend}
+              onChallenge={onChallenge}
+              onRemove={onRemove}
+              onMessage={onMessage}
+              colors={colors}
+              index={index}
+              isCompact={isCompact}
+            />
+          ))}
+        </VStack>
+      )}
+
+      {offlineFriends.length > 0 && (
+        <VStack gap={spacingTokens[3]}>
+          <Text variant="label" weight="semibold" style={[styles.sectionTitle, { color: colors.foreground.primary }]}>
+            Offline ({offlineFriends.length})
+          </Text>
+          {offlineFriends.map((friend, index) => (
+            <FriendCard
+              key={friend.id}
+              friend={friend}
+              onChallenge={onChallenge}
+              onRemove={onRemove}
+              onMessage={onMessage}
+              colors={colors}
+              index={onlineFriends.length + index}
+              isCompact={isCompact}
+            />
+          ))}
+        </VStack>
+      )}
+    </VStack>
+  );
+};
+
+// Request Card Component
+interface RequestCardProps {
+  request: FriendRequest;
+  onAccept: (requestId: string) => void;
+  onDecline: (requestId: string) => void;
+  colors: ReturnType<typeof useThemeTokens>['colors'];
+  index: number;
+  isCompact: boolean;
+}
+
+const RequestCard: React.FC<RequestCardProps> = ({ request, onAccept, onDecline, colors, index, isCompact }) => {
+  return (
+    <Animated.View entering={FadeInDown.delay(300 + index * 50).duration(400)}>
+      <Card variant="elevated" size="md" style={styles.requestCard}>
+        <HStack gap={spacingTokens[3]} alignItems="center" style={styles.requestCardContent}>
+          <HStack gap={spacingTokens[3]} alignItems="center" style={{ flex: 1 }}>
+            <Avatar 
+              name={request.from.username} 
+              size={isCompact ? 'md' : 'lg'}
+              status="offline"
+            />
+            <VStack gap={spacingTokens[1]} style={{ flex: 1 }}>
+              <Text variant="body" weight="semibold" style={{ color: colors.foreground.primary }}>
+                {request.from.username}
               </Text>
-            </View>
-            <VStack gap={1} style={{ flex: 1 }}>
-              <Text style={[styles.friendName, { color: colors.foreground.primary }]}>{item.from.username}</Text>
-              <Text style={[styles.requestDate, { color: colors.foreground.secondary }]}>
-                {new Date(item.sentAt).toLocaleDateString('en-US', {
+              <Text variant="caption" style={{ color: colors.foreground.tertiary }}>
+                {new Date(request.sentAt).toLocaleDateString('en-US', {
                   month: 'short',
                   day: 'numeric',
                 })}
               </Text>
             </VStack>
-          </View>
-          
-          {item.status === 'pending' && (
-            <View style={styles.requestActions}>
-              <TouchableOpacity
-                style={[styles.acceptButton, { 
-                  backgroundColor: colors.success + '20',
-                  borderColor: colors.success,
-                  borderWidth: 2,
-                }]}
-                onPress={() => handleAcceptRequest(item.id)}
-              >
-                <Text style={[styles.acceptButtonText, { color: colors.success }]}>✓ Accept</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.declineButton, { 
-                  backgroundColor: colors.error + '20',
-                  borderColor: colors.error,
-                  borderWidth: 2,
-                }]}
-                onPress={() => handleDeclineRequest(item.id)}
-              >
-                <Text style={[styles.declineButtonText, { color: colors.error }]}>✗ Decline</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-        </View>
+          </HStack>
+          <HStack gap={spacingTokens[2]}>
+            <Button
+              variant="primary"
+              size="sm"
+              onPress={() => onAccept(request.id)}
+              style={styles.acceptButton}
+            >
+              Accept
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onPress={() => onDecline(request.id)}
+              style={styles.declineButton}
+            >
+              Decline
+            </Button>
+          </HStack>
+        </HStack>
       </Card>
     </Animated.View>
   );
+};
 
-  const onlineFriends = friends.filter((f) => f.online);
-  const offlineFriends = friends.filter((f) => !f.online);
+// Requests List Component
+interface RequestsListProps {
+  requests: FriendRequest[];
+  onAccept: (requestId: string) => void;
+  onDecline: (requestId: string) => void;
+  colors: ReturnType<typeof useThemeTokens>['colors'];
+  isCompact: boolean;
+}
+
+const RequestsList: React.FC<RequestsListProps> = ({ requests, onAccept, onDecline, colors, isCompact }) => {
+  if (requests.length === 0) {
+    return (
+      <Card variant="elevated" size="md">
+        <VStack gap={spacingTokens[4]} alignItems="center" style={styles.emptyState}>
+          <Text style={styles.emptyIcon}>📭</Text>
+          <VStack gap={spacingTokens[1]} alignItems="center">
+            <Text variant="title" weight="semibold" style={{ color: colors.foreground.primary }}>
+              No pending requests
+            </Text>
+            <Text variant="body" style={[styles.emptyText, { color: colors.foreground.secondary }]}>
+              Friend requests will appear here
+            </Text>
+          </VStack>
+        </VStack>
+      </Card>
+    );
+  }
 
   return (
-    <GlobalContainer scrollable contentContainerStyle={styles.scrollContent} style={styles.container}>
-      <VStack style={styles.content} gap={6}>
-        <Animated.View entering={FadeInDown.delay(100).duration(500)}>
-          <Text style={[styles.title, { color: colors.foreground.primary }]}>{'Friends'}</Text>
-          <Text style={[styles.subtitle, { color: colors.foreground.secondary }]}> 
-            {friends.length} friends • {onlineFriends.length} online
-          </Text>
-        </Animated.View>
-
-        <Animated.View entering={FadeInDown.delay(200).duration(500)}>
-          <View style={styles.tabs}>
-            <TouchableOpacity
-              style={[
-                styles.tab, 
-                { 
-                  backgroundColor: colors.background.secondary,
-                  borderColor: colors.background.tertiary,
-                },
-                selectedTab === 'friends' && { 
-                  backgroundColor: colors.background.tertiary,
-                  borderColor: colors.accent.primary,
-                }
-              ]}
-              onPress={() => setSelectedTab('friends')}
-            >
-              <Text style={[
-                styles.tabText, 
-                { color: colors.foreground.secondary },
-                selectedTab === 'friends' && { color: colors.foreground.primary }
-              ]}>
-                {`Friends (${friends.length})`}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.tab, 
-                { 
-                  backgroundColor: colors.background.secondary,
-                  borderColor: colors.background.tertiary,
-                },
-                selectedTab === 'requests' && { 
-                  backgroundColor: colors.background.tertiary,
-                  borderColor: colors.accent.primary,
-                }
-              ]}
-              onPress={() => setSelectedTab('requests')}
-            >
-              <Text style={[
-                styles.tabText, 
-                { color: colors.foreground.secondary },
-                selectedTab === 'requests' && { color: colors.foreground.primary }
-              ]}>
-                {`Requests (${requests.filter((r) => r.status === 'pending').length})`}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.tab, 
-                { 
-                  backgroundColor: colors.background.secondary,
-                  borderColor: colors.background.tertiary,
-                },
-                selectedTab === 'add' && { 
-                  backgroundColor: colors.background.tertiary,
-                  borderColor: colors.accent.primary,
-                }
-              ]}
-              onPress={() => setSelectedTab('add')}
-            >
-              <Text style={[
-                styles.tabText, 
-                { color: colors.foreground.secondary },
-                selectedTab === 'add' && { color: colors.foreground.primary }
-              ]}>
-                {'Add Friend'}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </Animated.View>
-
-        {selectedTab === 'friends' && (
-          <VStack gap={4}>
-            {onlineFriends.length > 0 && (
-              <VStack gap={2}>
-                <Text style={[styles.sectionTitle, { color: colors.foreground.primary }]}> 
-                  {`Online (${onlineFriends.length})`}
-                </Text>
-                <FlatList
-                  data={onlineFriends}
-                  renderItem={renderFriendCard}
-                  keyExtractor={(item) => item.id}
-                  scrollEnabled={false}
-                />
-              </VStack>
-            )}
-            
-            {offlineFriends.length > 0 && (
-              <VStack gap={2}>
-                <Text style={[styles.sectionTitle, { color: colors.foreground.primary }]}> 
-                  {`Offline (${offlineFriends.length})`}
-                </Text>
-                <FlatList
-                  data={offlineFriends}
-                  renderItem={renderFriendCard}
-                  keyExtractor={(item) => item.id}
-                  scrollEnabled={false}
-                />
-              </VStack>
-            )}
-
-            {friends.length === 0 && (
-              <Card variant="default" size="md">
-                <View style={styles.emptyState}>
-                  <Text style={styles.emptyIcon}>👥</Text>
-                  <Text style={[styles.emptyTitle, { color: colors.foreground.primary }]}> 
-                    No friends yet
-                  </Text>
-                  <Text style={[styles.emptyText, { color: colors.foreground.secondary }]}> 
-                    Add friends to play and chat together
-                  </Text>
-                  <TouchableOpacity
-                    style={[styles.emptyButton, { backgroundColor: colors.accent.primary }]}
-                    onPress={() => setSelectedTab('add')}
-                  >
-                    <Text style={[styles.emptyButtonText, { color: colors.accentForeground.primary }]}> 
-                      Add Friend
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              </Card>
-            )}
-          </VStack>
-        )}
-
-        {selectedTab === 'requests' && (
-          <VStack gap={2}>
-            {requests.filter((r) => r.status === 'pending').length === 0 ? (
-              <Card variant="default" size="md">
-                <View style={styles.emptyState}>
-                  <Text style={styles.emptyIcon}>📭</Text>
-                  <Text style={[styles.emptyTitle, { color: colors.foreground.primary }]}> 
-                    No pending requests
-                  </Text>
-                  <Text style={[styles.emptyText, { color: colors.foreground.secondary }]}> 
-                    Friend requests will appear here
-                  </Text>
-                </View>
-              </Card>
-            ) : (
-              <FlatList
-                data={requests.filter((r) => r.status === 'pending')}
-                renderItem={renderRequestCard}
-                keyExtractor={(item) => item.id}
-                scrollEnabled={false}
-              />
-            )}
-          </VStack>
-        )}
-
-        {selectedTab === 'add' && (
-          <Animated.View entering={FadeInDown.duration(500)}>
-            <Card variant="default" size="md">
-              <VStack gap={4} style={{ padding: spacingScale.cardPadding }}>
-                <Text style={[styles.addFriendTitle, { color: colors.foreground.primary }]}> 
-                  Add Friend
-                </Text>
-                <Text style={[styles.addFriendText, { color: colors.foreground.secondary }]}> 
-                  Enter username or email to send a friend request
-                </Text>
-                
-                <TextInput
-                  style={[styles.searchInput, { 
-                    backgroundColor: colors.background.secondary,
-                    borderColor: colors.background.tertiary,
-                    color: colors.foreground.primary,
-                  }]}
-                  placeholder="Username or email"
-                  placeholderTextColor={colors.foreground.muted}
-                  value={searchQuery}
-                  onChangeText={setSearchQuery}
-                  autoCapitalize="none"
-                />
-                
-                <TouchableOpacity
-                  style={[
-                    styles.sendButton,
-                    { backgroundColor: colors.accent.primary },
-                    !searchQuery.trim() && { opacity: 0.5 },
-                  ]}
-                  onPress={handleSendRequest}
-                  disabled={!searchQuery.trim()}
-                >
-                  <Text style={[styles.sendButtonText, { color: colors.accentForeground.primary }]}> 
-                    Send Request
-                  </Text>
-                </TouchableOpacity>
-              </VStack>
-            </Card>
-          </Animated.View>
-        )}
-      </VStack>
-    </GlobalContainer>
+    <VStack gap={spacingTokens[3]}>
+      {requests.map((request, index) => (
+        <RequestCard
+          key={request.id}
+          request={request}
+          onAccept={onAccept}
+          onDecline={onDecline}
+          colors={colors}
+          index={index}
+          isCompact={isCompact}
+        />
+      ))}
+    </VStack>
   );
+};
+
+// Add Friend Form Component
+interface AddFriendFormProps {
+  searchQuery: string;
+  onSearchChange: (query: string) => void;
+  onSend: () => void;
+  isSending: boolean;
+  colors: ReturnType<typeof useThemeTokens>['colors'];
 }
+
+const AddFriendForm: React.FC<AddFriendFormProps> = ({ searchQuery, onSearchChange, onSend, isSending, colors }) => {
+  return (
+    <Animated.View entering={FadeInDown.delay(300).duration(400)}>
+      <Card variant="elevated" size="md">
+        <VStack gap={spacingTokens[4]}>
+          <VStack gap={spacingTokens[1]}>
+            <Text variant="title" weight="semibold" style={{ color: colors.foreground.primary }}>
+              Add Friend
+            </Text>
+            <Text variant="body" style={{ color: colors.foreground.secondary }}>
+              Enter username or email to send a friend request
+            </Text>
+          </VStack>
+          
+          <Input
+            value={searchQuery}
+            onChangeText={onSearchChange}
+            placeholder="Username or email"
+            autoCapitalize="none"
+            variant="default"
+          />
+          
+          <Button
+            variant="primary"
+            onPress={onSend}
+            isLoading={isSending}
+            disabled={!searchQuery.trim() || isSending}
+            style={styles.sendButton}
+          >
+            Send Request
+          </Button>
+        </VStack>
+      </Card>
+    </Animated.View>
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  scrollContent: {
-    paddingBottom: spacingScale.sectionGap,
-  },
   content: {
     paddingHorizontal: spacingScale.gutter,
-    paddingTop: spacingScale.gutter,
+    paddingTop: spacingTokens[3],
+    paddingBottom: spacingTokens[6],
   },
   title: {
-    fontSize: typographyTokens.fontSize['4xl'],
-    fontWeight: typographyTokens.fontWeight.bold,
-    textAlign: 'center',
+    fontSize: 28,
+    letterSpacing: -0.5,
   },
   subtitle: {
-    fontSize: typographyTokens.fontSize.base,
-    textAlign: 'center',
-    marginTop: spacingScale.xs,
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  stats: {
+    marginTop: spacingTokens[1],
   },
   tabs: {
-    flexDirection: 'row',
-  },
-  tab: {
-    flex: 1,
-    paddingVertical: spacingScale.md,
-    paddingHorizontal: spacingScale.md,
-    borderRadius: radiusScale.button,
-    alignItems: 'center',
-    borderWidth: 2,
-  },
-  tabText: {
-    fontSize: typographyTokens.fontSize.sm,
-    fontWeight: typographyTokens.fontWeight.semibold,
-  },
-  sectionTitle: {
-    fontSize: typographyTokens.fontSize.lg,
-    fontWeight: typographyTokens.fontWeight.bold,
+    marginBottom: spacingTokens[2],
   },
   friendCard: {
-    padding: spacingScale.cardPadding,
+    marginBottom: 0,
   },
-  friendInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacingScale.gap,
-    marginBottom: spacingScale.md,
-  },
-  avatar: {
-    width: spacingScale.avatarLg,
-    height: spacingScale.avatarLg,
-    borderRadius: spacingScale.avatarLg / 2,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  avatarText: {
-    fontSize: typographyTokens.fontSize.xl,
-    fontWeight: typographyTokens.fontWeight.bold,
-  },
-  friendHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacingScale.gap,
+  friendCardContent: {
+    padding: spacingTokens[2],
+    minHeight: touchTargets.minimum,
   },
   friendName: {
-    fontSize: typographyTokens.fontSize.base,
-    fontWeight: typographyTokens.fontWeight.bold,
-  },
-  onlineBadge: {
-    width: spacingScale.sm,
-    height: spacingScale.sm,
-    borderRadius: spacingScale.sm / 2,
-  },
-  friendRating: {
-    fontSize: typographyTokens.fontSize.sm,
-  },
-  friendActions: {
-    flexDirection: 'row',
-    gap: spacingScale.gap,
+    fontSize: 16,
+    letterSpacing: -0.2,
   },
   actionButton: {
-    flex: 1,
-    padding: spacingScale.md,
-    borderRadius: radiusScale.button,
+    width: touchTargets.minimum,
+    height: touchTargets.minimum,
+    borderRadius: radiusTokens.md,
+    backgroundColor: 'transparent',
+    justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: 'transparent',
+    ...shadowTokens.xs,
   },
-  actionButtonText: {
-    fontSize: typographyTokens.fontSize.xl,
+  removeButton: {
+    borderColor: 'rgba(239, 68, 68, 0.3)',
+    backgroundColor: 'rgba(239, 68, 68, 0.05)',
+  },
+  actionIcon: {
+    fontSize: 18,
   },
   requestCard: {
-    padding: spacingScale.cardPadding,
+    marginBottom: 0,
   },
-  requestInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacingScale.gap,
-    marginBottom: spacingScale.md,
-  },
-  requestDate: {
-    fontSize: typographyTokens.fontSize.xs,
-  },
-  requestActions: {
-    flexDirection: 'row',
-    gap: spacingScale.gap,
+  requestCardContent: {
+    padding: spacingTokens[2],
+    minHeight: touchTargets.minimum,
   },
   acceptButton: {
-    flex: 1,
-    padding: spacingScale.md,
-    borderRadius: radiusScale.button,
-    alignItems: 'center',
-  },
-  acceptButtonText: {
-    fontSize: typographyTokens.fontSize.sm,
-    fontWeight: typographyTokens.fontWeight.bold,
+    minWidth: 80,
   },
   declineButton: {
-    flex: 1,
-    padding: spacingScale.md,
-    borderRadius: radiusScale.button,
-    alignItems: 'center',
-  },
-  declineButtonText: {
-    fontSize: typographyTokens.fontSize.sm,
-    fontWeight: typographyTokens.fontWeight.bold,
-  },
-  addFriendTitle: {
-    fontSize: typographyTokens.fontSize.xl,
-    fontWeight: typographyTokens.fontWeight.bold,
-  },
-  addFriendText: {
-    fontSize: typographyTokens.fontSize.sm,
-    lineHeight: Math.round(typographyTokens.fontSize.base * typographyTokens.lineHeight.normal),
-  },
-  searchInput: {
-    padding: spacingScale.cardPadding,
-    borderRadius: radiusScale.input,
-    fontSize: typographyTokens.fontSize.base,
-    borderWidth: 2,
+    minWidth: 80,
   },
   sendButton: {
-    padding: spacingScale.cardPadding,
-    borderRadius: radiusScale.button,
-    alignItems: 'center',
+    width: '100%',
   },
-  sendButtonText: {
-    fontSize: typographyTokens.fontSize.base,
-    fontWeight: typographyTokens.fontWeight.bold,
+  sectionTitle: {
+    fontSize: 13,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    opacity: 0.8,
   },
   emptyState: {
-    padding: spacingScale.xxl,
-    alignItems: 'center',
+    paddingVertical: spacingTokens[8],
+    paddingHorizontal: spacingTokens[4],
   },
   emptyIcon: {
-    fontSize: spacingTokens[9],
-    marginBottom: spacingScale.md,
-  },
-  emptyTitle: {
-    fontSize: typographyTokens.fontSize.xl,
-    fontWeight: typographyTokens.fontWeight.bold,
-    marginBottom: spacingScale.sm,
+    fontSize: 64,
   },
   emptyText: {
-    fontSize: typographyTokens.fontSize.sm,
     textAlign: 'center',
-    marginBottom: spacingScale.xl,
-  },
-  emptyButton: {
-    paddingVertical: spacingScale.md,
-    paddingHorizontal: spacingScale.xl,
-    borderRadius: radiusScale.button,
-  },
-  emptyButtonText: {
-    fontSize: typographyTokens.fontSize.base,
-    fontWeight: typographyTokens.fontWeight.bold,
+    fontSize: 14,
+    lineHeight: 20,
   },
 });

@@ -1,9 +1,9 @@
 import { useRouter } from 'expo-router';
-import { StyleSheet, Pressable, Text, ScrollView, View } from 'react-native';
+import { StyleSheet, Pressable, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { Panel } from '@/ui/primitives/Panel';
-import { VStack, HStack, useThemeTokens } from '@/ui';
+import { VStack, HStack, useThemeTokens, Text, spacingTokens, radiusTokens, shadowTokens, typographyTokens } from '@/ui';
 
 export default function ExploreTab() {
   const router = useRouter();
@@ -58,8 +58,8 @@ export default function ExploreTab() {
         <VStack style={styles.content} gap={6}>
           {/* Header */}
           <Animated.View entering={FadeInUp.delay(100).duration(400)} style={styles.header}>
-            <Text style={[styles.title, { color: colors.accent.primary }]}>Explore Chess</Text>
-            <Text style={[styles.subtitle, { color: colors.foreground.secondary }]}>
+            <Text variant="display" weight="bold" color={colors.accent.primary}>Explore Chess</Text>
+            <Text variant="bodyMedium" color={colors.foreground.secondary} style={styles.subtitle}>
               Discover features to improve your game
             </Text>
           </Animated.View>
@@ -69,23 +69,23 @@ export default function ExploreTab() {
             {features.map((feature) => (
               <Animated.View key={feature.route} entering={FadeInDown.delay(feature.delay).duration(400)}>
                 <Pressable onPress={() => router.push(feature.route as any)}>
-                  <Panel variant="glass" padding={20} style={styles.featureCard}>
+                  <Panel variant="glass" padding={5} style={styles.featureCard}>
                     <HStack gap={4} style={{ alignItems: 'center' }}>
                       <View style={[styles.featureBadge, { backgroundColor: colors.translucent.light }]}> 
                         <Text style={styles.featureIcon}>{feature.icon}</Text>
                       </View>
                       <VStack gap={1} style={{ flex: 1 }}>
-                        <Text style={[styles.featureTitle, { color: colors.foreground.primary }]}>
+                        <Text variant="titleMedium" weight="bold" color={colors.foreground.primary}>
                           {feature.title}
                         </Text>
-                        <Text style={[styles.featureDescription, { color: colors.foreground.secondary }]}>
+                        <Text variant="bodyMedium" color={colors.foreground.secondary}>
                           {feature.description}
                         </Text>
-                        <Text style={[styles.featureProgress, { color: colors.accent.primary }]}>
+                        <Text variant="caption" weight="semibold" color={colors.accent.primary} style={styles.featureProgress}>
                           {feature.progress}
                         </Text>
                       </VStack>
-                      <Text style={[styles.arrow, { color: colors.accent.primary }]}>→</Text>
+                      <Text variant="title" weight="semibold" color={colors.accent.primary}>→</Text>
                     </HStack>
                   </Panel>
                 </Pressable>
@@ -103,71 +103,41 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 40,
+    paddingBottom: spacingTokens[7],
   },
   content: {
-    paddingHorizontal: 24,
-    paddingTop: 24,
+    paddingHorizontal: spacingTokens[6],
+    paddingTop: spacingTokens[6],
     maxWidth: 600,
     alignSelf: 'center',
     width: '100%',
   },
   header: {
     alignItems: 'center',
-    marginBottom: 8,
-  },
-  title: {
-    fontSize: 36,
-    fontWeight: '800',
-    textAlign: 'center',
-    letterSpacing: -0.5,
+    marginBottom: spacingTokens[2],
   },
   subtitle: {
-    fontSize: 17,
     textAlign: 'center',
-    marginTop: 6,
-    fontWeight: '500',
-    lineHeight: 24,
+    marginTop: spacingTokens[1],
   },
   featuresContainer: {
-    marginTop: 8,
+    marginTop: spacingTokens[2],
   },
   featureCard: {
-    shadowColor: '#667EEA',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
+    ...shadowTokens.card,
   },
   featureBadge: {
     width: 56,
     height: 56,
-    borderRadius: 28,
-    backgroundColor: 'rgba(102, 126, 234, 0.1)',
+    borderRadius: radiusTokens.full,
     justifyContent: 'center',
     alignItems: 'center',
   },
   featureIcon: {
-    fontSize: 28,
-  },
-  featureTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    letterSpacing: -0.4,
-  },
-  featureDescription: {
-    fontSize: 15,
-    fontWeight: '500',
-    lineHeight: 20,
+    fontSize: typographyTokens.fontSize['3xl'],
   },
   featureProgress: {
-    fontSize: 13,
-    fontWeight: '600',
-    marginTop: 4,
-  },
-  arrow: {
-    fontSize: 24,
-    fontWeight: '600',
+    marginTop: spacingTokens[1],
   },
 });
 

@@ -10,3 +10,5 @@ export { SegmentedControl } from './SegmentedControl';
 export { RatedToggle } from './RatedToggle';
 export { TimeControlSelector } from './TimeControlSelector';
 export { PlayerColorSelector } from './PlayerColorSelector';
+export { SelectionCard } from './SelectionCard';
+export type { SelectionCardProps } from './SelectionCard';

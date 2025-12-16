@@ -1,3 +1,12 @@
+/**
+ * Card Primitive Component
+ * app/ui/primitives/Card.tsx
+ * 
+ * Supports both DLS props (variant, size, padding) and Tailwind className.
+ * DLS props take precedence over Tailwind classes for design values.
+ * Tailwind classes are useful for layout utilities.
+ */
+
 import type React from 'react';
 import { View, StyleSheet, Platform } from 'react-native';
 import type { ViewStyle } from 'react-native';
@@ -11,6 +20,7 @@ import { useColors, useIsDark } from '@/ui/hooks/useThemeTokens';
 import { getElevation, getElevationBlur } from '@/ui/tokens/elevation';
 import { radiusTokens } from '@/ui/tokens/radii';
 import { shadowTokens } from '@/ui/tokens/shadows';
+import { cn } from '../utils/cn';
 
 export type CardVariant = 'default' | 'elevated' | 'glass' | 'gradient' | 'outline' | 'surfaceElevated' | 'surfaceFloating' | 'surfaceModal' | 'glow';
 export type CardSize = 'sm' | 'md' | 'lg' | 'xl';
@@ -27,6 +37,7 @@ export type CardProps = {
   hoverable?: boolean;
   pressable?: boolean;
   animated?: boolean;
+  className?: string;
   style?: ViewStyle;
 };
 
@@ -45,6 +56,7 @@ export const Card: React.FC<CardProps> = ({
   gradient,
   pressable = false,
   animated = false,
+  className,
   style,
 }) => {
   const colors = useColors();
@@ -138,6 +150,7 @@ export const Card: React.FC<CardProps> = ({
   if (useBlur) {
     return (
       <CardWrapper
+        className={cn(className)}
         style={[cardStyle, { overflow: 'hidden' }]}
         onTouchStart={animated ? handlePressIn : undefined}
         onTouchEnd={animated ? handlePressOut : undefined}
@@ -166,6 +179,7 @@ export const Card: React.FC<CardProps> = ({
 
   return (
     <CardWrapper
+      className={cn(className)}
       style={cardStyle}
       onTouchStart={animated ? handlePressIn : undefined}
       onTouchEnd={animated ? handlePressOut : undefined}

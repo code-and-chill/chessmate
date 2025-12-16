@@ -1,7 +1,17 @@
+/**
+ * Text Primitive Component
+ * app/ui/primitives/Text.tsx
+ * 
+ * Supports both DLS props (variant, size, weight) and Tailwind className.
+ * DLS props take precedence over Tailwind classes for typography values.
+ * Tailwind classes are useful for layout utilities.
+ */
+
 import React from 'react';
 import { Text as RNText, TextProps as RNTextProps } from 'react-native';
 import { typographyTokens, textVariants } from '../tokens/typography';
 import { useColors } from '../hooks/useThemeTokens';
+import { cn } from '../utils/cn';
 
 type TextVariant = keyof typeof textVariants | 'heading';
 
@@ -11,11 +21,12 @@ type Props = RNTextProps & {
   mono?: boolean;
   weight?: keyof typeof typographyTokens.fontWeight;
   size?: keyof typeof typographyTokens.fontSize;
+  className?: string;
   style?: RNTextProps['style'];
 };
 
 export const Text = React.forwardRef<RNText, Props>(
-  ({ children, variant = 'body', color, mono, weight, size, style, ...rest }, ref) => {
+  ({ children, variant = 'body', color, mono, weight, size, className, style, ...rest }, ref) => {
     const colors = useColors();
 
     // Defensive check: fallback to 'body' of invalid variant
@@ -53,6 +64,7 @@ export const Text = React.forwardRef<RNText, Props>(
       }
     }
 
+    // DLS styles take precedence over Tailwind classes
     const textStyle = {
       fontFamily,
       fontSize: finalFontSize,
@@ -65,7 +77,7 @@ export const Text = React.forwardRef<RNText, Props>(
     };
 
     return (
-      <RNText ref={ref} style={[textStyle, style]} {...rest}>
+      <RNText ref={ref} className={cn(className)} style={[textStyle, style]} {...rest}>
         {children}
       </RNText>
     );

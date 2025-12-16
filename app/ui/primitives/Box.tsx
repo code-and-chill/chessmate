@@ -1,6 +1,10 @@
 /**
  * Box Primitive Component
  * app/ui/primitives/Box.tsx
+ * 
+ * Supports both DLS props (padding, margin, etc.) and Tailwind className.
+ * DLS props take precedence over Tailwind classes for design values.
+ * Tailwind classes are useful for layout utilities (flex-1, items-center, etc.).
  */
 
 import React from 'react';
@@ -9,6 +13,7 @@ import type { ViewStyle } from 'react-native';
 import { spacingTokens } from '../tokens/spacing';
 import { radiusTokens } from '../tokens/radii';
 import { shadowTokens } from '../tokens/shadows';
+import { cn } from '../utils/cn';
 
 type BoxProps = {
   children?: React.ReactNode;
@@ -24,8 +29,9 @@ type BoxProps = {
   justifyContent?: ViewStyle['justifyContent'];
   alignItems?: ViewStyle['alignItems'];
   flex?: number;
+  className?: string;
   style?: ViewStyle;
-} & React.ComponentProps<typeof View>;
+} & Omit<React.ComponentProps<typeof View>, 'style'>;
 
 export const Box = React.forwardRef<View, BoxProps>(
   (
@@ -43,6 +49,7 @@ export const Box = React.forwardRef<View, BoxProps>(
       justifyContent,
       alignItems,
       flex,
+      className,
       style,
       ...rest
     },
@@ -54,7 +61,8 @@ export const Box = React.forwardRef<View, BoxProps>(
       return spacingTokens[p];
     };
 
-    // Build style object, filtering out undefined values
+    // Build style object from DLS props, filtering out undefined values
+    // DLS props take precedence over Tailwind classes
     const boxStyle: ViewStyle = Object.fromEntries(
       Object.entries({
         flexDirection,
@@ -73,19 +81,22 @@ export const Box = React.forwardRef<View, BoxProps>(
     ) as ViewStyle;
 
     // Normalize style to prevent invalid values in arrays
-  const normalize = (s: any): ViewStyle => {
-    if (!s) return {} as ViewStyle;
-    if (Array.isArray(s)) return Object.assign({}, ...s.filter(Boolean)) as ViewStyle;
-    return s as ViewStyle;
-  };
+    const normalize = (s: any): ViewStyle => {
+      if (!s) return {} as ViewStyle;
+      if (Array.isArray(s)) return Object.assign({}, ...s.filter(Boolean)) as ViewStyle;
+      return s as ViewStyle;
+    };
 
-  return (
-    <>
-      <View ref={ref} style={[boxStyle, normalize(style)]} {...rest}>
+    return (
+      <View 
+        ref={ref} 
+        className={cn(className)}
+        style={[boxStyle, normalize(style)]} 
+        {...rest}
+      >
         {children}
       </View>
-    </>
-  );
+    );
   }
 );
 
