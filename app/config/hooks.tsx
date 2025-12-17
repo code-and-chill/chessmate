@@ -6,7 +6,10 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { View, Text } from 'react-native';
 import type { RuntimeConfig, ConfigChangeEvent, ConfigChangeListener } from './types';
-import { getConfigStore } from './store';
+import { getConfigStore, initializeConfigStore } from './store';
+import { getConfigForEnvironment } from './environments';
+import { detectEnvironment } from './init';
+import { validateConfig } from './validator';
 import { fonts } from './fonts-constants';
 
 /**
@@ -19,13 +22,49 @@ interface ConfigProviderProps {
 }
 
 /**
+ * Initialize config store if not already initialized
+ * This is a fallback in case initializeConfiguration wasn't called at module load
+ */
+function ensureConfigInitialized(): RuntimeConfig {
+  try {
+    return getConfigStore().getConfig();
+  } catch (error) {
+    // Config store not initialized - initialize it now with default config
+    if (__DEV__) {
+      console.warn('[Config] ConfigStore not initialized, initializing with default config');
+    }
+    
+    const environment = detectEnvironment();
+    const defaultConfig = getConfigForEnvironment(environment);
+    
+    if (!defaultConfig) {
+      throw new Error(`[Config] No configuration found for environment: ${environment}`);
+    }
+    
+    // Validate configuration
+    const validation = validateConfig(defaultConfig);
+    if (!validation.valid) {
+      throw new Error(
+        `[Config] Configuration validation failed: ${validation.errors.join('; ')}`
+      );
+    }
+    
+    // Initialize store
+    initializeConfigStore(defaultConfig);
+    return defaultConfig;
+  }
+}
+
+/**
  * Configuration Provider Component
  * Wraps app to provide configuration to all components
  * Must be placed high in component tree (typically in App component)
+ * 
+ * Note: This will auto-initialize the config if initializeConfiguration() wasn't called
  */
 export const ConfigProvider: React.FC<ConfigProviderProps> = ({ children }) => {
   const [config, setConfig] = useState<RuntimeConfig>(() => {
-    return getConfigStore().getConfig();
+    return ensureConfigInitialized();
   });
 
   useEffect(() => {

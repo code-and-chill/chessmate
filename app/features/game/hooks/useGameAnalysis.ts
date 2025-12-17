@@ -69,8 +69,8 @@ function getSideToMove(fen: string): 'w' | 'b' {
 /**
  * Convert evaluation from pawns to centipawns
  */
-function evalToCentipawns(eval: number): number {
-  return Math.round(eval * 100);
+function evalToCentipawns(evaluation: number): number {
+  return Math.round(evaluation * 100);
 }
 
 /**

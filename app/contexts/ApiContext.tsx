@@ -78,8 +78,8 @@ const API_BASE_URLS = {
   rating: process.env.EXPO_PUBLIC_RATING_API_URL || 'http://localhost:8003',
   matchmaking: process.env.EXPO_PUBLIC_MATCHMAKING_API_URL || 'http://localhost:8004',
   puzzle: process.env.EXPO_PUBLIC_PUZZLE_API_URL || 'http://localhost:8000',
-  liveGame: process.env.EXPO_PUBLIC_LIVE_GAME_API_URL || 'http://localhost:8001',
-  play: process.env.EXPO_PUBLIC_PLAY_API_URL || 'http://localhost:8001',
+  liveGame: process.env.EXPO_PUBLIC_LIVE_GAME_API_URL || 'http://localhost:8002',
+  play: process.env.EXPO_PUBLIC_PLAY_API_URL || 'http://localhost:8002',
   learning: process.env.EXPO_PUBLIC_LEARNING_API_URL || 'http://localhost:8005',
 };
 

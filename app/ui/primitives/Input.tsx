@@ -1,18 +1,23 @@
 /**
- * Input Primitive Component
+ * Input Primitive Component - DLS-first implementation
  * app/ui/primitives/Input.tsx
  * 
  * Theme-aware text input with focus/disabled states.
- * Compliance: 90% (theme-aware, proper states, forward ref)
+ * Uses DLS tokens and Box component for consistent styling.
  */
 
 import React from 'react';
 import { TextInput } from 'react-native';
 import type { TextInputProps } from 'react-native';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
 import { Box } from './Box';
 import { Text } from './Text';
 import { useColors } from '../hooks/useThemeTokens';
-import { shadowTokens } from '../tokens/shadows';
+import { motionTokens } from '../tokens/motion';
 
 type InputVariant = 'default' | 'glass';
 
@@ -42,16 +47,33 @@ export const Input = React.forwardRef<TextInput, InputProps>(
     const [isFocused, setIsFocused] = React.useState(false);
     const disabled = editable === false;
 
+    // Animated border color
+    const borderColor = useSharedValue(
+      error ? colors.error : colors.border || colors.foreground.muted
+    );
+
+    React.useEffect(() => {
+      if (error) {
+        borderColor.value = colors.error;
+      } else if (isFocused) {
+        borderColor.value = withTiming(colors.accent.primary, {
+          duration: motionTokens.duration.normal,
+        });
+      } else {
+        borderColor.value = withTiming(
+          variant === 'glass' ? colors.border : colors.foreground.muted,
+          { duration: motionTokens.duration.normal }
+        );
+      }
+    }, [isFocused, error, variant, colors]);
+
+    const animatedBorderStyle = useAnimatedStyle(() => ({
+      borderColor: borderColor.value,
+    }));
+
     const getBackgroundColor = () => {
       if (variant === 'glass') return colors.translucent.medium;
-      return colors.background.secondary;
-    };
-
-    const getBorderColor = () => {
-      if (error) return colors.error;
-      if (isFocused) return colors.accent.primary;
-      if (variant === 'glass') return colors.border;
-      return colors.foreground.muted;
+      return 'transparent';
     };
 
     return (
@@ -61,39 +83,37 @@ export const Input = React.forwardRef<TextInput, InputProps>(
             {label}
           </Text>
         )}
-        <Box
-          flexDirection="row"
-          alignItems="center"
-          padding={3}
-          radius="md"
-          backgroundColor={getBackgroundColor()}
-          borderWidth={1}
-          borderColor={getBorderColor()}
-          gap={2}
-          style={[
-            { opacity: disabled ? 0.5 : 1 },
-            isFocused && variant === 'glass' ? shadowTokens.glowSm : {}
-          ]}
-        >
-          {leftAccessory}
-          <TextInput
-            ref={ref}
-            style={[
-              {
-                flex: 1,
-                fontSize: 16,
-                color: colors.foreground.primary,
-              },
-              style,
-            ]}
-            placeholderTextColor={colors.foreground.muted}
-            editable={editable}
-            onFocus={() => setIsFocused(true)}
-            onBlur={() => setIsFocused(false)}
-            {...rest}
-          />
-          {rightAccessory}
-        </Box>
+        <Animated.View style={animatedBorderStyle}>
+          <Box
+            flexDirection="row"
+            alignItems="center"
+            padding={3}
+            radius="md"
+            borderWidth={1}
+            backgroundColor={getBackgroundColor()}
+            gap={2}
+            style={{ opacity: disabled ? 0.5 : 1 }}
+          >
+            {leftAccessory}
+            <TextInput
+              ref={ref}
+              style={[
+                {
+                  flex: 1,
+                  fontSize: 16,
+                  color: colors.foreground.primary,
+                },
+                style,
+              ]}
+              placeholderTextColor={colors.foreground.muted}
+              editable={editable}
+              onFocus={() => setIsFocused(true)}
+              onBlur={() => setIsFocused(false)}
+              {...rest}
+            />
+            {rightAccessory}
+          </Box>
+        </Animated.View>
         {error && (
           <Text variant="caption" color={colors.error}>
             {error}

@@ -111,26 +111,44 @@ export const EvalBar: React.FC<EvalBarProps> = ({
   }, [evaluation, animated, percentage, evalValue]);
   
   const animatedBarStyle = useAnimatedStyle(() => {
-    const whiteColor = feedbackColorTokens.evaluation.whiteAdvantage;
-    const blackColor = feedbackColorTokens.evaluation.blackAdvantage;
-    const equalColor = feedbackColorTokens.evaluation.equal;
+    // Get colors from feedback tokens - use the correct properties
+    const whiteColor = isDark 
+      ? feedbackColorTokens.evaluation.winning.dark 
+      : feedbackColorTokens.evaluation.winning.light;
+    const blackColor = isDark 
+      ? feedbackColorTokens.evaluation.losing.dark 
+      : feedbackColorTokens.evaluation.losing.light;
+    const equalColor = isDark 
+      ? feedbackColorTokens.evaluation.slight.dark 
+      : feedbackColorTokens.evaluation.slight.light;
+    
+    // Ensure we have valid colors (fallback to defaults if needed)
+    const safeWhiteColor = whiteColor || (isDark ? '#22C55E' : '#16A34A');
+    const safeBlackColor = blackColor || (isDark ? '#111827' : '#1F2937');
+    const safeEqualColor = equalColor || (isDark ? '#374151' : '#F3F4F6');
+    
+    // Clamp percentage value to valid range [0, 100]
+    const clampedPercentage = Math.max(0, Math.min(100, percentage.value));
     
     // Interpolate between black, equal, and white
     let backgroundColor: string;
-    if (percentage.value < 50) {
-      // Black advantage
+    if (clampedPercentage < 50) {
+      // Black advantage (0-50%)
       backgroundColor = interpolateColor(
-        percentage.value,
+        clampedPercentage,
         [0, 50],
-        [blackColor, equalColor]
+        [safeBlackColor, safeEqualColor]
+      );
+    } else if (clampedPercentage > 50) {
+      // White advantage (50-100%)
+      backgroundColor = interpolateColor(
+        clampedPercentage,
+        [50, 100],
+        [safeEqualColor, safeWhiteColor]
       );
     } else {
-      // White advantage
-      backgroundColor = interpolateColor(
-        percentage.value,
-        [50, 100],
-        [equalColor, whiteColor]
-      );
+      // Exactly 50% - use equal color
+      backgroundColor = safeEqualColor;
     }
     
     if (orientation === 'vertical') {
@@ -166,7 +184,11 @@ export const EvalBar: React.FC<EvalBarProps> = ({
           style={[
             styles.section,
             isVertical ? styles.topSection : styles.leftSection,
-            { backgroundColor: feedbackColorTokens.evaluation.blackAdvantage + '20' },
+            { 
+              backgroundColor: isDark 
+                ? feedbackColorTokens.evaluation.losing.dark + '20' 
+                : feedbackColorTokens.evaluation.losing.light + '20' 
+            },
           ]}
         />
         

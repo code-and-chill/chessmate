@@ -1,4 +1,4 @@
-import {StyleSheet} from 'react-native';
+import {StyleSheet, ScrollView} from 'react-native';
 import {InteractivePressable} from '@/ui/primitives/InteractivePressable';
 import {Box} from '@/ui/primitives/Box';
 import {Text} from '@/ui/primitives/Text';
@@ -13,7 +13,7 @@ import {usePathname, useRouter} from 'expo-router';
 import Animated, {useAnimatedStyle, useSharedValue, withSpring,} from 'react-native-reanimated';
 
 import {useAuth} from '@/contexts/AuthContext';
-import React from 'react';
+import React, {useState} from 'react';
 
 export interface SidebarItem {
   id: string;
@@ -33,6 +33,21 @@ export const Sidebar: React.FC<SidebarProps> = ({ items, onItemPress }) => {
   const pathname = usePathname();
   const { colors, mode, setMode } = useThemeTokens();
   const { isAuthenticated, user, logout } = useAuth();
+  const [isUserInfoExpanded, setIsUserInfoExpanded] = useState(false);
+
+  const bp = getCurrentBreakpoint();
+  const sidebarWidth = getSidebarWidthForBreakpoint(bp);
+
+  // Progressive disclosure based on sidebar width:
+  // 1. If sidebar >= 200px (xl+) → show avatar + username (full)
+  // 2. If sidebar >= 120px (sm+) → show avatar only
+  // 3. If sidebar < 120px (xs) → show logout button only
+  // This prevents text truncation and shows only what fits cleanly
+  const MIN_WIDTH_FOR_USERNAME = 200; // xl breakpoint
+  const MIN_WIDTH_FOR_AVATAR = 120;   // sm breakpoint
+  
+  const canShowUsername = sidebarWidth >= MIN_WIDTH_FOR_USERNAME;
+  const canShowAvatar = sidebarWidth >= MIN_WIDTH_FOR_AVATAR;
 
   const handlePress = (item: SidebarItem) => {
     onItemPress?.(item);
@@ -48,11 +63,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ items, onItemPress }) => {
     }
   };
 
-  const bp = getCurrentBreakpoint();
-  const sidebarWidth = getSidebarWidthForBreakpoint(bp);
-
   return (
     <Box
+      flex={1}
+      flexDirection="column"
       style={{
         ...styles.container,
         width: sidebarWidth > 0 ? sidebarWidth : '100%',
@@ -72,8 +86,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ items, onItemPress }) => {
         </Text>
       </Box>
 
-      {/* Navigation Items */}
-      <Box style={styles.nav}>
+      {/* Navigation Items - Scrollable */}
+      <ScrollView
+        style={styles.navScroll}
+        contentContainerStyle={styles.navContent}
+        showsVerticalScrollIndicator={true}
+      >
         {items.map((item) => (
           <SidebarListItem
             key={item.id}
@@ -82,7 +100,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ items, onItemPress }) => {
             onPress={() => handlePress(item)}
           />
         ))}
-      </Box>
+      </ScrollView>
 
       {/* Auth Section at Bottom */}
       <Box
@@ -105,29 +123,57 @@ export const Sidebar: React.FC<SidebarProps> = ({ items, onItemPress }) => {
 
         {isAuthenticated ? (
           <>
-            {/* User Info */}
-            <Box
-              padding={3}
-              style={{
-                ...styles.userInfo,
-                backgroundColor: colors.translucent.light,
-                borderRadius: radiusTokens.lg,
-              }}
-            >
-              <Box style={{ ...styles.avatar, width: spacingScale.avatarMd, height: spacingScale.avatarMd, borderRadius: spacingScale.avatarMd / 2 }}>
-                <Text variant="body" weight="bold" style={{ color: colors.accentForeground.primary }}>
-                  {user?.username?.charAt(0).toUpperCase() || 'U'}
-                </Text>
-              </Box>
-              <Box style={{ flex: 1, marginLeft: spacingScale.md }}>
-                <Text variant="body" weight="semibold" style={{ color: colors.foreground.primary }}>
-                  {user?.username || 'User'}
-                </Text>
-                <Text variant="caption" style={{ color: colors.foreground.secondary }}>
-                  {user?.email || ''}
-                </Text>
-              </Box>
-            </Box>
+            {/* Progressive Disclosure: Show only what fits */}
+            {canShowAvatar && (
+              <InteractivePressable
+                onPress={() => canShowUsername && setIsUserInfoExpanded(!isUserInfoExpanded)}
+                style={{
+                  ...styles.userInfo,
+                  backgroundColor: colors.translucent.light,
+                  borderRadius: radiusTokens.lg,
+                  padding: spacingScale.md,
+                }}
+              >
+                <Box style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+                  <Box style={{ ...styles.avatar, width: spacingScale.avatarMd, height: spacingScale.avatarMd, borderRadius: spacingScale.avatarMd / 2 }}>
+                    <Text variant="body" weight="bold" style={{ color: colors.accentForeground.primary }}>
+                      {user?.username?.charAt(0).toUpperCase() || 'U'}
+                    </Text>
+                  </Box>
+                  {canShowUsername && (
+                    <>
+                      <Box style={{ flex: 1, marginLeft: spacingScale.md, minWidth: 0 }}>
+                        <Text 
+                          variant="body" 
+                          weight="semibold" 
+                          numberOfLines={1}
+                          ellipsizeMode="tail"
+                          style={{ color: colors.foreground.primary }}
+                        >
+                          {user?.username || 'User'}
+                        </Text>
+                        {isUserInfoExpanded && (
+                          <Text 
+                            variant="caption" 
+                            numberOfLines={1}
+                            ellipsizeMode="tail"
+                            style={{ color: colors.foreground.secondary, marginTop: spacingScale.xs }}
+                          >
+                            {user?.email || ''}
+                          </Text>
+                        )}
+                      </Box>
+                      <IconSymbol
+                        name={isUserInfoExpanded ? 'chevron.up' : 'chevron.down'}
+                        size={16}
+                        color={colors.foreground.secondary}
+                        style={{ marginLeft: spacingScale.xs }}
+                      />
+                    </>
+                  )}
+                </Box>
+              </InteractivePressable>
+            )}
 
             {/* Logout Button */}
             <InteractivePressable
@@ -266,17 +312,20 @@ const SidebarListItem: React.FC<SidebarItemProps> = ({ item, isActive, onPress }
 
 const styles = StyleSheet.create({
   container: {
-    height: '100%',
     borderRightWidth: 1,
   },
   header: {
     borderBottomWidth: 1,
     paddingVertical: spacingScale.md,
+    flexShrink: 0,
   },
-  nav: {
+  navScroll: {
     flex: 1,
+  },
+  navContent: {
     paddingTop: spacingScale.sm,
     paddingHorizontal: spacingScale.sm,
+    paddingBottom: spacingScale.sm,
   },
   item: {
     marginBottom: spacingScale.xs,
@@ -296,11 +345,11 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     paddingTop: spacingScale.md,
     gap: spacingScale.sm,
+    flexShrink: 0,
   },
   userInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: spacingScale.md,
   },
   avatar: {
     width: spacingScale.avatarMd,

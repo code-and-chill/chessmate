@@ -22,6 +22,16 @@ import {
 } from '@/contexts';
 import {I18nProvider} from '@/i18n/I18nContext';
 import {useAppFonts} from '@/config/fonts';
+import {ConfigProvider, initializeConfiguration} from '@/config';
+
+// Initialize configuration at module load time (before React renders)
+// This ensures ConfigProvider can access the config store
+try {
+  initializeConfiguration();
+} catch (error) {
+  console.error('[Config] Failed to initialize configuration at startup:', error);
+  // ConfigProvider will handle this gracefully by throwing a more helpful error
+}
 
 // Inner component that can access ThemeProvider
 function RootLayoutContent() {
@@ -69,7 +79,6 @@ function RootLayoutContent() {
               name="login"
               options={{
                 presentation: 'modal',
-                headerShown: true,
                 title: 'Sign In',
               }}
             />
@@ -77,7 +86,6 @@ function RootLayoutContent() {
               name="register"
               options={{
                 presentation: 'modal',
-                headerShown: true,
                 title: 'Sign Up',
               }}
             />
@@ -92,26 +100,28 @@ function RootLayoutContent() {
 
 export default function RootLayout() {
   return (
-    <I18nProvider defaultLocale="en">
-      <ApiProvider>
-        <AuthProvider>
-          <SocialProvider>
-            <GameProvider>
-              <MatchmakingProvider>
-                <PuzzleProvider>
-                  <LearningProvider>
-                    <ThemeProvider defaultMode="auto">
-                      <BoardThemeProvider>
-                        <RootLayoutContent />
-                      </BoardThemeProvider>
-                    </ThemeProvider>
-                  </LearningProvider>
-                </PuzzleProvider>
-              </MatchmakingProvider>
-            </GameProvider>
-          </SocialProvider>
-        </AuthProvider>
-      </ApiProvider>
-    </I18nProvider>
+    <ConfigProvider>
+      <I18nProvider defaultLocale="en">
+        <ApiProvider>
+          <AuthProvider>
+            <SocialProvider>
+              <GameProvider>
+                <MatchmakingProvider>
+                  <PuzzleProvider>
+                    <LearningProvider>
+                      <ThemeProvider defaultMode="auto">
+                        <BoardThemeProvider>
+                          <RootLayoutContent />
+                        </BoardThemeProvider>
+                      </ThemeProvider>
+                    </LearningProvider>
+                  </PuzzleProvider>
+                </MatchmakingProvider>
+              </GameProvider>
+            </SocialProvider>
+          </AuthProvider>
+        </ApiProvider>
+      </I18nProvider>
+    </ConfigProvider>
   );
 }

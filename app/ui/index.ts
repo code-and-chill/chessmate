@@ -225,6 +225,22 @@ export { RatedToggle } from './components/RatedToggle';
 export { SelectionCard } from './components/SelectionCard';
 export type { SelectionCardProps } from './components/SelectionCard';
 
+// Re-export InputGroup components (Shadcn-inspired)
+export {
+  InputGroup,
+  InputGroupInput,
+  InputGroupAddon,
+  InputGroupText,
+  InputGroupButton,
+} from './components/InputGroup';
+export type {
+  InputGroupProps,
+  InputGroupInputProps,
+  InputGroupAddonProps,
+  InputGroupTextProps,
+  InputGroupButtonProps,
+} from './components/InputGroup';
+
 // Re-export style utilities
 export { safeStyles, safeStyleArray } from './utilities/safeStyles';
 

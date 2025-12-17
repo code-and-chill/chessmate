@@ -125,9 +125,11 @@ const styles = StyleSheet.create({
 	},
 	sidebar: {
 		borderRightWidth: 1,
+		flexShrink: 0,
 		...Platform.select({
 			web: {
 				position: 'relative',
+				height: '100%',
 			},
 		}),
 	},
