@@ -24,6 +24,14 @@ class Settings(BaseSettings):
 
     # Timeouts
     HTTP_CLIENT_TIMEOUT_MS: int = 1000
+    ENGINE_QUERY_TIMEOUT_SECONDS: float = 20.0  # Engine query: 20s max
+    KNOWLEDGE_QUERY_TIMEOUT_SECONDS: float = 5.0  # Knowledge query: 5s max
+    TOTAL_BOT_MOVE_TIMEOUT_SECONDS: float = 30.0  # Total bot move: 30s max
+
+    # OpenTelemetry
+    OTEL_EXPORTER_OTLP_ENDPOINT: Optional[str] = None  # e.g., "http://localhost:4317"
+    OTEL_SERVICE_NAME: str = "bot-orchestrator-api"
+    OTEL_TRACES_EXPORTER: str = "otlp"
 
     class Config:
         env_file = ".env"
