@@ -12,7 +12,15 @@ from app.api.routes import router as api_v1_router
 from app.api.routes.health import router as health_router
 from app.core.config import get_settings
 from app.core.exceptions import setup_exception_handlers
+from app.core.tracing import (
+    instrument_fastapi,
+    instrument_httpx,
+    instrument_sqlalchemy,
+    setup_tracing,
+)
 from app.infrastructure.database import database_manager
+from app.api.middleware.rate_limit import RateLimitMiddleware
+from app.api.middleware.metrics import MetricsMiddleware
 
 
 @asynccontextmanager
@@ -52,6 +60,19 @@ def create_app() -> FastAPI:
         TrustedHostMiddleware,
         allowed_hosts=settings.ALLOWED_HOSTS,
     )
+
+    # Add metrics middleware (before rate limiting to track all requests)
+    app.add_middleware(MetricsMiddleware)
+
+    # Add rate limiting middleware
+    if settings.RATE_LIMIT_ENABLED:
+        app.add_middleware(RateLimitMiddleware)
+
+    # Initialize observability
+    setup_tracing()
+    instrument_fastapi(app)
+    instrument_httpx()
+    instrument_sqlalchemy()
 
     # Exception handlers
     setup_exception_handlers(app)
