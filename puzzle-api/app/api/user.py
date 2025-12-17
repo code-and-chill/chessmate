@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends, Query
 from sqlalchemy.orm import Session
 from app.core.database import get_db
+from app.api.dependencies import get_puzzle_cache
 from app.infrastructure.repository import (
     UserPuzzleStatsRepository, UserPuzzleAttemptRepository,
     PuzzleRepository
@@ -30,15 +31,22 @@ def get_user_stats(
     }
 
 @router.get("/history")
-def get_user_history(
+async def get_user_history(
     limit: int = Query(10, ge=1, le=100),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
-    user_id: str = "test-user-id"
+    user_id: str = "test-user-id",
+    cache = Depends(get_puzzle_cache),
 ):
     """
     Fetch the user's recent puzzle attempts.
     """
+    # Check cache first (only if offset is 0, as cache stores first page)
+    if cache and offset == 0:
+        cached_result = await cache.get_puzzle_feed(user_id)
+        if cached_result:
+            return cached_result
+    
     attempts = UserPuzzleAttemptRepository.get_user_attempts(db, user_id, limit, offset)
     
     history = []
@@ -54,4 +62,10 @@ def get_user_history(
             "puzzle_rating": puzzle.rating if puzzle else None
         })
     
-    return {"history": history, "total": len(history)}
+    result = {"history": history, "total": len(history)}
+    
+    # Cache result (only first page)
+    if cache and offset == 0:
+        await cache.set_puzzle_feed(user_id, result)
+    
+    return result
