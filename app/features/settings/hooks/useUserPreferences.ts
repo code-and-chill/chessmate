@@ -1,5 +1,12 @@
+/**
+ * useUserPreferences Hook (Refactored)
+ * 
+ * Now uses use cases instead of direct API calls.
+ */
+
 import { useState, useEffect, useCallback } from 'react';
-import { useApiClients } from '@/contexts/ApiContext';
+import { useFetchUserPreferencesUseCase } from './useFetchUserPreferencesUseCase';
+import { useUpdateUserPreferencesUseCase } from './useUpdateUserPreferencesUseCase';
 import type { UserPreferences } from '../types';
 
 interface UseUserPreferencesResult {
@@ -10,8 +17,11 @@ interface UseUserPreferencesResult {
   refetch: () => Promise<void>;
 }
 
-export function useUserPreferences(userId?: string): UseUserPreferencesResult {
-  const { accountApi } = useApiClients();
+export function useUserPreferences(
+  userId?: string
+): UseUserPreferencesResult {
+  const fetchUserPreferencesUseCase = useFetchUserPreferencesUseCase();
+  const updateUserPreferencesUseCase = useUpdateUserPreferencesUseCase();
   const [preferences, setPreferences] = useState<UserPreferences | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -26,33 +36,45 @@ export function useUserPreferences(userId?: string): UseUserPreferencesResult {
     setError(null);
 
     try {
-      const data = await accountApi.getPreferences(userId);
+      const data = await fetchUserPreferencesUseCase.execute(userId);
       setPreferences(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch preferences');
+      setError(
+        err instanceof Error ? err.message : 'Failed to fetch preferences'
+      );
       console.error('Error fetching preferences:', err);
     } finally {
       setLoading(false);
     }
-  }, [userId, accountApi]);
+  }, [userId, fetchUserPreferencesUseCase]);
 
-  const updatePreferences = useCallback(async (updates: Partial<UserPreferences>) => {
-    if (!userId) return;
+  const updatePreferences = useCallback(
+    async (updates: Partial<UserPreferences>) => {
+      if (!userId) return;
 
-    setLoading(true);
-    setError(null);
+      setLoading(true);
+      setError(null);
 
-    try {
-      const updated = await accountApi.updatePreferences(userId, updates);
-      setPreferences(updated);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update preferences');
-      console.error('Error updating preferences:', err);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, [userId, accountApi]);
+      try {
+        const updated = await updateUserPreferencesUseCase.execute({
+          userId,
+          updates,
+        });
+        setPreferences(updated);
+      } catch (err) {
+        setError(
+          err instanceof Error
+            ? err.message
+            : 'Failed to update preferences'
+        );
+        console.error('Error updating preferences:', err);
+        throw err;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [userId, updateUserPreferencesUseCase]
+  );
 
   useEffect(() => {
     fetchPreferences();

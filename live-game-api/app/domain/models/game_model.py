@@ -21,6 +21,10 @@ class Game(BaseEntity):
     white_account_id: Optional[UUID] = None
     black_account_id: Optional[UUID] = None
 
+    # Bot support
+    bot_id: Optional[str] = None  # Bot identifier (e.g., "bot-beginner-400")
+    bot_color: Optional[str] = Field(default=None, pattern=r"^[wb]$")  # Which color is the bot
+
     status: GameStatus = GameStatus.WAITING_FOR_OPPONENT
     rated: bool = True
     decision_reason: Optional[DecisionReason] = None
@@ -80,6 +84,14 @@ class Game(BaseEntity):
         """Check if game uses a custom starting position."""
         return self.starting_fen is not None
 
+    def is_bot_game(self) -> bool:
+        """Check if this game has a bot player."""
+        return self.bot_id is not None
+
+    def is_bot_turn(self) -> bool:
+        """Check if it's currently the bot's turn."""
+        return self.is_bot_game() and self.bot_color == self.side_to_move
+
     def can_join(self, account_id: UUID) -> bool:
         """Check if account can join this game."""
         return (
@@ -122,6 +134,9 @@ class Game(BaseEntity):
         self.white_clock_ms = self.time_control.initial_seconds * 1000
         self.black_clock_ms = self.time_control.initial_seconds * 1000
         self.side_to_move = "w"
+        
+        # If bot is assigned and it's bot's turn, game can start immediately
+        # (bot move will be triggered by service layer)
 
     def add_move(self, move: Move) -> None:
         """Add a move to the game and update clocks."""

@@ -21,6 +21,8 @@ class GameSummaryResponse(BaseModel):
 
     white_account_id: Optional[UUID]
     black_account_id: Optional[UUID]
+    bot_id: Optional[str] = None
+    bot_color: Optional[str] = None
 
     result: Optional[GameResult]
     end_reason: Optional[EndReason]

@@ -23,6 +23,7 @@ ChessMate App is the cross-platform mobile and web client for the ChessMate ches
 - `puzzle-api` — Tactical puzzles, daily puzzles, puzzle ratings
 - `rating-api` — Player ratings, leaderboards, ELO calculations
 - `matchmaking-api` — Opponent matching, queue management
+- `engine-cluster-api` — Chess position evaluation and analysis using Stockfish engine
 
 ## Core Philosophy
 
@@ -113,9 +114,11 @@ The core game experience with multiple modes:
 - Move validation and chess engine integration
 
 **Play vs Bot**
-- Difficulty levels (800-2000+ ELO)
-- AI opponent powered by Stockfish
+- Difficulty levels: Beginner (400), Easy (800), Medium (1200), Hard (1600), Expert (2000), Master (2400)
+- AI opponent powered by bot-orchestrator-api with Stockfish engine
 - Instant game start, no waiting
+- Bot moves are automatically played after human moves
+- Bot games are always unrated
 
 **Friend Challenge**
 - Private game creation via game ID

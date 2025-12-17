@@ -32,7 +32,7 @@ const configs: Record<Environment, EnvironmentConfig> = {
   development: {
     environment: 'development',
     apiBaseUrl: 'http://localhost:8000',
-    websocketUrl: 'ws://localhost:8000/ws',
+    websocketUrl: 'ws://localhost:8002/api/v1/ws',  // live-game-api WebSocket endpoint
     enableDevTools: true,
     enableLogging: true,
     enableAnalytics: false,
@@ -43,7 +43,7 @@ const configs: Record<Environment, EnvironmentConfig> = {
   staging: {
     environment: 'staging',
     apiBaseUrl: 'https://staging-api.chessmate.com',
-    websocketUrl: 'wss://staging-api.chessmate.com/ws',
+    websocketUrl: 'wss://staging-api.chessmate.com/api/v1/ws',  // live-game-api WebSocket endpoint
     enableDevTools: true,
     enableLogging: true,
     enableAnalytics: true,
@@ -54,7 +54,7 @@ const configs: Record<Environment, EnvironmentConfig> = {
   production: {
     environment: 'production',
     apiBaseUrl: 'https://api.chessmate.com',
-    websocketUrl: 'wss://api.chessmate.com/ws',
+    websocketUrl: 'wss://api.chessmate.com/api/v1/ws',  // live-game-api WebSocket endpoint
     enableDevTools: false,
     enableLogging: false,
     enableAnalytics: true,

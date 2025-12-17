@@ -14,7 +14,7 @@ In Phase 1, it will:
 
 Support standard chess only (no variants yet).
 
-Support human vs human only (no bots yet).
+Support human vs human and human vs bot games.
 
 Handle:
 
@@ -292,7 +292,39 @@ Optionally insert a game_moves row with a pseudo-move or record in separate log.
 
 Response: final game state.
 
-6) Draw offer/accept (optional MVP, but good to spec)
+6) Create bot game
+
+POST /v1/games/bot
+
+Create a new game against a bot opponent.
+
+Auth: required
+
+Body:
+
+{
+  "difficulty": "beginner" | "easy" | "medium" | "hard" | "expert" | "master",
+  "player_color": "white" | "black" | "random",
+  "time_control": {
+    "initial_seconds": 300,
+    "increment_seconds": 0
+  },
+  "rated": false  // Bot games are always unrated
+}
+
+Behavior:
+
+Creates a game with:
+- Human player assigned to requested color (or random)
+- Bot assigned to opposite color
+- Bot difficulty mapped to bot_id (e.g., "beginner" → "bot-beginner-400")
+- Game starts immediately (bot is already assigned)
+- If bot goes first, bot move is played automatically
+- Bot games are always unrated
+
+Response: GameSummaryResponse with bot_id and bot_color fields
+
+7) Draw offer/accept (optional MVP, but good to spec)
 
 POST /v1/games/{game_id}/offer-draw
 

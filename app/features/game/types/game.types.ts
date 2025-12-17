@@ -43,4 +43,7 @@ export interface GameState {
     white: PlayerInfo;
     black: PlayerInfo;
   };
+  botId?: string;
+  botColor?: Color;
+  isBotGame?: boolean;
 }

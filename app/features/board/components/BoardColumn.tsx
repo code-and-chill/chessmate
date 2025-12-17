@@ -3,9 +3,10 @@ import Animated, { Layout } from 'react-native-reanimated';
 import { View, Text, StyleSheet } from 'react-native';
 import { PlayerCard, GameActions } from '@/features/game';
 import { ChessBoard } from '@/features/board/components/ChessBoard';
-import { VStack } from '@/ui/primitives/Stack';
+import { VStack, HStack } from '@/ui/primitives/Stack';
 import { spacingTokens } from '@/ui/tokens/spacing';
 import { useBoardLayout } from '@/features/board/hooks/useBoardLayout';
+import { EvalBar } from '@/ui/components/chess/EvalBar';
 
 export interface BoardProps {
   // minimal shape used by this component — expand as needed
@@ -45,6 +46,8 @@ export interface BoardColumnProps {
   isCompact?: boolean;
   flex?: number;
   colors?: { text?: { primary?: string } } | null;
+  evaluation?: number | null;
+  showEvaluation?: boolean;
 }
 
 export function BoardColumn({
@@ -61,6 +64,8 @@ export function BoardColumn({
   isCompact,
   flex = 1,
   colors,
+  evaluation = null,
+  showEvaluation = true,
 }: BoardColumnProps) {
   const layout = useBoardLayout();
 
@@ -83,8 +88,21 @@ export function BoardColumn({
         />
       </Animated.View>
 
-      <Animated.View entering={anim(50)} layout={Layout.springify()} style={{ width: boardSizeFinal, height: boardSizeFinal }}>
-        <ChessBoard key={`${gameState.fen}-${gameState.sideToMove}`} {...(boardProps as any)} size={boardSizeFinal} squareSize={squareSizeFinal} />
+      <Animated.View entering={anim(50)} layout={Layout.springify()}>
+        <HStack gap={spacingTokens[2]} alignItems="center" justifyContent="center">
+          {showEvaluation && evaluation !== null && (
+            <EvalBar
+              evaluation={evaluation}
+              playerColor={boardProps.myColor === 'w' ? 'white' : 'black'}
+              orientation="vertical"
+              width={32}
+              height={boardSizeFinal}
+              showValue={true}
+              animated={true}
+            />
+          )}
+          <ChessBoard key={`${gameState.fen}-${gameState.sideToMove}`} {...(boardProps as any)} size={boardSizeFinal} squareSize={squareSizeFinal} />
+        </HStack>
       </Animated.View>
 
       <Animated.View entering={anim(150)} layout={Layout.springify()} style={{ width: boardSizeFinal }}>

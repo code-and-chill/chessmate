@@ -54,6 +54,10 @@ class GameORM(Base):
     white_account_id = Column(GUID(), nullable=True)
     black_account_id = Column(GUID(), nullable=True)
 
+    # Bot support
+    bot_id = Column(String(64), nullable=True)
+    bot_color = Column(String(1), nullable=True)
+
     status = Column(String(32), nullable=False, default=GameStatus.WAITING_FOR_OPPONENT)
     rated = Column(Boolean, nullable=False, default=True)
     variant_code = Column(String(32), nullable=False, default="standard")
@@ -83,7 +87,7 @@ class GameORM(Base):
 
     def to_domain(self) -> Game:
         """Convert ORM model to domain model."""
-        return Game(
+        game = Game(
             id=self.id,
             creator_account_id=self.creator_account_id,
             white_account_id=self.white_account_id,
@@ -107,6 +111,12 @@ class GameORM(Base):
             ended_at=self.ended_at,
             updated_at=self.updated_at,
         )
+        # Add bot fields if present
+        if self.bot_id:
+            game.bot_id = self.bot_id
+        if self.bot_color:
+            game.bot_color = self.bot_color
+        return game
 
     @staticmethod
     def from_domain(game: Game) -> "GameORM":
@@ -133,6 +143,8 @@ class GameORM(Base):
             creator_account_id=game.creator_account_id,
             white_account_id=game.white_account_id,
             black_account_id=game.black_account_id,
+            bot_id=game.bot_id,
+            bot_color=game.bot_color,
             status=status_value,
             rated=game.rated,
             variant_code=game.variant_code,

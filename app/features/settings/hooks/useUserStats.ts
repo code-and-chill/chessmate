@@ -1,5 +1,11 @@
+/**
+ * useUserStats Hook (Refactored)
+ * 
+ * Now uses FetchUserStats use case instead of direct API calls.
+ */
+
 import { useState, useEffect, useCallback } from 'react';
-import { useApiClients } from '@/contexts/ApiContext';
+import { useFetchUserStatsUseCase } from './useFetchUserStatsUseCase';
 import type { UserStats } from '../types';
 
 interface UseUserStatsResult {
@@ -13,7 +19,7 @@ export function useUserStats(
   userId?: string,
   timeControl: 'blitz' | 'rapid' | 'classical' = 'blitz'
 ): UseUserStatsResult {
-  const { ratingApi } = useApiClients();
+  const fetchUserStatsUseCase = useFetchUserStatsUseCase();
   const [stats, setStats] = useState<UserStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -28,8 +34,11 @@ export function useUserStats(
     setError(null);
 
     try {
-      const data = await ratingApi.getStats(userId, timeControl);
-      
+      const data = await fetchUserStatsUseCase.execute({
+        userId,
+        timeControl,
+      });
+
       // Note: Current API returns GameStats without insights
       // Temporary fix: Add default insights until API is updated
       const statsWithInsights = {
@@ -40,8 +49,8 @@ export function useUserStats(
           currentStreak: '3 wins',
           ratingTrend: '+45 this month',
         },
-      };
-      
+      } as UserStats;
+
       setStats(statsWithInsights);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch stats');
@@ -49,7 +58,7 @@ export function useUserStats(
     } finally {
       setLoading(false);
     }
-  }, [userId, timeControl, ratingApi]);
+  }, [userId, timeControl, fetchUserStatsUseCase]);
 
   useEffect(() => {
     fetchStats();

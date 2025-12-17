@@ -17,10 +17,12 @@ dependencies:
     - account-api
     - live-game-api
     - matchmaking-api
+    - engine-cluster-api
   test:
     - account-api
     - live-game-api
     - matchmaking-api
+    - engine-cluster-api
   build: []
   deploy: []
 

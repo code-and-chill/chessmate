@@ -10,3 +10,4 @@ class DecisionReason(str, Enum):
     RATING_GAP_AUTO = "rating_gap_auto"  # Rating difference too large
     CUSTOM_POSITION_AUTO = "custom_position_auto"  # Custom FEN forced unrated
     ODDS_AUTO = "odds_auto"  # Odds chess forced unrated
+    BOT_GAME = "bot_game"  # Bot games are always unrated

@@ -24,6 +24,8 @@ class GameResponse(BaseModel):
 
     white_account_id: Optional[UUID]
     black_account_id: Optional[UUID]
+    bot_id: Optional[str] = None
+    bot_color: Optional[str] = None
     white_remaining_ms: int
     black_remaining_ms: int
 

@@ -15,7 +15,7 @@ import type {Move} from '@/types/game';
 import {useBoardTheme} from '@/contexts/BoardThemeContext';
 import {DevBadge} from '@/ui/primitives/DevBadge';
 import {MovesColumn} from '@/features/board/components/MovesColumn';
-import {useApiClients} from '@/contexts/ApiContext';
+import {useGetPuzzle} from '@/features/puzzle/hooks/useGetPuzzle';
 import {ChessBoard} from '@/features/board';
 import {Card} from '@/ui/primitives/Card';
 import {usePuzzleAttempt} from '@/features/puzzle/hooks/usePuzzleAttempt';
@@ -39,12 +39,9 @@ export const PuzzlePlayScreen: React.FC<PuzzlePlayScreenProps> = ({ puzzleId: _p
 
   const reduceMotion = useReducedMotion();
     const {isHorizontalLayout, boardSize, squareSize, movesColumnFlex, onLayout} = useBoardLayout();
-  const api = useApiClients();
+  const { puzzle, loading: puzzleLoading, error: puzzleError, fetchDailyPuzzle, fetchRandomPuzzle } = useGetPuzzle();
   const { t } = useI18n();
 
-  const [loading, setLoading] = useState<boolean>(true);
-  const [puzzle, setPuzzle] = useState<any | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [movesPlayed, setMovesPlayed] = useState<string[]>([]);
 
   const [puzzleState, setPuzzleState] = useState<{
@@ -65,32 +62,27 @@ export const PuzzlePlayScreen: React.FC<PuzzlePlayScreenProps> = ({ puzzleId: _p
 
   // loadPuzzle will be defined as a stable callback so we can reference it from other callbacks
   const loadPuzzle = useCallback(async () => {
-    setLoading(true);
-    setError(null);
     setMovesPlayed([]);
 
     try {
-        const fetcher = daily && typeof (api.puzzleApi as any).getDailyPuzzle === 'function'
-            ? (api.puzzleApi as any).getDailyPuzzle
-            : (api.puzzleApi as any).getRandomPuzzle;
-
-        const data = await fetcher.call(api.puzzleApi);
-        if (!data) {
-        setError(t('errors.loadFailed'));
-        return;
+      if (daily) {
+        await fetchDailyPuzzle();
+      } else {
+        await fetchRandomPuzzle();
       }
-
-      setPuzzle(data);
-
-      const fen = data?.problem?.fen ?? data?.fen ?? puzzleState.fen;
-      const side = data?.problem?.side_to_move ?? data?.problem?.sideToMove ?? data?.sideToMove ?? puzzleState.sideToMove;
-      setPuzzleState(prev => ({ ...prev, fen, sideToMove: side, moves: [], status: 'in_progress', endReason: '' }));
     } catch {
-      setError(t('errors.loadFailed'));
-    } finally {
-      setLoading(false);
+      // Error handled by useGetPuzzle hook
     }
-  }, [api.puzzleApi, t, puzzleState.fen, puzzleState.sideToMove, daily]);
+  }, [daily, fetchDailyPuzzle, fetchRandomPuzzle]);
+
+  // Update puzzle state when puzzle is fetched
+  useEffect(() => {
+    if (puzzle) {
+      const fen = puzzle?.problem?.fen ?? puzzle?.fen ?? puzzleState.fen;
+      const side = puzzle?.problem?.side_to_move ?? puzzle?.problem?.sideToMove ?? puzzle?.sideToMove ?? puzzleState.sideToMove;
+      setPuzzleState(prev => ({ ...prev, fen, sideToMove: side, moves: [], status: 'in_progress', endReason: '' }));
+    }
+  }, [puzzle]);
 
     // onSolved should reload a new puzzle; keep a stable reference
   const onSolvedCallback = useCallback(() => {
@@ -181,19 +173,19 @@ export const PuzzlePlayScreen: React.FC<PuzzlePlayScreenProps> = ({ puzzleId: _p
 
   return (
     <>
-      {loading && (
+      {puzzleLoading && (
         <Box padding={4}>
           <Text>{t('loading') ?? 'Loading...'}</Text>
         </Box>
       )}
 
-      {!loading && error && (
+      {!puzzleLoading && puzzleError && (
         <Box padding={4}>
-          <Text>{error}</Text>
+          <Text>{puzzleError}</Text>
         </Box>
       )}
 
-      {!loading && !error && puzzle && (
+      {!puzzleLoading && !puzzleError && puzzle && (
         <Box style={{ flex: 1 }} onLayout={onLayout}>
             <Box flexDirection={isHorizontalLayout ? 'row' : 'column'} flex={1} gap={4}>
                 <Box alignItems="center" style={{width: isHorizontalLayout ? boardSize : '100%'}}>

@@ -1,0 +1,67 @@
+meta {
+  name: Create Bot Game
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/v1/games/bot
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  Authorization: Bearer {{authToken}}
+}
+
+body:json {
+  {
+    "difficulty": "medium",
+    "player_color": "white",
+    "time_control": {
+      "initial_seconds": 300,
+      "increment_seconds": 0
+    },
+    "rated": false
+  }
+}
+
+tests {
+  test("status is 201", function() {
+    expect(res.status).to.equal(201);
+  });
+
+  test("response has game id", function() {
+    expect(res.body.id).to.not.be.null;
+  });
+
+  test("response has bot_id", function() {
+    expect(res.body.bot_id).to.not.be.null;
+    expect(res.body.bot_id).to.equal("bot-medium-1200");
+  });
+
+  test("response has bot_color", function() {
+    expect(res.body.bot_color).to.not.be.null;
+    expect(res.body.bot_color).to.be.oneOf(["w", "b"]);
+  });
+
+  test("game is unrated", function() {
+    expect(res.body.rated).to.equal(false);
+  });
+
+  test("game status is in_progress", function() {
+    expect(res.body.status).to.equal("in_progress");
+  });
+
+  test("player is assigned to requested color", function() {
+    // If player_color is white, white_account_id should be set
+    // If player_color is black, black_account_id should be set
+    if (req.body.player_color === "white") {
+      expect(res.body.white_account_id).to.not.be.null;
+    } else if (req.body.player_color === "black") {
+      expect(res.body.black_account_id).to.not.be.null;
+    }
+  });
+}
+

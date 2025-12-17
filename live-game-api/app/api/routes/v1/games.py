@@ -13,6 +13,7 @@ from app.api.models import (
     JoinGameRequest,
     PlayMoveRequest,
 )
+from app.api.bot_game_request import CreateBotGameRequest
 from app.core.exceptions import (
     ApplicationException,
     GameNotFoundError,
@@ -80,6 +81,49 @@ async def create_game(
         raise HTTPException(status_code=e.status_code, detail=e.message)
 
 
+@router.post("/games/bot", response_model=GameSummaryResponse, status_code=status.HTTP_201_CREATED)
+async def create_bot_game(
+    request: CreateBotGameRequest,
+    current_user: UUID = Depends(get_current_user),
+    game_service: GameService = Depends(get_game_service),
+):
+    """Create a new bot game.
+    
+    Bot games are always unrated and start immediately.
+    The bot difficulty determines the bot's strength (beginner to master).
+    """
+    try:
+        time_control = TimeControl(
+            initial_seconds=request.time_control.initial_seconds,
+            increment_seconds=request.time_control.increment_seconds,
+        )
+
+        game = await game_service.create_bot_game(
+            creator_id=current_user,
+            difficulty=request.difficulty,
+            player_color=request.player_color,
+            time_control=time_control,
+        )
+
+        return GameSummaryResponse(
+            id=game.id,
+            status=game.status,
+            rated=game.rated,
+            decision_reason=game.decision_reason,
+            white_account_id=game.white_account_id,
+            black_account_id=game.black_account_id,
+            bot_id=game.bot_id,
+            bot_color=game.bot_color,
+            result=game.result,
+            end_reason=game.end_reason,
+            created_at=game.created_at,
+            started_at=game.started_at,
+            ended_at=game.ended_at,
+        )
+    except ApplicationException as e:
+        raise HTTPException(status_code=e.status_code, detail=e.message)
+
+
 @router.post("/games/{game_id}/takeback", response_model=GameResponse)
 async def request_takeback(
     game_id: UUID,
@@ -100,6 +144,8 @@ async def request_takeback(
             variant_code=game.variant_code,
             white_account_id=game.white_account_id,
             black_account_id=game.black_account_id,
+            bot_id=game.bot_id,
+            bot_color=game.bot_color,
             white_remaining_ms=game.white_clock_ms,
             black_remaining_ms=game.black_clock_ms,
             side_to_move=game.side_to_move,
@@ -149,6 +195,8 @@ async def set_position(
             variant_code=game.variant_code,
             white_account_id=game.white_account_id,
             black_account_id=game.black_account_id,
+            bot_id=game.bot_id,
+            bot_color=game.bot_color,
             white_remaining_ms=game.white_clock_ms,
             black_remaining_ms=game.black_clock_ms,
             side_to_move=game.side_to_move,
@@ -200,6 +248,8 @@ async def update_rated_status(
             variant_code=game.variant_code,
             white_account_id=game.white_account_id,
             black_account_id=game.black_account_id,
+            bot_id=game.bot_id,
+            bot_color=game.bot_color,
             white_remaining_ms=game.white_clock_ms,
             black_remaining_ms=game.black_clock_ms,
             side_to_move=game.side_to_move,
@@ -248,6 +298,8 @@ async def get_game(
             variant_code=game.variant_code,
             white_account_id=game.white_account_id,
             black_account_id=game.black_account_id,
+            bot_id=game.bot_id,
+            bot_color=game.bot_color,
             white_remaining_ms=game.white_clock_ms,
             black_remaining_ms=game.black_clock_ms,
             side_to_move=game.side_to_move,
@@ -299,6 +351,8 @@ async def join_game(
             variant_code=game.variant_code,
             white_account_id=game.white_account_id,
             black_account_id=game.black_account_id,
+            bot_id=game.bot_id,
+            bot_color=game.bot_color,
             white_remaining_ms=game.white_clock_ms,
             black_remaining_ms=game.black_clock_ms,
             side_to_move=game.side_to_move,
@@ -352,6 +406,8 @@ async def play_move(
             variant_code=game.variant_code,
             white_account_id=game.white_account_id,
             black_account_id=game.black_account_id,
+            bot_id=game.bot_id,
+            bot_color=game.bot_color,
             white_remaining_ms=game.white_clock_ms,
             black_remaining_ms=game.black_clock_ms,
             side_to_move=game.side_to_move,
@@ -398,6 +454,8 @@ async def resign(
             variant_code=game.variant_code,
             white_account_id=game.white_account_id,
             black_account_id=game.black_account_id,
+            bot_id=game.bot_id,
+            bot_color=game.bot_color,
             white_remaining_ms=game.white_clock_ms,
             black_remaining_ms=game.black_clock_ms,
             side_to_move=game.side_to_move,

@@ -1,10 +1,12 @@
 /**
- * Social Stats Hook
- * features/social/hooks/useSocialStats.ts
+ * Social Stats Hook (Refactored)
+ * 
+ * Now uses repositories instead of direct API calls.
+ * Aggregates data from multiple sources (friends, stats, etc.)
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { useApiClients } from '@/contexts/ApiContext';
+import { useSocialRepository } from './useSocialRepository';
 import type { SocialStats } from '@/types/social';
 
 interface UseSocialStatsResult {
@@ -17,9 +19,13 @@ interface UseSocialStatsResult {
 /**
  * Hook for fetching social statistics
  * Provides overview stats for the social hub
+ * 
+ * Note: This hook aggregates data from multiple sources.
+ * In a full refactoring, this could be a use case that orchestrates
+ * multiple repository calls.
  */
 export function useSocialStats(userId?: string): UseSocialStatsResult {
-  const { accountApi } = useApiClients();
+  const socialRepository = useSocialRepository();
   const [stats, setStats] = useState<SocialStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -35,8 +41,8 @@ export function useSocialStats(userId?: string): UseSocialStatsResult {
 
     try {
       // Get friends to calculate online count
-      const friends = await accountApi.getFriends(userId);
-      const onlineFriends = friends.filter(f => f.online).length;
+      const friends = await socialRepository.getFriends(userId);
+      const onlineFriends = friends.filter((f) => f.online).length;
 
       // TODO: Get unread messages count from messaging service
       // TODO: Get club membership count
@@ -52,12 +58,14 @@ export function useSocialStats(userId?: string): UseSocialStatsResult {
         clubRank: 5,
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch social stats');
+      setError(
+        err instanceof Error ? err.message : 'Failed to fetch social stats'
+      );
       console.error('Error fetching social stats:', err);
     } finally {
       setLoading(false);
     }
-  }, [userId, accountApi]);
+  }, [userId, socialRepository]);
 
   useEffect(() => {
     fetchStats();

@@ -39,6 +39,9 @@ export interface GameState {
     white: PlayerInfo;
     black: PlayerInfo;
   };
+  botId?: string;
+  botColor?: Color;
+  isBotGame?: boolean;
 }
 
 // DecisionReason and helpers (migrated from features/game/types/DecisionReason.ts)
@@ -47,7 +50,8 @@ export type DecisionReason =
   | 'LOCAL_AUTO'
   | 'RATING_GAP_AUTO'
   | 'CUSTOM_POSITION_AUTO'
-  | 'ODDS_AUTO';
+  | 'ODDS_AUTO'
+  | 'BOT_GAME';
 
 export const DecisionReasonMessages: Record<DecisionReason, string> = {
   MANUAL: 'Player choice',
@@ -55,6 +59,7 @@ export const DecisionReasonMessages: Record<DecisionReason, string> = {
   RATING_GAP_AUTO: 'Rating difference too large (>500 points)',
   CUSTOM_POSITION_AUTO: 'Custom starting positions are unrated',
   ODDS_AUTO: 'Odds games are unrated',
+  BOT_GAME: 'Bot games are always unrated',
 };
 
 export const DecisionReasonIcons: Record<DecisionReason, string> = {
@@ -63,6 +68,7 @@ export const DecisionReasonIcons: Record<DecisionReason, string> = {
   RATING_GAP_AUTO: '⚖️',
   CUSTOM_POSITION_AUTO: '♟️',
   ODDS_AUTO: '🎲',
+  BOT_GAME: '🤖',
 };
 
 export function getDecisionReasonMessage(reason: DecisionReason | null | undefined): string {

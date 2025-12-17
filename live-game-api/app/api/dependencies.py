@@ -27,8 +27,36 @@ async def get_current_user(
         )
 
 
+# Singleton event publisher instance (shared across requests)
+_event_publisher_instance = None
+
+
+def get_event_publisher():
+    """Get event publisher instance (singleton)."""
+    global _event_publisher_instance
+    if _event_publisher_instance is None:
+        from app.infrastructure.events.event_publisher import EventPublisher
+        _event_publisher_instance = EventPublisher()
+    return _event_publisher_instance
+
+
+# Singleton WebSocket connection manager instance
+_websocket_manager_instance = None
+
+
+def get_websocket_manager():
+    """Get WebSocket connection manager instance (singleton)."""
+    global _websocket_manager_instance
+    if _websocket_manager_instance is None:
+        from app.infrastructure.websocket.connection_manager import WebSocketConnectionManager
+        _websocket_manager_instance = WebSocketConnectionManager()
+    return _websocket_manager_instance
+
+
 async def get_game_service(
     db: AsyncSession = Depends(get_db_session),
+    event_publisher = Depends(get_event_publisher),
+    websocket_manager = Depends(get_websocket_manager),
 ):
     """Get game service with dependencies."""
     from app.domain.repositories.game_repository import GameRepositoryInterface
@@ -51,4 +79,9 @@ async def get_game_service(
     )
     decision_engine = RatingDecisionEngine(rules)
 
-    return GameService(repository, decision_engine)
+    return GameService(
+        repository,
+        decision_engine,
+        event_publisher=event_publisher,
+        websocket_manager=websocket_manager,
+    )

@@ -1,4 +1,5 @@
 """API request and response models re-exports for backward compatibility."""
+from .bot_game_request import CreateBotGameRequest
 from .create_game_request import CreateGameRequest
 from .game_response import GameResponse
 from .game_summary_response import GameSummaryResponse
@@ -12,6 +13,7 @@ from .time_control_request import TimeControlRequest
 __all__ = [
     "TimeControlRequest",
     "CreateGameRequest",
+    "CreateBotGameRequest",
     "JoinGameRequest",
     "PlayMoveRequest",
     "MoveResponse",

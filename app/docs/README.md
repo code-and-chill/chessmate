@@ -50,6 +50,24 @@ Complete setup guide for new developers:
 - [production-architecture.md](./production-architecture.md) — Production-grade architecture
 - [folder-structure-convention.md](./folder-structure-convention.md) — Directory structure rules
 
+### DDD & SOLID Patterns (NEW)
+- [architecture/ddd-solid-audit.md](./architecture/ddd-solid-audit.md) — Comprehensive audit of DDD/SOLID compliance
+  - Current violations catalog
+  - Impact assessment
+  - Migration recommendations
+- [architecture/ddd-patterns.md](./architecture/ddd-patterns.md) — Target architecture guide
+  - Screen → Hook → Use Case → Repository → Service pattern
+  - Code examples and best practices
+  - Testing strategies
+- [architecture/example-refactoring-make-move.md](./architecture/example-refactoring-make-move.md) — Complete refactoring example
+  - Before/after comparison
+  - Step-by-step implementation
+  - Testing examples
+- [how-to/migrate-to-use-cases.md](./how-to/migrate-to-use-cases.md) — Migration guide
+  - Step-by-step refactoring instructions
+  - Common patterns
+  - Troubleshooting
+
 ### Migration History
 - [migrations/README.md](./migrations/README.md) — Phase-based development history
   - Phase 0: Initial audit
@@ -58,6 +76,7 @@ Complete setup guide for new developers:
   - Phase 3: Hooks implementation
   - Phase 4: Design Language System
   - Phase 5-7: UI/UX, API, Game logic
+  - Phase 8: DDD refactoring complete
 
 ---
 
@@ -336,4 +355,4 @@ Decisions
 
 ---
 
-*Last updated: 2025-11-18*
+*Last updated: 2025-12-03*

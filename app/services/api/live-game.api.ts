@@ -94,8 +94,8 @@ export class LiveGameApiClient implements ILiveGameApiClient {
     promotion?: string
   ): Promise<GameState> {
     return this.request<GameState>('POST', `/v1/games/${gameId}/moves`, {
-      from,
-      to,
+      from_square: from,
+      to_square: to,
       promotion,
     });
   }

@@ -1,10 +1,11 @@
 /**
- * Friends Hook
- * features/social/hooks/useFriends.ts
+ * Friends Hook (Refactored)
+ * 
+ * Now uses FetchFriends use case instead of direct API calls.
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { useApiClients } from '@/contexts/ApiContext';
+import { useFetchFriendsUseCase } from './useFetchFriendsUseCase';
 import type { Friend } from '@/types/social';
 
 interface UseFriendsResult {
@@ -20,7 +21,7 @@ interface UseFriendsResult {
  * Integrated with account-api for friends management
  */
 export function useFriends(userId?: string): UseFriendsResult {
-  const { accountApi } = useApiClients();
+  const fetchFriendsUseCase = useFetchFriendsUseCase();
   const [friends, setFriends] = useState<Friend[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -35,7 +36,7 @@ export function useFriends(userId?: string): UseFriendsResult {
     setError(null);
 
     try {
-      const data = await accountApi.getFriends(userId);
+      const data = await fetchFriendsUseCase.execute(userId);
       setFriends(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch friends');
@@ -43,7 +44,7 @@ export function useFriends(userId?: string): UseFriendsResult {
     } finally {
       setLoading(false);
     }
-  }, [userId, accountApi]);
+  }, [userId, fetchFriendsUseCase]);
 
   const challengeFriend = useCallback(async (friendId: string) => {
     // TODO: Integrate with matchmaking-api to create challenge

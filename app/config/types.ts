@@ -19,6 +19,8 @@ export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 export interface ApiConfig {
   /** Base URL for API requests */
   baseUrl: string;
+  /** Engine cluster API URL for position evaluation */
+  engineClusterUrl?: string;
   /** API timeout in milliseconds */
   timeout: number;
   /** Number of retries for failed requests */

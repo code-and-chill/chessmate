@@ -8,6 +8,8 @@ from typing import Deque, Dict, List, Optional, Tuple
 from app.clients.config import fetch_spec
 from app.clients.engine import evaluate_position
 from app.clients.knowledge import get_opening_book_move, get_tablebase_move
+from app.domain.fallback_moves import generate_random_legal_move
+import asyncio
 from app.domain.bot_spec import BotSpecEnvelope
 from app.domain.candidate import Candidate
 from app.domain.move_request import MoveRequest
@@ -99,46 +101,114 @@ def apply_style_weights(candidates: List[Candidate], style: dict, rng: random.Ra
 
 
 async def orchestrate_move(bot_id: str, req: MoveRequest) -> MoveResponse:
+    from app.core.config import get_settings
+    settings = get_settings()
+    
+    # Overall timeout for bot move (30 seconds)
+    try:
+        return await asyncio.wait_for(
+            _orchestrate_move_internal(bot_id, req),
+            timeout=settings.TOTAL_BOT_MOVE_TIMEOUT_SECONDS,
+        )
+    except asyncio.TimeoutError:
+        # Timeout - return fallback move
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.warning(f"Bot move timed out after {settings.TOTAL_BOT_MOVE_TIMEOUT_SECONDS}s, using fallback move")
+        
+        try:
+            fallback_move = generate_random_legal_move(req.fen)
+            resp = MoveResponse(
+                game_id=req.game_id,
+                bot_id=bot_id,
+                move=fallback_move,
+                thinking_time_ms=int(settings.TOTAL_BOT_MOVE_TIMEOUT_SECONDS * 1000),
+                debug_info=DebugInfo(phase="fallback", mistake_type="none" if req.debug else None),
+            )
+            _record_move(resp)
+            return resp
+        except Exception as e:
+            logger.error(f"Failed to generate fallback move: {e}")
+            raise
+
+
+async def _orchestrate_move_internal(bot_id: str, req: MoveRequest) -> MoveResponse:
+    """Internal orchestration logic (wrapped with timeout)."""
     spec_env = await fetch_spec(bot_id)
 
     # Detect phase and try knowledge sources
     phase_decision = detect_phase(req.move_number)
 
-    # Opening book
+    # Opening book (with timeout)
     if phase_decision.use_book and spec_env.spec.opening.use_book_until_ply >= req.move_number * 2:
-        book_move = await get_opening_book_move(req.fen, spec_env.spec.opening.repertoire)
-        if book_move:
-            resp = MoveResponse(
-                game_id=req.game_id,
-                bot_id=bot_id,
-                move=book_move,
-                thinking_time_ms=50,
-                debug_info=DebugInfo(phase="opening", mistake_type="none" if req.debug else None),
+        try:
+            book_move = await asyncio.wait_for(
+                get_opening_book_move(req.fen, spec_env.spec.opening.repertoire),
+                timeout=5.0,  # Knowledge query timeout
             )
-            _record_move(resp)
-            return resp
+            if book_move:
+                resp = MoveResponse(
+                    game_id=req.game_id,
+                    bot_id=bot_id,
+                    move=book_move,
+                    thinking_time_ms=50,
+                    debug_info=DebugInfo(phase="opening", mistake_type="none" if req.debug else None),
+                )
+                _record_move(resp)
+                return resp
+        except (asyncio.TimeoutError, Exception) as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.warning(f"Opening book query failed: {e}, continuing to engine")
 
-    # Endgame tablebase
+    # Endgame tablebase (with timeout)
     if phase_decision.use_tablebase and spec_env.spec.endgame.allow_tablebases:
-        tb_move = await get_tablebase_move(req.fen)
-        if tb_move and spec_env.spec.endgame.reduce_mistakes_in_simple_endgames:
-            resp = MoveResponse(
-                game_id=req.game_id,
-                bot_id=bot_id,
-                move=tb_move,
-                thinking_time_ms=40,
-                debug_info=DebugInfo(phase="endgame", mistake_type="none" if req.debug else None),
+        try:
+            tb_move = await asyncio.wait_for(
+                get_tablebase_move(req.fen),
+                timeout=5.0,  # Knowledge query timeout
             )
-            _record_move(resp)
-            return resp
+            if tb_move and spec_env.spec.endgame.reduce_mistakes_in_simple_endgames:
+                resp = MoveResponse(
+                    game_id=req.game_id,
+                    bot_id=bot_id,
+                    move=tb_move,
+                    thinking_time_ms=40,
+                    debug_info=DebugInfo(phase="endgame", mistake_type="none" if req.debug else None),
+                )
+                _record_move(resp)
+                return resp
+        except (asyncio.TimeoutError, Exception) as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.warning(f"Tablebase query failed: {e}, continuing to engine")
 
     # Engine parameters
     remaining_ms = req.clocks.black_ms if req.bot_color == "black" else req.clocks.white_ms
     engine_query = decide_engine_params(spec_env, remaining_ms, phase_decision.phase)
 
-    # Engine evaluation
-    candidates = await evaluate_position(req.fen, req.bot_color, engine_query)
-    candidates = sorted(candidates, key=lambda c: c.eval, reverse=True)
+    # Engine evaluation (with timeout)
+    try:
+        candidates = await asyncio.wait_for(
+            evaluate_position(req.fen, req.bot_color, engine_query),
+            timeout=20.0,  # Engine query timeout
+        )
+        candidates = sorted(candidates, key=lambda c: c.eval, reverse=True)
+    except (asyncio.TimeoutError, Exception) as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.warning(f"Engine evaluation failed: {e}, using fallback move")
+        # Generate fallback move
+        fallback_move = generate_random_legal_move(req.fen)
+        resp = MoveResponse(
+            game_id=req.game_id,
+            bot_id=bot_id,
+            move=fallback_move,
+            thinking_time_ms=int(engine_query.time_limit_ms),
+            debug_info=DebugInfo(phase="fallback", mistake_type="none" if req.debug else None),
+        )
+        _record_move(resp)
+        return resp
 
     # Mistake model
     m = spec_env.spec.mistake_model

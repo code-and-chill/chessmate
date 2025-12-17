@@ -13,6 +13,7 @@ export { MockLiveGameApiClient } from './live-game.api.mock';
 export { MockPuzzleApiClient } from './puzzle.api.mock';
 export { MockGameApiClient } from './game.api.mock';
 export { MockPieceThemeApiClient } from './piece-theme.api.mock';
+export { MockEngineApiClient } from './engine.api.mock';
 
 // API Clients
 export { AuthApiClient } from './auth.api';
@@ -25,3 +26,13 @@ export { RatingApiClient } from './rating.api';
 export { LearningApiClient } from './learning.api';
 export { SocialApiClient } from './social.api';
 export { PieceThemeApiClient, PIECE_THEME_LABELS } from './piece-theme.api';
+export { EngineApiClient } from './engine.api';
+
+// Engine API Types
+export type {
+  Candidate,
+  EvaluatePositionRequest,
+  EvaluatePositionResponse,
+  HealthResponse,
+  IEngineApiClient,
+} from './engine.api';

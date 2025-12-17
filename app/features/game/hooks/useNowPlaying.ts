@@ -1,13 +1,13 @@
 /**
- * useNowPlaying Hook
+ * useNowPlaying Hook (Refactored)
  * 
  * Fetches user's current active games.
- * Single Responsibility: Fetch active games from PlayApiClient.
+ * Now uses FetchNowPlaying use case instead of direct API client instantiation.
  */
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Game } from '../types/Game';
-import { GameApiClient as PlayApiClient } from '@/services/api';
+import { useFetchNowPlayingUseCase } from './useFetchNowPlayingUseCase';
 
 export interface UseNowPlayingReturn {
   games: Game[];
@@ -19,58 +19,45 @@ export interface UseNowPlayingReturn {
 /**
  * Hook for fetching user's active games (now playing).
  * 
- * @param token - Authentication token
- * @param baseUrl - Base URL for play-api
- * @param pollInterval - Polling interval in ms (default: 5000)
+ * @param userId - User ID
  * 
  * @returns Active games, loading/error states, and refresh method
  * 
  * Usage:
  * ```
- * const { games, loading, error, refresh } = useNowPlaying(token);
+ * const { games, loading, error, refresh } = useNowPlaying(userId);
  * ```
  */
-export const useNowPlaying = (
-  token: string,
-  baseUrl: string = 'http://localhost:8002',
-  pollInterval: number = 5000
-): UseNowPlayingReturn => {
+export const useNowPlaying = (userId?: string): UseNowPlayingReturn => {
+  const fetchNowPlayingUseCase = useFetchNowPlayingUseCase();
   const [games, setGames] = useState<Game[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  const clientRef = useRef<PlayApiClient | null>(null);
-
-  // Initialize client
-  useEffect(() => {
-    if (token) {
-      clientRef.current = new PlayApiClient(baseUrl, token);
-    }
-  }, [baseUrl, token]);
-
-  // Fetch active games
   const refresh = useCallback(async () => {
-    if (!clientRef.current) return;
+    if (!userId) {
+      setGames([]);
+      setLoading(false);
+      return;
+    }
 
+    setLoading(true);
+    setError(null);
     try {
-      setError(null);
-      // TODO: Implement getActiveGames method in PlayApiClient
-      // const activeGames = await clientRef.current.getActiveGames();
-      // setGames(activeGames);
+      const activeGames = await fetchNowPlayingUseCase.execute(userId);
+      // TODO: Map GameState[] to Game[] when API provides this endpoint
       setGames([]);
     } catch (err) {
       setError(err instanceof Error ? err : new Error(String(err)));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [userId, fetchNowPlayingUseCase]);
 
-  // Initial load and polling
+  // Initial load
   useEffect(() => {
     refresh();
-    const interval = setInterval(refresh, pollInterval);
-    return () => clearInterval(interval);
-  }, [refresh, pollInterval]);
+  }, [refresh]);
 
   return {
     games,

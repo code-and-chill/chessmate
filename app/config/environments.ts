@@ -16,6 +16,7 @@ export const LOCAL_CONFIG: RuntimeConfig = {
   logLevel: 'debug',
   api: {
     baseUrl: 'http://localhost:8000',
+    engineClusterUrl: 'http://localhost:9000',
     timeout: 30000,
     retries: 3,
     retryDelay: 1000,
@@ -55,6 +56,7 @@ export const DEV_CONFIG: RuntimeConfig = {
   logLevel: 'info',
   api: {
     baseUrl: 'https://api-dev.chessmate.local',
+    engineClusterUrl: 'https://engine-cluster-api-dev.chessmate.local',
     timeout: 30000,
     retries: 3,
     retryDelay: 1000,
@@ -95,6 +97,7 @@ export const STAGING_CONFIG: RuntimeConfig = {
   logLevel: 'info',
   api: {
     baseUrl: 'https://api-staging.chessmate.io',
+    engineClusterUrl: 'https://staging-engine-cluster-api.chessmate.com',
     timeout: 20000,
     retries: 2,
     retryDelay: 500,
@@ -135,6 +138,7 @@ export const PRODUCTION_CONFIG: RuntimeConfig = {
   logLevel: 'warn',
   api: {
     baseUrl: 'https://api.chessmate.io',
+    engineClusterUrl: 'https://engine-cluster-api.chessmate.com',
     timeout: 15000,
     retries: 1,
     retryDelay: 500,

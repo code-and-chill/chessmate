@@ -5,6 +5,8 @@ from typing import Optional
 import httpx
 
 from app.core.config import get_settings
+from app.infrastructure.resilience.circuit_breaker import CircuitBreaker, CircuitBreakerOpenError
+from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -15,14 +17,25 @@ class LiveGameAPIClient:
     Per service-spec section 6.2
     """
 
-    def __init__(self, http_client: httpx.AsyncClient) -> None:
+    def __init__(self, http_client: httpx.AsyncClient, circuit_breaker: Optional[CircuitBreaker] = None) -> None:
         """Initialize client.
 
         Args:
             http_client: Async HTTP client
+            circuit_breaker: Optional circuit breaker instance (creates default if not provided)
         """
         self.http_client = http_client
         self.settings = get_settings()
+        if circuit_breaker is None:
+            # Create default circuit breaker
+            from app.infrastructure.resilience.circuit_breaker import CircuitBreaker
+            self.circuit_breaker = CircuitBreaker(
+                failure_threshold=5,
+                timeout_seconds=60,
+                expected_exception=(httpx.HTTPError, httpx.TimeoutException),
+            )
+        else:
+            self.circuit_breaker = circuit_breaker
 
     async def create_game(
         self,
@@ -68,7 +81,8 @@ class LiveGameAPIClient:
             "metadata": metadata,
         }
 
-        try:
+        # Wrap call with circuit breaker
+        async def _make_request() -> str:
             response = await self.http_client.post(
                 url,
                 json=payload,
@@ -93,14 +107,17 @@ class LiveGameAPIClient:
 
             return game_id
 
+        try:
+            return await self.circuit_breaker.call(_make_request)
+        except CircuitBreakerOpenError as e:
+            logger.warning(f"Circuit breaker is open: {str(e)}")
+            raise
         except httpx.TimeoutException as e:
             logger.error(f"Live game API timeout: {str(e)}")
             raise
-
         except httpx.HTTPError as e:
             logger.error(f"Live game API error: {str(e)}")
             raise
-
         except Exception as e:
             logger.error(f"Failed to create game: {str(e)}")
             raise

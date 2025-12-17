@@ -1,13 +1,13 @@
 /**
- * useRecentGames Hook
+ * useRecentGames Hook (Refactored)
  * 
  * Fetches user's recently played games.
- * Single Responsibility: Fetch recent games from PlayApiClient.
+ * Now uses FetchRecentGames use case instead of direct API client instantiation.
  */
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Game } from '../types/Game';
-import { GameApiClient as PlayApiClient } from '@/services/api';
+import { useFetchRecentGamesUseCase } from './useFetchRecentGamesUseCase';
 
 export interface UseRecentGamesReturn {
   games: Game[];
@@ -19,58 +19,49 @@ export interface UseRecentGamesReturn {
 /**
  * Hook for fetching user's recently played games.
  * 
- * @param token - Authentication token
- * @param baseUrl - Base URL for play-api
- * @param pollInterval - Polling interval in ms (default: 15000)
+ * @param userId - User ID
+ * @param limit - Maximum number of games to fetch (default: 10)
  * 
  * @returns Recent games, loading/error states, and refresh method
  * 
  * Usage:
  * ```
- * const { games, loading, error } = useRecentGames(token);
+ * const { games, loading, error, refresh } = useRecentGames(userId);
  * ```
  */
 export const useRecentGames = (
-  token: string,
-  baseUrl: string = 'http://localhost:8002',
-  pollInterval: number = 15000
+  userId?: string,
+  limit: number = 10
 ): UseRecentGamesReturn => {
+  const fetchRecentGamesUseCase = useFetchRecentGamesUseCase();
   const [games, setGames] = useState<Game[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  const clientRef = useRef<PlayApiClient | null>(null);
-
-  // Initialize client
-  useEffect(() => {
-    if (token) {
-      clientRef.current = new PlayApiClient(baseUrl, token);
-    }
-  }, [baseUrl, token]);
-
-  // Fetch recent games
   const refresh = useCallback(async () => {
-    if (!clientRef.current) return;
+    if (!userId) {
+      setGames([]);
+      setLoading(false);
+      return;
+    }
 
+    setLoading(true);
+    setError(null);
     try {
-      setError(null);
-      // TODO: Implement getRecentGames method in PlayApiClient
-      // const recentGames = await clientRef.current.getRecentGames();
-      // setGames(recentGames);
+      const recentGames = await fetchRecentGamesUseCase.execute({ userId, limit });
+      // TODO: Map GameState[] to Game[] when API provides this endpoint
       setGames([]);
     } catch (err) {
       setError(err instanceof Error ? err : new Error(String(err)));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [userId, limit, fetchRecentGamesUseCase]);
 
-  // Initial load and polling
+  // Initial load
   useEffect(() => {
     refresh();
-    const interval = setInterval(refresh, pollInterval);
-    return () => clearInterval(interval);
-  }, [refresh, pollInterval]);
+  }, [refresh]);
 
   return {
     games,

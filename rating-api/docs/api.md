@@ -20,7 +20,15 @@ type: api
    - Accepts an array of the above payloads
    - Processes sequentially and returns an array of results
 
+## Leaderboards
+- `GET /v1/leaderboards/{pool_id}`: Get leaderboard for a pool (paginated, top N)
+  - Query parameters: `limit` (default 100), `offset` (default 0), `order` ("asc" or "desc")
+  - Response: `{ pool_id, entries: [{ user_id, rating, rank }], total, limit, offset }`
+- `GET /v1/leaderboards/{pool_id}/user/{user_id}`: Get user's rank in a pool
+  - Response: `{ user_id, rating, rank }`
+
 ## Admin
 - `POST /v1/admin/pools` (create/update pool)
+- `POST /v1/admin/leaderboards/{pool_id}/recompute` (recompute leaderboard ranks)
 
 > Note: We use Bruno collections for requests during development; standard contract to follow later.

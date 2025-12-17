@@ -24,6 +24,18 @@ export type PreRequestHook = (opts: {
     body?: any
 }) => Promise<void> | void;
 
+/**
+ * Generate a correlation ID for request tracking
+ */
+function generateCorrelationId(): string {
+    // Generate UUID v4
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+        const r = Math.random() * 16 | 0;
+        const v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
+}
+
 export abstract class BaseApiClient {
     protected baseUrl: string;
     protected authToken?: string;
@@ -44,10 +56,14 @@ export abstract class BaseApiClient {
     protected async request<T = any>(method: string, path: string, body?: unknown, extraHeaders?: HeadersInit): Promise<T> {
         const url = `${this.baseUrl}${path}`;
 
+        // Generate correlation ID for this request
+        const correlationId = generateCorrelationId();
+
         // Use a plain record for headers to avoid indexing issues with the
         // HeadersInit union type and to make it easy to mutate programmatically.
         const headersObj: Record<string, string> = {
             'Content-Type': 'application/json',
+            'X-Request-ID': correlationId,  // Add correlation ID header
             ...(extraHeaders && typeof extraHeaders === 'object' && !(extraHeaders instanceof Headers) ? (extraHeaders as Record<string, string>) : {}),
         };
 

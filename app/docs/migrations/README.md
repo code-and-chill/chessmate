@@ -60,6 +60,9 @@ Phases are numbered sequentially and document:
 ### Phase 7: Game Logic
 - [`phase-7-checkmate.md`](./phase-7-checkmate.md) - Checkmate detection implementation
 
+### Phase 8: DDD Refactoring
+- [`phase-8-ddd-refactoring.md`](./phase-8-ddd-refactoring.md) - Complete DDD refactoring (Screen → Hook → Use Case → Repository → Service)
+
 ## How to Document New Phases
 
 When starting a new phase:

@@ -2,7 +2,7 @@
 title: API Layer Implementation
 service: chess-app
 status: active
-last_reviewed: 2025-11-17
+last_reviewed: 2025-12-03
 type: architecture
 ---
 
@@ -83,6 +83,42 @@ const result = await client.submitAttempt(puzzleId, {
 });
 ```
 
+### EngineApiClient
+
+**File**: `app/services/api/engine.api.ts`
+
+**Purpose**: Handles communication with engine-cluster-api for chess position evaluation and analysis.
+
+**Key Methods**:
+- `evaluatePosition(request)` - Evaluate a chess position and return candidate moves with evaluations
+- `healthCheck()` - Check engine service health
+
+**Usage**:
+```typescript
+import { EngineApiClient } from '@/services/api';
+
+const client = new EngineApiClient('http://localhost:9000');
+const analysis = await client.evaluatePosition({
+  fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+  side_to_move: 'w',
+  max_depth: 12,
+  time_limit_ms: 1000,
+  multi_pv: 3
+});
+
+// Returns:
+// {
+//   candidates: [
+//     { move: 'e2e4', eval: 0.25, depth: 12, pv: ['e2e4', 'c7c5'] },
+//     { move: 'd2d4', eval: 0.20, depth: 12, pv: ['d2d4', 'd7d5'] }
+//   ],
+//   fen: '...',
+//   time_ms: 450
+// }
+```
+
+**Mock Client**: `MockEngineApiClient` is available for development/testing when engine-cluster-api is unavailable.
+
 ## Common Patterns
 
 ### Authentication
@@ -138,12 +174,20 @@ Default base URLs (can be overridden in constructor):
 - **Live Game API**: `http://localhost:8001`
 - **Play API**: `http://localhost:8001`
 - **Puzzle API**: `http://localhost:8000`
+- **Engine Cluster API**: `http://localhost:9000`
+
+Engine Cluster API URL is configured via environment config (`api.engineClusterUrl`).
 
 ## Future Enhancements
 
 1. **Retry Logic**: Implement exponential backoff for transient failures
-2. **Caching**: Add client-side caching for frequently accessed data
-3. **Request Cancellation**: Support abort signals for in-flight requests
+2. **Caching**: Add client-side caching for frequently accessed data (✅ Implemented for engine analysis)
+3. **Request Cancellation**: Support abort signals for in-flight requests (✅ Implemented for engine analysis)
 4. **Rate Limiting**: Client-side rate limiting with queuing
 5. **WebSocket**: Real-time updates for game state (Phase 2)
 6. **Analytics**: Track API latency and error rates
+
+## Related Documentation
+
+- [Analysis Features](./analysis-features.md) - Chess analysis features using EngineApiClient
+- [Engine-Cluster-API Audit](../audits/engine-cluster-api-audit-2025-12-03.md) - Usage audit and integration details

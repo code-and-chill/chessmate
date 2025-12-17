@@ -14,6 +14,7 @@ from app.domain.services.challenge_service import ChallengeService
 from app.domain.services.matchmaking_service import MatchmakingService
 from app.infrastructure.database.connection import database_manager
 from app.infrastructure.external.live_game_api import LiveGameAPIClient
+from app.infrastructure.queues.failed_matches_queue import FailedMatchesQueue
 from app.infrastructure.repositories.postgres_challenge_repo import (
     PostgresChallengeRepository,
 )
@@ -150,14 +151,44 @@ def get_rating_api_client(
     return RatingAPIClient(http_client)
 
 
+# Singleton event publisher instance (shared across requests)
+_event_publisher_instance = None
+
+
+def get_event_publisher():
+    """Get event publisher instance (singleton)."""
+    global _event_publisher_instance
+    if _event_publisher_instance is None:
+        from app.infrastructure.events.event_publisher import EventPublisher
+        _event_publisher_instance = EventPublisher()
+    return _event_publisher_instance
+
+
+def get_failed_matches_queue(
+    queue_store: Annotated[RedisQueueStore, Depends(get_queue_store)],
+) -> FailedMatchesQueue:
+    """Get failed matches queue instance."""
+    # Access Redis client from queue_store
+    return FailedMatchesQueue(queue_store.redis)
+
+
 def get_matchmaking_service(
     queue_store: Annotated[RedisQueueStore, Depends(get_queue_store)],
     match_repo: Annotated[PostgresMatchRecordRepository, Depends(get_match_record_repo)],
     live_game_api: Annotated[LiveGameAPIClient, Depends(get_live_game_api_client)],
     rating_api: Annotated[RatingAPIClient, Depends(get_rating_api_client)],
+    event_publisher = Depends(get_event_publisher),
+    failed_matches_queue: Annotated[FailedMatchesQueue, Depends(get_failed_matches_queue)] = None,
 ) -> MatchmakingService:
     """Get matchmaking service."""
-    return MatchmakingService(queue_store, match_repo, live_game_api, rating_api)
+    return MatchmakingService(
+        queue_store,
+        match_repo,
+        live_game_api,
+        rating_api,
+        event_publisher=event_publisher,
+        failed_matches_queue=failed_matches_queue,
+    )
 
 
 def get_challenge_service(
