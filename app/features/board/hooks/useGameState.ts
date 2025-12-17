@@ -276,21 +276,21 @@ import { ChessJsAdapter } from '@/core/utils/chess/adapters/chessjs-adapter';
            }
          }
 
-         setGameState((prev) => ({
-           ...prev,
-           fen: apiGame.fen ?? prev.fen,
-           moves: apiMoves,
-           sideToMove: ((apiGame.sideToMove ?? apiGame.side_to_move) === 'w' ? 'w' : 'b') as PieceColor,
-           status: ((apiGame.status ?? apiGame.status) === 'ended' ? 'ended' : 'in_progress') as GameStatus,
-           result: apiGame.result ?? prev.result,
-           endReason: apiGame.endReason ?? apiGame.end_reason ?? prev.endReason,
-           botId: apiGame.botId ?? apiGame.bot_id ?? prev.botId,
-           botColor: ((apiGame.botColor ?? apiGame.bot_color) as PieceColor | undefined) ?? prev.botColor,
-           isBotGame: !!(apiGame.botId ?? apiGame.bot_id) ?? prev.isBotGame,
-           lastMove: lastMove ?? prev.lastMove,
-           capturedByWhite: captured.white,
-           capturedByBlack: captured.black,
-         }));
+        setGameState((prev) => ({
+          ...prev,
+          fen: apiGame.fen ?? prev.fen,
+          moves: apiMoves,
+          sideToMove: ((apiGame.sideToMove ?? apiGame.side_to_move) === 'w' ? 'w' : 'b') as PieceColor,
+          status: ((apiGame.status ?? prev.status) === 'ended' ? 'ended' : 'in_progress') as GameStatus,
+          result: apiGame.result ?? prev.result,
+          endReason: apiGame.endReason ?? apiGame.end_reason ?? prev.endReason,
+          botId: apiGame.botId ?? apiGame.bot_id ?? prev.botId,
+          botColor: ((apiGame.botColor ?? apiGame.bot_color) as PieceColor | undefined) ?? prev.botColor,
+          isBotGame: (apiGame.botId ?? apiGame.bot_id) != null ? true : prev.isBotGame,
+          lastMove: lastMove ?? prev.lastMove,
+          capturedByWhite: captured.white,
+          capturedByBlack: captured.black,
+        }));
        } catch (e) {
          console.warn('Failed to update chess instance:', e);
        }
