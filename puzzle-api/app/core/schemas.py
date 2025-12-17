@@ -64,6 +64,7 @@ class DailyPuzzleResponse(DailyPuzzleBase):
 class UserPuzzleAttemptBase(BaseModel):
     user_id: str
     puzzle_id: str
+    attempt_id: Optional[str] = None  # Client-generated UUID for idempotency
     is_daily: bool
     status: StatusEnum
     moves_played: List[str]
@@ -97,6 +98,7 @@ class UserPuzzleStatsResponse(BaseModel):
         from_attributes = True
 
 class PuzzleAttemptSubmission(BaseModel):
+    attempt_id: Optional[str] = None  # Client-generated UUID for idempotency
     is_daily: bool
     moves_played: List[str]
     status: StatusEnum

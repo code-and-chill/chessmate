@@ -50,6 +50,7 @@ class UserPuzzleAttempt(Base):
     id = Column(String(36), primary_key=True)
     user_id = Column(String(36), nullable=False, index=True)
     puzzle_id = Column(String(36), ForeignKey("puzzles.id"), nullable=False, index=True)
+    attempt_id = Column(String(36), nullable=True)  # Client-generated UUID for idempotency
     is_daily = Column(Boolean, default=False)
     started_at = Column(DateTime, default=datetime.utcnow, index=True)  # Index for recent attempts
     completed_at = Column(DateTime, nullable=True)
@@ -67,6 +68,8 @@ class UserPuzzleAttempt(Base):
         Index('ix_attempts_user_puzzle_daily', 'user_id', 'puzzle_id', 'is_daily'),
         # For getting user's recent attempts (history)
         Index('ix_attempts_user_started', 'user_id', 'started_at'),
+        # Unique constraint for idempotency (attempt_id must be provided)
+        Index('ix_attempts_user_puzzle_attempt_id', 'user_id', 'puzzle_id', 'attempt_id', unique=True),
     )
 
 class UserPuzzleStats(Base):

@@ -19,6 +19,24 @@ Retrieve full details of a specific puzzle.
 ### POST /api/v1/puzzles/{puzzle_id}/attempt
 Submit an attempt for a puzzle.
 
+**Request Body:**
+```json
+{
+  "attempt_id": "uuid-string (optional, client-generated for idempotency)",
+  "is_daily": false,
+  "moves_played": ["e2e4", "e7e5"],
+  "status": "SUCCESS",
+  "time_spent_ms": 5000,
+  "hints_used": 0,
+  "client_metadata": {}
+}
+```
+
+**Idempotency:**
+- If `attempt_id` is provided and the same `attempt_id` was already submitted for this `user_id` and `puzzle_id`, the endpoint returns the original result without processing again.
+- This ensures duplicate submissions (e.g., due to network retries) don't count multiple times.
+- The unique constraint on `(user_id, puzzle_id, attempt_id)` enforces this at the database level.
+
 ### GET /api/v1/puzzles/user/stats
 Retrieve user puzzle statistics.
 

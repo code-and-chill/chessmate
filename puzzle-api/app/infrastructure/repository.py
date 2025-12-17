@@ -1,5 +1,6 @@
 import uuid
 from datetime import datetime
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from app.core.models import Puzzle, DailyPuzzle, UserPuzzleAttempt, UserPuzzleStats
 from app.core.schemas import PuzzleCreate, DailyPuzzleCreate, UserPuzzleAttemptCreate
@@ -64,11 +65,30 @@ class DailyPuzzleRepository:
 
 class UserPuzzleAttemptRepository:
     @staticmethod
+    def get_attempt_by_attempt_id(db: Session, user_id: str, puzzle_id: str, attempt_id: str) -> UserPuzzleAttempt:
+        """Get attempt by attempt_id (for idempotency check)."""
+        return db.query(UserPuzzleAttempt).filter(
+            UserPuzzleAttempt.user_id == user_id,
+            UserPuzzleAttempt.puzzle_id == puzzle_id,
+            UserPuzzleAttempt.attempt_id == attempt_id,
+        ).first()
+
+    @staticmethod
     def create_attempt(db: Session, attempt: UserPuzzleAttemptCreate) -> UserPuzzleAttempt:
+        """Create attempt. Returns existing attempt if attempt_id already exists (idempotency)."""
+        # If attempt_id provided, check if it already exists
+        if attempt.attempt_id:
+            existing = UserPuzzleAttemptRepository.get_attempt_by_attempt_id(
+                db, attempt.user_id, attempt.puzzle_id, attempt.attempt_id
+            )
+            if existing:
+                return existing  # Return existing attempt for idempotency
+
         db_attempt = UserPuzzleAttempt(
             id=str(uuid.uuid4()),
             user_id=attempt.user_id,
             puzzle_id=attempt.puzzle_id,
+            attempt_id=attempt.attempt_id,
             is_daily=attempt.is_daily,
             status=attempt.status.value,
             moves_played=attempt.moves_played,
@@ -78,8 +98,20 @@ class UserPuzzleAttemptRepository:
             client_metadata=attempt.client_metadata
         )
         db.add(db_attempt)
-        db.commit()
-        db.refresh(db_attempt)
+        try:
+            db.commit()
+            db.refresh(db_attempt)
+        except IntegrityError:
+            # Unique constraint violation (attempt_id already exists)
+            db.rollback()
+            # Fetch and return existing attempt
+            if attempt.attempt_id:
+                existing = UserPuzzleAttemptRepository.get_attempt_by_attempt_id(
+                    db, attempt.user_id, attempt.puzzle_id, attempt.attempt_id
+                )
+                if existing:
+                    return existing
+            raise  # Re-raise if we can't find existing
         return db_attempt
 
     @staticmethod

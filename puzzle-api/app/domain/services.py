@@ -62,8 +62,8 @@ class PuzzleService:
         db.commit()
         db.refresh(stats)
         
+        # attempt_id will be set by caller if provided
         return {
-            "attempt_id": str(__import__('uuid').uuid4()),
             "status": "SUCCESS" if success else "FAILED",
             "correct": success,
             "rating_before": stats.tactics_rating - rating_change,
