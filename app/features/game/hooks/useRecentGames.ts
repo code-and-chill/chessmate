@@ -8,6 +8,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Game } from '../types/Game';
 import { useFetchRecentGamesUseCase } from './useFetchRecentGamesUseCase';
+import { mapGameStatesToGames } from '../utils/gameMapper';
 
 export interface UseRecentGamesReturn {
   games: Game[];
@@ -49,8 +50,9 @@ export const useRecentGames = (
     setError(null);
     try {
       const recentGames = await fetchRecentGamesUseCase.execute({ userId, limit });
-      // TODO: Map GameState[] to Game[] when API provides this endpoint
-      setGames([]);
+      // Map GameState[] to Game[] using mapper utility
+      const mappedGames = mapGameStatesToGames(recentGames);
+      setGames(mappedGames);
     } catch (err) {
       setError(err instanceof Error ? err : new Error(String(err)));
     } finally {

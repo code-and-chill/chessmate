@@ -3,7 +3,21 @@ import { useEffect, useRef } from 'react';
 /**
  * Monitoring Service
  * Tracks errors, performance metrics, and user analytics
+ * 
+ * Uses Sentry for error tracking and performance monitoring when available.
+ * Falls back to console logging in development or when Sentry is not configured.
  */
+
+// Try to import Sentry, but don't fail if it's not installed
+let Sentry: any = null;
+try {
+  // For Expo apps, use @sentry/react-native or @sentry/expo
+  // For bare React Native, use @sentry/react-native
+  Sentry = require('@sentry/react-native');
+} catch (e) {
+  // Sentry not installed, will use console fallback
+  console.log('[Monitoring] Sentry not available, using console fallback');
+}
 
 export interface MonitoringConfig {
   dsn?: string;
@@ -14,23 +28,43 @@ export interface MonitoringConfig {
 
 class MonitoringService {
   private initialized = false;
+  private config: MonitoringConfig | null = null;
 
   /**
    * Initialize monitoring service
    */
   init(config: MonitoringConfig): void {
     this.initialized = true;
+    this.config = config;
 
     if (config.environment === 'development') {
       console.log('[Monitoring] Service initialized in development mode');
     }
 
-    // TODO: Initialize actual monitoring service (Sentry, etc.)
-    // Sentry.init({
-    //   dsn: config.dsn,
-    //   environment: config.environment,
-    //   enablePerformanceMonitoring: config.enablePerformanceMonitoring,
-    // });
+    // Initialize Sentry if available and DSN is provided
+    if (Sentry && config.dsn) {
+      try {
+        Sentry.init({
+          dsn: config.dsn,
+          environment: config.environment,
+          enableAutoSessionTracking: true,
+          enableNativeCrashHandling: true,
+          tracesSampleRate: config.enablePerformanceMonitoring ? 1.0 : 0.0,
+          beforeSend(event) {
+            // Don't send events in development unless explicitly enabled
+            if (config.environment === 'development' && !config.enableErrorTracking) {
+              return null;
+            }
+            return event;
+          },
+        });
+        console.log('[Monitoring] Sentry initialized successfully');
+      } catch (error) {
+        console.error('[Monitoring] Failed to initialize Sentry:', error);
+      }
+    } else if (!config.dsn) {
+      console.log('[Monitoring] Sentry DSN not provided, using console fallback');
+    }
   }
 
   /**
@@ -44,8 +78,14 @@ class MonitoringService {
 
     console.error('[Monitoring] Exception:', error, context);
 
-    // TODO: Send to monitoring service
-    // Sentry.captureException(error, { extra: context });
+    // Send to Sentry if available
+    if (Sentry) {
+      try {
+        Sentry.captureException(error, { extra: context });
+      } catch (e) {
+        console.error('[Monitoring] Failed to send exception to Sentry:', e);
+      }
+    }
   }
 
   /**
@@ -59,8 +99,14 @@ class MonitoringService {
 
     console.log(`[Monitoring] ${level.toUpperCase()}:`, message);
 
-    // TODO: Send to monitoring service
-    // Sentry.captureMessage(message, level);
+    // Send to Sentry if available
+    if (Sentry) {
+      try {
+        Sentry.captureMessage(message, level);
+      } catch (e) {
+        console.error('[Monitoring] Failed to send message to Sentry:', e);
+      }
+    }
   }
 
   /**
@@ -74,8 +120,19 @@ class MonitoringService {
 
     console.log('[Monitoring] Event:', eventName, properties);
 
-    // TODO: Send to analytics service
-    // Analytics.track(eventName, properties);
+    // Send to Sentry as a breadcrumb for context
+    if (Sentry) {
+      try {
+        Sentry.addBreadcrumb({
+          category: 'user',
+          message: eventName,
+          level: 'info',
+          data: properties,
+        });
+      } catch (e) {
+        console.error('[Monitoring] Failed to add breadcrumb to Sentry:', e);
+      }
+    }
   }
 
   /**
@@ -89,8 +146,14 @@ class MonitoringService {
 
     console.log('[Monitoring] User context set:', user);
 
-    // TODO: Set user context in monitoring service
-    // Sentry.setUser(user);
+    // Set user context in Sentry if available
+    if (Sentry) {
+      try {
+        Sentry.setUser(user);
+      } catch (e) {
+        console.error('[Monitoring] Failed to set user in Sentry:', e);
+      }
+    }
   }
 
   /**
@@ -104,8 +167,14 @@ class MonitoringService {
 
     console.log('[Monitoring] User context cleared');
 
-    // TODO: Clear user context in monitoring service
-    // Sentry.setUser(null);
+    // Clear user context in Sentry if available
+    if (Sentry) {
+      try {
+        Sentry.setUser(null);
+      } catch (e) {
+        console.error('[Monitoring] Failed to clear user in Sentry:', e);
+      }
+    }
   }
 
   /**
@@ -120,14 +189,28 @@ class MonitoringService {
     const startTime = Date.now();
     console.log('[Monitoring] Transaction started:', name);
 
-    // TODO: Start actual transaction
-    // const transaction = Sentry.startTransaction({ name });
+    // Start Sentry transaction if available and performance monitoring is enabled
+    let transaction: any = null;
+    if (Sentry && this.config?.enablePerformanceMonitoring) {
+      try {
+        transaction = Sentry.startTransaction({ name });
+      } catch (e) {
+        console.error('[Monitoring] Failed to start Sentry transaction:', e);
+      }
+    }
 
     return {
       finish: () => {
         const duration = Date.now() - startTime;
         console.log(`[Monitoring] Transaction finished: ${name} (${duration}ms)`);
-        // transaction.finish();
+        
+        if (transaction) {
+          try {
+            transaction.finish();
+          } catch (e) {
+            console.error('[Monitoring] Failed to finish Sentry transaction:', e);
+          }
+        }
       },
     };
   }

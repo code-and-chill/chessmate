@@ -8,6 +8,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Game } from '../types/Game';
 import { useFetchNowPlayingUseCase } from './useFetchNowPlayingUseCase';
+import { mapGameStatesToGames } from '../utils/gameMapper';
 
 export interface UseNowPlayingReturn {
   games: Game[];
@@ -45,8 +46,9 @@ export const useNowPlaying = (userId?: string): UseNowPlayingReturn => {
     setError(null);
     try {
       const activeGames = await fetchNowPlayingUseCase.execute(userId);
-      // TODO: Map GameState[] to Game[] when API provides this endpoint
-      setGames([]);
+      // Map GameState[] to Game[] using mapper utility
+      const mappedGames = mapGameStatesToGames(activeGames);
+      setGames(mappedGames);
     } catch (err) {
       setError(err instanceof Error ? err : new Error(String(err)));
     } finally {

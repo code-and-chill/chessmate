@@ -96,18 +96,15 @@ export interface UserPreferences {
   confirm_moves: boolean;                 // Require move confirmation
   default_time_control: 'bullet' | 'blitz' | 'rapid' | 'classical';  // Default game type
   auto_queen_promotion: boolean;          // Auto-promote pawns to queen
-  
-  // Frontend-only fields (TODO: Move to backend or separate state)
-  // These are not persisted to account-api yet
-  vibration?: boolean;                    // Haptic feedback (mobile only)
-  piece_animation?: boolean;              // Piece movement animation
-  
-  // Analysis preferences (TODO: Add to backend)
-  post_game_analysis?: 'manual' | 'automatic' | 'off';
-  show_engine_lines?: boolean;
-  evaluation_bar?: boolean;
-  best_move_hints?: 'never' | 'after_game' | 'always';
 }
+
+/**
+ * Note: Frontend-only preferences (vibration, piece_animation, analysis settings)
+ * have been moved to @/features/settings/types/frontend-only.ts
+ * 
+ * Use CombinedUserPreferences from frontend-only.ts if you need both backend
+ * and frontend-only preferences together.
+ */
 
 /**
  * Helper to convert backend preferences to UI-friendly grouped format

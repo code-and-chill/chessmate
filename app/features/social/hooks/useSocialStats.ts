@@ -7,6 +7,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useSocialRepository } from './useSocialRepository';
+import { useApiClients } from '@/contexts/ApiContext';
+import { useAuth } from '@/contexts/AuthContext';
 import type { SocialStats } from '@/types/social';
 
 interface UseSocialStatsResult {
@@ -26,12 +28,15 @@ interface UseSocialStatsResult {
  */
 export function useSocialStats(userId?: string): UseSocialStatsResult {
   const socialRepository = useSocialRepository();
+  const { socialApi, ratingApi } = useApiClients();
+  const { user } = useAuth();
+  const effectiveUserId = userId || user?.id;
   const [stats, setStats] = useState<SocialStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchStats = useCallback(async () => {
-    if (!userId) {
+    if (!effectiveUserId) {
       setLoading(false);
       return;
     }
@@ -41,21 +46,55 @@ export function useSocialStats(userId?: string): UseSocialStatsResult {
 
     try {
       // Get friends to calculate online count
-      const friends = await socialRepository.getFriends(userId);
+      const friends = await socialRepository.getFriends(effectiveUserId);
       const onlineFriends = friends.filter((f) => f.online).length;
 
-      // TODO: Get unread messages count from messaging service
-      // TODO: Get club membership count
-      // TODO: Get global/friend/club ranks
+      // Get unread messages count from conversations
+      let unreadMessages = 0;
+      try {
+        const conversations = await socialApi.getConversations(effectiveUserId);
+        unreadMessages = conversations.reduce((sum, conv) => sum + (conv.unreadCount || 0), 0);
+      } catch (err) {
+        console.warn('Failed to fetch conversations for unread count:', err);
+      }
+
+      // Get club membership count
+      let clubs = 0;
+      try {
+        const myClubs = await socialApi.getMyClubs(effectiveUserId);
+        clubs = myClubs.length;
+      } catch (err) {
+        console.warn('Failed to fetch clubs:', err);
+      }
+
+      // Get ranks from leaderboards (using blitz as default time control)
+      let globalRank: number | undefined;
+      let friendRank: number | undefined;
+      let clubRank: number | undefined;
+      
+      try {
+        const [globalLeaderboard, friendsLeaderboard, clubLeaderboard] = await Promise.all([
+          ratingApi.getLeaderboard('global', 'blitz', 1000).catch(() => []),
+          ratingApi.getLeaderboard('friends', 'blitz', 1000).catch(() => []),
+          ratingApi.getLeaderboard('club', 'blitz', 1000).catch(() => []),
+        ]);
+
+        // Find user's rank in each leaderboard
+        globalRank = globalLeaderboard.findIndex((entry) => entry.userId === effectiveUserId) + 1 || undefined;
+        friendRank = friendsLeaderboard.findIndex((entry) => entry.userId === effectiveUserId) + 1 || undefined;
+        clubRank = clubLeaderboard.findIndex((entry) => entry.userId === effectiveUserId) + 1 || undefined;
+      } catch (err) {
+        console.warn('Failed to fetch leaderboards for ranks:', err);
+      }
 
       setStats({
         onlineFriends,
         totalFriends: friends.length,
-        clubs: 3, // Mock for now
-        unreadMessages: 5, // Mock for now
-        globalRank: 1247,
-        friendRank: 7,
-        clubRank: 5,
+        clubs,
+        unreadMessages,
+        globalRank: globalRank || undefined,
+        friendRank: friendRank || undefined,
+        clubRank: clubRank || undefined,
       });
     } catch (err) {
       setError(
@@ -65,7 +104,7 @@ export function useSocialStats(userId?: string): UseSocialStatsResult {
     } finally {
       setLoading(false);
     }
-  }, [userId, socialRepository]);
+  }, [effectiveUserId, socialRepository, socialApi, ratingApi]);
 
   useEffect(() => {
     fetchStats();

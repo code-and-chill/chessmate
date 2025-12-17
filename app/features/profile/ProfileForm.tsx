@@ -2,11 +2,13 @@
 import { useState } from 'react';
 import { VStack, Text, Button, Input, Avatar } from '@/ui';
 import { useAuth } from '@/contexts/AuthContext';
+import { useApiClients } from '@/contexts/ApiContext';
 import { useI18n } from '@/i18n/I18nContext';
 import { useColors } from '@/ui/hooks/useThemeTokens';
 
 export const ProfileForm: React.FC = () => {
   const { user } = useAuth();
+  const { accountApi } = useApiClients();
   const { t } = useI18n();
   const colors = useColors();
   const [username, setUsername] = useState(user?.username || '');
@@ -16,18 +18,24 @@ export const ProfileForm: React.FC = () => {
   const [error, setError] = useState('');
 
   const handleSave = async () => {
+    if (!user?.id) {
+      setError('User not authenticated');
+      return;
+    }
+
     setSaving(true);
     setError('');
     setSuccess(false);
     try {
-      // TODO: Implement profile update logic (e.g., call API)
-      // For now, just simulate success
-      setTimeout(() => {
-        setSuccess(true);
-        setSaving(false);
-      }, 1000);
+      await accountApi.updateProfile(user.id, {
+        username: username.trim(),
+        email: email.trim(),
+      });
+      setSuccess(true);
+      // Optionally refresh user data from auth context
     } catch (err) {
-      setError('Failed to update profile');
+      setError(err instanceof Error ? err.message : 'Failed to update profile');
+    } finally {
       setSaving(false);
     }
   };

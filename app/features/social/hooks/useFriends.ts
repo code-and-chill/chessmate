@@ -6,6 +6,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useFetchFriendsUseCase } from './useFetchFriendsUseCase';
+import { useApiClients } from '@/contexts/ApiContext';
 import type { Friend } from '@/types/social';
 
 interface UseFriendsResult {
@@ -22,6 +23,7 @@ interface UseFriendsResult {
  */
 export function useFriends(userId?: string): UseFriendsResult {
   const fetchFriendsUseCase = useFetchFriendsUseCase();
+  const { matchmakingApi } = useApiClients();
   const [friends, setFriends] = useState<Friend[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -47,9 +49,18 @@ export function useFriends(userId?: string): UseFriendsResult {
   }, [userId, fetchFriendsUseCase]);
 
   const challengeFriend = useCallback(async (friendId: string) => {
-    // TODO: Integrate with matchmaking-api to create challenge
-    console.log('Challenge friend:', friendId);
-  }, []);
+    if (!userId) {
+      throw new Error('User not authenticated');
+    }
+
+    try {
+      // Default time control: 10+0 (10 minutes, no increment)
+      await matchmakingApi.createFriendChallenge(userId, friendId, '10+0');
+    } catch (err) {
+      console.error('Error challenging friend:', err);
+      throw err;
+    }
+  }, [userId, matchmakingApi]);
 
   useEffect(() => {
     fetchFriends();

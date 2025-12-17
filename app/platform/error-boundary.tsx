@@ -48,8 +48,17 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       this.props.onError(error, errorInfo);
     }
 
-    // TODO: Send to error monitoring service (Sentry, etc.)
-    // Sentry.captureException(error, { extra: errorInfo });
+    // Send to error monitoring service (Sentry, etc.)
+    try {
+      const { monitoring } = require('./monitoring');
+      monitoring.captureException(error, {
+        componentStack: errorInfo.componentStack,
+        errorBoundary: true,
+      });
+    } catch (e) {
+      // Monitoring service not available, error already logged to console
+      console.warn('Failed to send error to monitoring service:', e);
+    }
   }
 
   resetError = (): void => {

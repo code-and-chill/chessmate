@@ -11,7 +11,7 @@ import Animated, {
   useAnimatedStyle,
   withSpring,
 } from 'react-native-reanimated';
-import { Text, colorTokens, getColor } from '@/ui';
+import { Text, colorTokens, getColor, useThemeTokens } from '@/ui';
 
 export type EvaluationBarProps = {
   /**
@@ -87,6 +87,7 @@ export const EvaluationBar: React.FC<EvaluationBarProps> = ({
   height = 400,
   isDark = false,
 }) => {
+  const { colors } = useThemeTokens();
   const percentage = evaluationToPercentage(evaluation);
   
   const whiteHeight = useAnimatedStyle(() => {
@@ -100,13 +101,15 @@ export const EvaluationBar: React.FC<EvaluationBarProps> = ({
 
   const whiteColor = getColor(colorTokens.neutral[50], isDark);
   const blackColor = getColor(colorTokens.neutral[900], isDark);
+  const borderColor = colors.border;
+  const centerLineColor = getColor(colorTokens.neutral[400], isDark);
   
   const displayScore = formatEvaluation(evaluation, isMate, mateIn);
   const scoreColor = evaluation > 0 ? whiteColor : blackColor;
   const scorePosition = percentage > 50 ? 'bottom' : 'top';
 
   return (
-    <View style={[styles.container, { width, height }]}>
+    <View style={[styles.container, { width, height, borderColor }]}>
       {/* Black section (top) */}
       <View style={[styles.section, { backgroundColor: blackColor }]}>
         {showScore && scorePosition === 'top' && (
@@ -147,7 +150,7 @@ export const EvaluationBar: React.FC<EvaluationBarProps> = ({
       </Animated.View>
       
       {/* Center line */}
-      <View style={styles.centerLine} />
+      <View style={[styles.centerLine, { backgroundColor: centerLineColor }]} />
     </View>
   );
 };
@@ -160,7 +163,6 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: '#D1D5DB', // Note: This should be dynamically set via props or styled-components for theme support
   },
   
   section: {
@@ -189,7 +191,6 @@ const styles = StyleSheet.create({
     right: 0,
     top: '50%',
     height: 2,
-    backgroundColor: '#9CA3AF', // Note: This should be dynamically set via props or styled-components for theme support
     opacity: 0.5,
   },
 });

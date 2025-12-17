@@ -20,6 +20,7 @@ import { spacingTokens, spacingScale } from '../../tokens/spacing';
 import { radiusTokens } from '../../tokens/radii';
 import { microInteractions } from '../../tokens/motion';
 import { colorTokens, getColor } from '../../tokens/colors';
+import { useThemeTokens } from '../../hooks/useThemeTokens';
 
 // ==================== TYPES ====================
 
@@ -68,6 +69,7 @@ export const GameCard: React.FC<GameCardProps> = ({
   onPress,
   isDark = false,
 }) => {
+  const { colors } = useThemeTokens();
   const scale = useSharedValue(1);
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -161,7 +163,7 @@ export const GameCard: React.FC<GameCardProps> = ({
               </Text>
             </View>
             {currentTurn === 'white' && status === 'active' && (
-              <View style={styles.turnIndicator} />
+              <View style={[styles.turnIndicator, { backgroundColor: colors.success }]} />
             )}
           </View>
 
@@ -190,14 +192,14 @@ export const GameCard: React.FC<GameCardProps> = ({
               </Text>
             </View>
             {currentTurn === 'black' && status === 'active' && (
-              <View style={styles.turnIndicator} />
+              <View style={[styles.turnIndicator, { backgroundColor: colors.success }]} />
             )}
           </View>
         </View>
 
         {/* Footer: Move info */}
         {(lastMove || moveCount !== undefined) && (
-          <View style={styles.footer}>
+          <View style={[styles.footer, { borderTopColor: colors.border }]}>
             {moveCount !== undefined && (
               <Text size="sm" color={getColor(colorTokens.neutral[600], isDark)}>
                 Move {moveCount}
@@ -253,7 +255,6 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#22C55E', // Note: This should be dynamically set via props or styled-components for theme support
   },
   
   footer: {
@@ -263,6 +264,5 @@ const styles = StyleSheet.create({
     marginTop: spacingScale.md,
     paddingTop: spacingScale.md,
     borderTopWidth: 1,
-    borderTopColor: '#E5E7EB', // Note: This should be dynamically set via props or styled-components for theme support
   },
 });

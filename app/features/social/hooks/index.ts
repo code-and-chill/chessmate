@@ -5,3 +5,6 @@ export * from './useFetchSocialStatsUseCase';
 export * from './useFriends';
 export * from './useLeaderboard';
 export * from './useSocialStats';
+export * from './useAddFriend';
+export * from './useConversations';
+export * from './useClubs';

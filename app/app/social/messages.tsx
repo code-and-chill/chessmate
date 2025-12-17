@@ -16,11 +16,13 @@ import {Card} from '@/ui/primitives/Card';
 import {VStack} from '@/ui/primitives/Stack';
 import {useThemeTokens} from '@/ui/hooks/useThemeTokens';
 import {useSocial} from '@/contexts/SocialContext';
+import {useAuth} from '@/contexts/AuthContext';
 import {Conversation, Message} from "@/types/social";
 
 export default function MessagesScreen() {
   const router = useRouter();
   const { colors } = useThemeTokens();
+  const { user } = useAuth();
   const { getConversations, getConversation, sendMessage, markAsRead, isLoading } = useSocial();
   
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -105,7 +107,7 @@ export default function MessagesScreen() {
   );
 
   const renderMessage = ({ item, index }: { item: Message; index: number }) => {
-    const isOwn = item.from === 'current-user-id'; // TODO: Replace with actual user ID from auth context
+    const isOwn = item.from === (user?.id ?? '');
     
     return (
       <Animated.View

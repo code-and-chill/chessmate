@@ -5,6 +5,7 @@ import { shadowTokens } from '@/ui/tokens/shadows';
 import { spacingTokens } from '@/ui/tokens/spacing';
 import { radiusTokens } from '@/ui/tokens/radii';
 import { useI18n } from '@/i18n/I18nContext';
+import { useConversations } from '../hooks';
 
 export interface MessagesViewProps {
   onBack: () => void;
@@ -14,16 +15,13 @@ export interface MessagesViewProps {
 export function MessagesView({ onBack }: MessagesViewProps) {
   const { colors } = useThemeTokens();
   const { t, ti } = useI18n();
+  const { conversations, loading } = useConversations();
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Mock conversations - TODO: Create useConversations hook when messaging API is available
-  const conversations = [
-    { id: '1', name: 'ChessMaster99', lastMessage: 'Good game! Rematch?', time: '2m ago', unread: 2, avatar: '♔', type: 'direct' },
-    { id: '2', name: 'Chess Enthusiasts', lastMessage: 'Sarah: Tournament starting soon!', time: '15m ago', unread: 5, avatar: '♔', type: 'club' },
-    { id: '3', name: 'TacticsGuru', lastMessage: 'Check out this puzzle', time: '1h ago', unread: 0, avatar: '♕', type: 'direct' },
-    { id: '4', name: 'Blitz Masters', lastMessage: 'Mike: Anyone up for 3+0?', time: '2h ago', unread: 0, avatar: '⚡', type: 'club' },
-    { id: '5', name: 'BlitzQueen', lastMessage: 'Thanks for the tips!', time: '1d ago', unread: 0, avatar: '♛', type: 'direct' },
-  ];
+  const filteredConversations = conversations.filter(conv =>
+    conv.participant?.username?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    conv.lastMessage?.content?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <ScrollView
@@ -36,7 +34,7 @@ export function MessagesView({ onBack }: MessagesViewProps) {
           {t('social.messages')}
         </Text>
         <Text variant="body" color={colors.foreground.secondary}>
-          {ti('social.unread_messages', { count: 5 })}
+          {ti('social.unread_messages', { count: conversations.reduce((sum, c) => sum + (c.unreadCount || 0), 0) })}
         </Text>
       </VStack>
 
@@ -48,16 +46,39 @@ export function MessagesView({ onBack }: MessagesViewProps) {
         variant="default"
       />
 
-      <VStack gap={3} marginTop={3}>
-        {conversations.map(conv => (
-          <ChatPreview key={conv.id} {...conv} colors={colors} />
-        ))}
-      </VStack>
+      {loading ? (
+        <Text variant="body" color={colors.foreground.secondary} style={{ textAlign: 'center', marginTop: spacingTokens[8] }}>
+          {t('social.loading_messages', 'Loading messages...')}
+        </Text>
+      ) : (
+        <VStack gap={3} marginTop={3}>
+          {filteredConversations.length === 0 ? (
+            <Text variant="body" color={colors.foreground.secondary} style={{ textAlign: 'center', marginTop: spacingTokens[8] }}>
+              {t('social.no_conversations', 'No conversations found')}
+            </Text>
+          ) : (
+            filteredConversations.map(conv => (
+              <ChatPreview key={conv.id} conversation={conv} colors={colors} />
+            ))
+          )}
+        </VStack>
+      )}
     </ScrollView>
   );
 }
 
-function ChatPreview({ name, lastMessage, time, unread, avatar, colors }: any) {
+function ChatPreview({ conversation, colors }: { conversation: import('@/types/social').Conversation; colors: any }) {
+  const unread = conversation.unreadCount || 0;
+  const name = conversation.participant?.username || 'Unknown';
+  const lastMessage = conversation.lastMessage?.content || 'No messages yet';
+  const time = conversation.lastMessage?.sentAt
+    ? new Date(conversation.lastMessage.sentAt).toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+    : '';
+  const avatar = conversation.participant?.username?.[0]?.toUpperCase() || '?';
+
   return (
     <InteractivePressable
       style={[

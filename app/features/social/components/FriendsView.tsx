@@ -4,11 +4,11 @@
  */
 
 import { useState } from 'react';
-import { SafeAreaView, ScrollView } from 'react-native';
+import { SafeAreaView, ScrollView, Alert } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { Card } from '@/ui/primitives/Card';
 import { VStack, HStack, InteractivePressable, useThemeTokens, Text, Box, Button, Input } from '@/ui';
-import { useFriends } from '../hooks';
+import { useFriends, useAddFriend } from '../hooks';
 import type { Friend } from '@/types/social';
 import { useI18n } from '@/i18n/I18nContext';
 import { spacingTokens } from '@/ui/tokens/spacing';
@@ -23,14 +23,35 @@ export interface FriendsViewProps {
 export function FriendsView({ onBack, userId }: FriendsViewProps) {
   const { colors } = useThemeTokens();
   const { t, ti } = useI18n();
-  const { friends, loading, challengeFriend } = useFriends(userId);
+  const { friends, loading, challengeFriend, refetch } = useFriends(userId);
+  const { sendFriendRequest, loading: addingFriend } = useAddFriend();
   const [searchQuery, setSearchQuery] = useState('');
+  const [friendUsername, setFriendUsername] = useState('');
 
   const filteredFriends = friends.filter(f =>
     f.username.toLowerCase().includes(searchQuery.toLowerCase())
   );
   const onlineFriends = filteredFriends.filter(f => f.online);
   const offlineFriends = filteredFriends.filter(f => !f.online);
+
+  const handleAddFriend = async () => {
+    if (!friendUsername.trim()) {
+      Alert.alert(t('social.error', 'Error'), t('social.enter_username', 'Please enter a username'));
+      return;
+    }
+
+    try {
+      await sendFriendRequest(friendUsername.trim());
+      Alert.alert(t('social.success', 'Success'), t('social.friend_request_sent', 'Friend request sent!'));
+      setFriendUsername('');
+      refetch(); // Refresh friends list
+    } catch (error) {
+      Alert.alert(
+        t('social.error', 'Error'),
+        error instanceof Error ? error.message : t('social.failed_to_send_request', 'Failed to send friend request')
+      );
+    }
+  };
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background.primary }}>
@@ -60,9 +81,18 @@ export function FriendsView({ onBack, userId }: FriendsViewProps) {
                   placeholderTextColor={colors.foreground.muted}
                   variant="default"
                 />
-                <Button onPress={() => { /* TODO add friend */ }}>
-                  + {t('social.add_friend')}
-                </Button>
+                <VStack gap={2}>
+                  <Input
+                    value={friendUsername}
+                    onChangeText={setFriendUsername}
+                    placeholder={t('social.enter_username', 'Enter username')}
+                    placeholderTextColor={colors.foreground.muted}
+                    variant="default"
+                  />
+                  <Button onPress={handleAddFriend} isLoading={addingFriend}>
+                    + {t('social.add_friend')}
+                  </Button>
+                </VStack>
               </VStack>
             </Card>
           </Animated.View>
