@@ -31,7 +31,19 @@ class Settings(BaseSettings):
     OUTBOX_NATS_URL: str | None = None
     OUTBOX_PUBLISH_INTERVAL_SEC: float = 0.5
 
+    # Kafka Event Consumption
+    KAFKA_BOOTSTRAP_SERVERS: str = "localhost:9092"
+    KAFKA_GAME_EVENTS_TOPIC: str = "game-events"
+    KAFKA_CONSUMER_GROUP_ID: str = "rating-api-consumer"
+    KAFKA_CONSUMER_ENABLED: bool = True
+    KAFKA_CONSUMER_AUTO_COMMIT: bool = True
+
     ALLOWED_HOSTS: list[str] = ["*"]
+
+    # OpenTelemetry
+    OTEL_EXPORTER_OTLP_ENDPOINT: str | None = None  # e.g., "http://localhost:4317"
+    OTEL_SERVICE_NAME: str = "rating-api"
+    OTEL_TRACES_EXPORTER: str = "otlp"
 
     class Config:
         env_file = ".env"

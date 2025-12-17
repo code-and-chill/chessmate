@@ -22,12 +22,17 @@ from app.infrastructure.database import get_db_session
 router = APIRouter(prefix="/v1", tags=["ingestion"])
 
 
-@router.post("/game-results", response_model=GameResultOut)
-async def ingest_game_result(
+async def ingest_game_result_internal(
     body: GameResultIn,
-    _: None = Depends(require_auth),
-    db: AsyncSession = Depends(get_db_session),
-):
+    db: AsyncSession,
+) -> GameResultOut:
+    import time
+    from app.core.metrics import (
+        rating_update_latency_seconds,
+        rating_updates_total,
+    )
+
+    start_time = time.time()
     settings = get_settings()
     pool = (await db.execute(select(RatingPool).where(RatingPool.code == body.pool_id))).scalar_one_or_none()
     if not pool:
@@ -55,7 +60,10 @@ async def ingest_game_result(
                     RatingIngestion.game_id == body.game_id, RatingIngestion.pool_code == body.pool_id
                 )
             )
-        ).scalar_one()
+        ).scalar_one_or_none()
+        if not existing:
+            # This shouldn't happen, but handle it
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Processing conflict")
         if existing.white_rating_after is None or existing.black_rating_after is None:
             # In-flight or previous failure – treat as conflict
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Processing in progress")
@@ -169,6 +177,13 @@ async def ingest_game_result(
     ingestion.white_rating_after = w_after.rating
     ingestion.black_rating_after = b_after.rating
 
+    # Update leaderboards (only for rated games)
+    if body.rated:
+        from app.infrastructure.leaderboard_service import get_leaderboard_service
+        leaderboard_service = get_leaderboard_service()
+        await leaderboard_service.update_leaderboard(pool.id, body.white_user_id, w_after.rating, db)
+        await leaderboard_service.update_leaderboard(pool.id, body.black_user_id, b_after.rating, db)
+
     if settings.OUTBOX_ENABLED:
         for uid, after in ((body.white_user_id, w_after), (body.black_user_id, b_after)):
             payload = json.dumps(
@@ -193,8 +208,23 @@ async def ingest_game_result(
 
     await db.commit()
 
+    # Record metrics (only for rated games)
+    latency = time.time() - start_time
+    rating_update_latency_seconds.observe(latency)
+    rating_updates_total.labels(pool_id=body.pool_id).inc()
+
     return GameResultOut(
         game_id=body.game_id,
         white_rating_after=w_after.rating,
         black_rating_after=b_after.rating,
     )
+
+
+@router.post("/game-results", response_model=GameResultOut)
+async def ingest_game_result(
+    body: GameResultIn,
+    _: None = Depends(require_auth),
+    db: AsyncSession = Depends(get_db_session),
+) -> GameResultOut:
+    """HTTP endpoint for game result ingestion (deprecated, use Kafka events)."""
+    return await ingest_game_result_internal(body, db)
