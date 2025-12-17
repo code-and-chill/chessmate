@@ -41,6 +41,9 @@ class Settings(BaseSettings):
     LIVE_GAME_API_URL: str = "http://live-game-api:8002"
     LIVE_GAME_API_TIMEOUT_SECONDS: float = 5.0
 
+    # Rate Limiting
+    RATE_LIMIT_ENABLED: bool = True
+
     # Rating API (internal service)
     RATING_API_URL: str = "http://rating-api:8013"
     RATING_API_TIMEOUT_SECONDS: float = 3.0
@@ -66,6 +69,17 @@ class Settings(BaseSettings):
     # Observability
     LOG_LEVEL: str = "INFO"
     CORRELATION_ID_HEADER: str = "X-Correlation-ID"
+    OTEL_EXPORTER_OTLP_ENDPOINT: Optional[str] = None  # e.g., "http://localhost:4317"
+    OTEL_SERVICE_NAME: str = "matchmaking-api"
+    OTEL_TRACES_EXPORTER: str = "otlp"
+
+    # Kafka Event Publishing
+    KAFKA_BOOTSTRAP_SERVERS: str = "localhost:9092"
+    KAFKA_MATCHMAKING_MATCHES_TOPIC: str = "matchmaking.matches"
+    KAFKA_ENABLED: bool = True
+    KAFKA_PRODUCER_RETRIES: int = 3
+    KAFKA_PRODUCER_ACKS: str = "all"  # Wait for all replicas to acknowledge
+    KAFKA_PRODUCER_MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION: int = 1  # Ensure ordering
 
     class Config:
         env_file = ".env"

@@ -1,5 +1,6 @@
 """Matchmaking logic service."""
 import logging
+import time
 import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Optional
@@ -8,6 +9,7 @@ from app.clients.rating_client import PlayerRating, RatingAPIClient
 from app.core.config import get_settings
 from app.domain.models import (
     HardConstraints,
+    MatchCreatedEvent,
     MatchRecord,
     Player,
     QueueEntryStatus,
@@ -21,6 +23,12 @@ from app.domain.repositories.match_record import MatchRecordRepository
 from app.domain.repositories.queue_store import QueueStoreRepository
 from app.domain.utils.time_control import rating_pool_id_from_constraints
 from app.infrastructure.external.live_game_api import LiveGameAPIClient
+from app.infrastructure.resilience.circuit_breaker import CircuitBreakerOpenError
+from app.infrastructure.queues.failed_matches_queue import FailedMatchesQueue, FailedMatch
+from app.core.metrics import (
+    matchmaking_match_latency_seconds,
+    matchmaking_matches_created_total,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +45,7 @@ class MatchmakingService:
         match_repo: MatchRecordRepository,
         live_game_api: LiveGameAPIClient,
         rating_api: RatingAPIClient,
+        event_publisher = None,
     ) -> None:
         """Initialize matchmaking service.
 
@@ -44,11 +53,14 @@ class MatchmakingService:
             queue_store: Queue storage repository
             match_repo: Match record repository
             live_game_api: Live game API client
+            rating_api: Rating API client
+            event_publisher: Event publisher for Kafka events
         """
         self.queue_store = queue_store
         self.match_repo = match_repo
         self.live_game_api = live_game_api
         self.rating_api = rating_api
+        self.event_publisher = event_publisher
         self.settings = get_settings()
 
     async def enqueue_player(
@@ -247,6 +259,7 @@ class MatchmakingService:
         Returns:
             True if game created successfully
         """
+        start_time = time.time()
         match_id = f"m_{uuid.uuid4().hex[:12]}"
 
         # Randomly assign white/black
@@ -272,6 +285,26 @@ class MatchmakingService:
                     "region": region,
                 },
             )
+        except CircuitBreakerOpenError as e:
+            # Circuit breaker is open - queue for retry
+            logger.warning(f"Circuit breaker open, queueing match for retry: {str(e)}")
+            if self.failed_matches_queue:
+                failed_match = FailedMatch(
+                    tenant_id=entry1.tenant_id,
+                    white_user_id=white_entry.players[0].user_id,
+                    black_user_id=black_entry.players[0].user_id,
+                    time_control=entry1.hard_constraints.time_control,
+                    mode=entry1.hard_constraints.mode,
+                    variant=entry1.hard_constraints.variant,
+                    rating_snapshot={"white": white_rating, "black": black_rating},
+                    metadata={"matchmaking_source": "auto", "region": region},
+                    failure_reason=f"Circuit breaker open: {str(e)}",
+                    match_id=match_id,
+                )
+                await self.failed_matches_queue.enqueue(failed_match)
+            # Don't update queue entries as failed - they'll be retried
+            return False
+        except Exception as e:
 
             # Create match record
             rating_snapshot = RatingSnapshot(white=white_rating, black=black_rating)
@@ -298,6 +331,22 @@ class MatchmakingService:
             await self.queue_store.update_entry_status(
                 entry2.queue_entry_id, QueueEntryStatus.MATCHED, game_id
             )
+
+            # Publish MatchCreated event
+            if self.event_publisher:
+                match_created_event = MatchCreatedEvent(
+                    match_id=match_id,
+                    white_player_id=white_entry.players[0].user_id,
+                    black_player_id=black_entry.players[0].user_id,
+                    game_id=game_id,
+                    time_control=entry1.hard_constraints.time_control,
+                )
+                self.event_publisher.publish_match_created(match_created_event)
+
+            # Record metrics
+            latency = time.time() - start_time
+            matchmaking_match_latency_seconds.observe(latency)
+            matchmaking_matches_created_total.inc()
 
             logger.info(
                 f"Created match {match_id} with game_id {game_id}",

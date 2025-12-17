@@ -15,6 +15,13 @@ from app.api.routes.tickets import router as tickets_router
 from app.api.routes.v1.queue import router as v1_queue_router
 from app.core.config import get_settings
 from app.core.exceptions import setup_exception_handlers
+from app.core.tracing import (
+    instrument_fastapi,
+    instrument_httpx,
+    instrument_sqlalchemy,
+    setup_tracing,
+)
+from app.api.middleware.metrics import MetricsMiddleware
 from app.infrastructure.database.connection import database_manager
 from app.infrastructure.external.live_game_api import LiveGameAPIClient
 from app.infrastructure.repositories.postgres_challenge_repo import (
@@ -124,8 +131,17 @@ def create_app() -> FastAPI:
         allowed_hosts=settings.ALLOWED_HOSTS,
     )
 
+    # Add metrics middleware
+    app.add_middleware(MetricsMiddleware)
+
     # Exception handlers
     setup_exception_handlers(app)
+
+    # Initialize observability
+    setup_tracing()
+    instrument_fastapi(app)
+    instrument_httpx()
+    instrument_sqlalchemy()
 
     # Health check
     @app.get("/health")
@@ -136,6 +152,16 @@ def create_app() -> FastAPI:
             "service": settings.SERVICE_NAME,
             "version": settings.VERSION,
         }
+
+    # Metrics endpoint
+    @app.get("/metrics")
+    async def metrics():
+        """Prometheus metrics endpoint."""
+        from fastapi import Response
+        from app.core.metrics import get_metrics_response
+
+        metrics_data, content_type = get_metrics_response()
+        return Response(content=metrics_data, media_type=content_type)
 
     # Routes
     app.include_router(v1_queue_router)
