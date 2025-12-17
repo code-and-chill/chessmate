@@ -2,6 +2,11 @@
 
 > Chess application platform built with microservices and real-time gaming capabilities.
 
+<img width="1680" height="911" alt="image" src="https://github.com/user-attachments/assets/e4bcb9d6-b4c4-42c6-b55b-a0f5e0be36fd" />
+
+<img width="1680" height="911" alt="image" src="https://github.com/user-attachments/assets/703615fd-ba11-4bd2-98cc-81eac17563da" />
+
+
 ## Quick Start
 
 ### 1. Clone & Setup Environment (Required First Step)
