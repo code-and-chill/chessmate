@@ -151,14 +151,15 @@ export const EvalBar: React.FC<EvalBarProps> = ({
       backgroundColor = safeEqualColor;
     }
     
+    // Use clamped percentage for dimensions to prevent layout issues
     if (orientation === 'vertical') {
       return {
-        height: `${percentage.value}%`,
+        height: `${clampedPercentage}%`,
         backgroundColor,
       };
     } else {
       return {
-        width: `${percentage.value}%`,
+        width: `${clampedPercentage}%`,
         backgroundColor,
       };
     }

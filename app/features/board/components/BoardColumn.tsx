@@ -72,10 +72,18 @@ export function BoardColumn({
   const boardSizeFinal = useMemo(() => boardSize ?? layout.boardSize, [boardSize, layout.boardSize]);
   const squareSizeFinal = useMemo(() => squareSize ?? layout.squareSize, [squareSize, layout.squareSize]);
   const compactFinal = useMemo(() => (typeof isCompact !== 'undefined' ? isCompact : !layout.isHorizontalLayout), [isCompact, layout.isHorizontalLayout]);
+  const evalBarWidth = 32;
+  const hasEvalBar = showEvaluation && evaluation !== null;
+  const totalSectionWidth = useMemo(() => {
+    if (hasEvalBar) {
+      return evalBarWidth + spacingTokens[2] + boardSizeFinal;
+    }
+    return boardSizeFinal;
+  }, [hasEvalBar, boardSizeFinal]);
 
   return (
     <VStack flex={flex} gap={spacingTokens[1]} style={styles.container}>
-      <Animated.View entering={anim(0)} layout={Layout.springify()} style={{ width: boardSizeFinal }}>
+      <Animated.View entering={anim(0)} layout={Layout.springify()} style={{ width: totalSectionWidth }}>
         <PlayerCard
           color="b"
           name="Opponent"
@@ -88,7 +96,7 @@ export function BoardColumn({
         />
       </Animated.View>
 
-      <Animated.View entering={anim(50)} layout={Layout.springify()}>
+      <Animated.View entering={anim(50)} layout={Layout.springify()} style={{ width: totalSectionWidth }}>
         <HStack gap={spacingTokens[2]} alignItems="center" justifyContent="center">
           {showEvaluation && evaluation !== null && (
             <EvalBar
@@ -105,7 +113,7 @@ export function BoardColumn({
         </HStack>
       </Animated.View>
 
-      <Animated.View entering={anim(150)} layout={Layout.springify()} style={{ width: boardSizeFinal }}>
+      <Animated.View entering={anim(150)} layout={Layout.springify()} style={{ width: totalSectionWidth }}>
         <PlayerCard
           color="w"
           name="Player"
@@ -119,7 +127,7 @@ export function BoardColumn({
       </Animated.View>
 
       {!compactFinal && (
-        <Animated.View entering={anim(200)} layout={Layout.springify()} style={{ width: boardSizeFinal }}>
+        <Animated.View entering={anim(200)} layout={Layout.springify()} style={{ width: totalSectionWidth }}>
           <GameActions
             status={gameState.status as any}
             result={gameState.result as any}
@@ -144,5 +152,6 @@ const styles = StyleSheet.create({
   container: {
     justifyContent: 'center',
     alignItems: 'center',
+    minWidth: 0, // Allow flex children to shrink below their content size
   },
 });

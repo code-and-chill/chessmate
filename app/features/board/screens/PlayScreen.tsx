@@ -119,11 +119,13 @@ export function PlayScreen({ gameId, initialGame }: PlayScreenProps = {}): React
     );
 
     const {
-        boardSize: BOARD_SIZE,
-        squareSize: SQUARE_SIZE,
+        boardSize: BASE_BOARD_SIZE,
+        squareSize: BASE_SQUARE_SIZE,
         isHorizontalLayout,
         boardColumnFlex,
         movesColumnFlex,
+        effectiveHeight,
+        effectiveWidth,
         onLayout,
     } = useBoardLayout();
 
@@ -209,6 +211,38 @@ export function PlayScreen({ gameId, initialGame }: PlayScreenProps = {}): React
 
     useEffect(() => setShowResultModal(gameState.status === 'ended' && !!gameState.result), [gameState.status, gameState.result]);
 
+    const PLAYER_CARD_HEIGHT = 56;
+    const VERTICAL_GAPS = spacingTokens[1] * 2;
+    const COMFORTABLE_BUFFER = 20;
+    const minRequiredHeight = useMemo(() => {
+        return BASE_BOARD_SIZE + (PLAYER_CARD_HEIGHT * 2) + VERTICAL_GAPS + COMFORTABLE_BUFFER;
+    }, [BASE_BOARD_SIZE]);
+
+    const shouldShowMoveList = useMemo(() => {
+        if (!isHorizontalLayout) {
+            return true;
+        }
+        return effectiveHeight < minRequiredHeight;
+    }, [isHorizontalLayout, effectiveHeight, minRequiredHeight]);
+
+    const { BOARD_SIZE, SQUARE_SIZE } = useMemo(() => {
+        if (!isHorizontalLayout || shouldShowMoveList) {
+            return { BOARD_SIZE: BASE_BOARD_SIZE, SQUARE_SIZE: BASE_SQUARE_SIZE };
+        }
+        
+        const MINIMAL_HORIZONTAL_MARGIN = 8;
+        const availableWidth = effectiveWidth - (MINIMAL_HORIZONTAL_MARGIN * 2);
+        const availableHeight = effectiveHeight - 40 - (8 * 2) - (32 * 2);
+        
+        const maxBoardSize = Math.min(availableWidth * 0.95, availableHeight, 800);
+        const adjustedBoardSize = Math.max(BASE_BOARD_SIZE, Math.min(maxBoardSize, 800));
+        
+        return {
+            BOARD_SIZE: adjustedBoardSize,
+            SQUARE_SIZE: adjustedBoardSize / 8,
+        };
+    }, [isHorizontalLayout, shouldShowMoveList, BASE_BOARD_SIZE, BASE_SQUARE_SIZE, effectiveWidth, effectiveHeight]);
+
     return (
         <SafeAreaView style={[styles.container, {backgroundColor: colors.background.primary}]}>
             <View style={styles.container} onLayout={onLayout}>
@@ -226,12 +260,14 @@ export function PlayScreen({ gameId, initialGame }: PlayScreenProps = {}): React
                             drawOfferPending={gameState.offerPending ?? false}
                             anim={createAnimConfig}
                             isCompact={true}
-                            flex={boardColumnFlex}
+                            flex={shouldShowMoveList ? boardColumnFlex : 1}
                             evaluation={positionAnalysis.evaluation}
                             showEvaluation={showAnalysis}
                         />
 
-                        <MovesColumn moves={gameState.moves} anim={createAnimConfig(100)} flex={movesColumnFlex} />
+                        {shouldShowMoveList && (
+                            <MovesColumn moves={gameState.moves} anim={createAnimConfig(100)} flex={movesColumnFlex} />
+                        )}
                     </Box>
                 ) : (
                     <VStack flex={1} gap={spacingTokens[2]}>
