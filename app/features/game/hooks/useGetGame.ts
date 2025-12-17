@@ -17,7 +17,7 @@ export interface UseGetGameResult {
 export function useGetGame(gameId: string | null | undefined): UseGetGameResult {
   const getGameUseCase = useGetGameUseCase();
   const [game, setGame] = useState<GameState | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => Boolean(gameId));
   const [error, setError] = useState<Error | null>(null);
 
   const fetchGame = useCallback(async () => {
