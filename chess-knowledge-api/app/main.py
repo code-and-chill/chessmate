@@ -9,6 +9,7 @@ from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from app.api.routes.health import router as health_router
 from app.api.routes.v1.opening import router as v1_opening_router
 from app.api.routes.v1.endgame import router as v1_endgame_router
+from app.api.routes.admin.cache import router as admin_cache_router
 from app.core.config import get_settings
 
 
@@ -48,6 +49,17 @@ def create_app() -> FastAPI:
     app.include_router(health_router)
     app.include_router(v1_opening_router, prefix=settings.API_V1_STR)
     app.include_router(v1_endgame_router, prefix=settings.API_V1_STR)
+    app.include_router(admin_cache_router, prefix=settings.API_V1_STR)
+
+    # Metrics endpoint
+    @app.get("/metrics")
+    async def metrics():
+        """Prometheus metrics endpoint."""
+        from fastapi import Response
+        from app.core.metrics import get_metrics_response
+
+        metrics_data, content_type = get_metrics_response()
+        return Response(content=metrics_data, media_type=content_type)
 
     return app
 

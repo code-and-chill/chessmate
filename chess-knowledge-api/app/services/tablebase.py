@@ -5,11 +5,24 @@ import chess
 from app.domain.tablebase import TablebaseRequest, TablebaseResponse
 
 
-async def query_tablebase(request: TablebaseRequest) -> Optional[TablebaseResponse]:
+async def query_tablebase(
+    request: TablebaseRequest,
+    cache: Optional[Any] = None,
+) -> Optional[TablebaseResponse]:
     """
     Query endgame tablebase for a position.
     Returns None if position not in tablebase, or TablebaseResponse.
+    
+    Args:
+        request: TablebaseRequest with FEN
+        cache: Optional KnowledgeCache instance for caching results
     """
+    # Check cache first if enabled
+    if cache:
+        cached_result = await cache.get_tablebase_result(request.fen)
+        if cached_result is not None:
+            return cached_result
+
     # Mock implementation: simple heuristic for common endgames
     board = chess.Board(request.fen)
 
@@ -58,7 +71,13 @@ async def query_tablebase(request: TablebaseRequest) -> Optional[TablebaseRespon
             result = "loss"
             dtm = 15
 
-    return TablebaseResponse(best_move=best_move, result=result, dtm=dtm)
+    tablebase_result = TablebaseResponse(best_move=best_move, result=result, dtm=dtm)
+
+    # Cache result if caching enabled
+    if cache:
+        await cache.set_tablebase_result(request.fen, tablebase_result)
+
+    return tablebase_result
 
 
 def piece_type_value(piece_type: int) -> int:

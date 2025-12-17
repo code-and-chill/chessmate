@@ -19,6 +19,13 @@ class Settings(BaseSettings):
     OPENING_BOOK_PATH: Optional[str] = None
     TABLEBASE_PATH: Optional[str] = None
 
+    # Redis caching
+    REDIS_URL: str = "redis://localhost:6379/0"
+    REDIS_DECODE_RESPONSES: bool = True
+    CACHE_ENABLED: bool = True
+    OPENING_CACHE_TTL_SECONDS: int = 86400  # 24 hours
+    TABLEBASE_CACHE_TTL_SECONDS: int = 86400  # 24 hours
+
     class Config:
         env_file = ".env"
         case_sensitive = True

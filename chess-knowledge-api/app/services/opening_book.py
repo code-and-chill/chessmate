@@ -5,11 +5,24 @@ import chess
 from app.domain.opening_book import BookMove, OpeningBookRequest
 
 
-async def query_opening_book(request: OpeningBookRequest) -> Optional[List[BookMove]]:
+async def query_opening_book(
+    request: OpeningBookRequest,
+    cache: Optional[Any] = None,
+) -> Optional[List[BookMove]]:
     """
     Query opening book for a position.
     Returns None if position not in book, or list of BookMove.
+    
+    Args:
+        request: OpeningBookRequest with FEN and optional depth
+        cache: Optional KnowledgeCache instance for caching results
     """
+    # Check cache first if enabled
+    if cache:
+        cached_result = await cache.get_opening_moves(request.fen, getattr(request, 'depth', None))
+        if cached_result is not None:
+            return cached_result
+
     # Mock implementation: return popular opening moves for starting position
     board = chess.Board(request.fen)
 
@@ -34,20 +47,26 @@ async def query_opening_book(request: OpeningBookRequest) -> Optional[List[BookM
     }
 
     fen_key = request.fen
+    result = None
+    
     if fen_key in mock_books:
-        return mock_books[fen_key]
+        result = mock_books[fen_key]
+    else:
+        # Generate mock moves for any other position in opening phase
+        legal_moves = list(board.legal_moves)[:4]
+        if legal_moves:
+            result = [
+                BookMove(
+                    move=str(move),
+                    weight=0.5 - (i * 0.1),
+                    games=1000 - (i * 200),
+                    win_rate=0.50 - (i * 0.02),
+                )
+                for i, move in enumerate(legal_moves)
+            ]
 
-    # Generate mock moves for any other position in opening phase
-    legal_moves = list(board.legal_moves)[:4]
-    if legal_moves:
-        return [
-            BookMove(
-                move=str(move),
-                weight=0.5 - (i * 0.1),
-                games=1000 - (i * 200),
-                win_rate=0.50 - (i * 0.02),
-            )
-            for i, move in enumerate(legal_moves)
-        ]
+    # Cache result if available and caching enabled
+    if result and cache:
+        await cache.set_opening_moves(request.fen, result, getattr(request, 'depth', None))
 
-    return None
+    return result
